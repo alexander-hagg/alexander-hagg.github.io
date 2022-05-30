@@ -4,7 +4,7 @@ collection: publications
 permalink: /publication/2016-06-01-Multi-stage-evolution-of-single-and-multi-objective-MCLP.md
 excerpt: 'We extend our previous work by including multi-objective optimization of multi-stage charging station placement, allowing us to not only optimize toward (weighted) demand location coverage, but also to include a second objective, taking into account traffic density.'
 date: 2016-06-01
-journal: 'Soft Computing'
+venue: 'Soft Computing'
 paperurl: 'https://hspieker.de/files/Spieker_et_al._-_2017_-_Multi-stage_evolution_of_single-_and_multi-objective_MCLP.pdf'
 citation: 'Spieker, H., Hagg, A., Gaier, A., Meilinger, S., & Asteroth, A. (2017). Multi-stage evolution of single-and multi-objective MCLP. Soft Computing, 21(17), 4859-4872.'
 ---
