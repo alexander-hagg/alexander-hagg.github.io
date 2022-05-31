@@ -16,7 +16,7 @@ My doctoral thesis centers on cocreativity between human engineers and evolution
 
 Quality diversity revolves around the idea that we want to find solutions that vary with respect to certain behavioral feature dimensions, just like nature does.
 
-<img align="right" src="https://alexander-hagg.github.io/images/pub5.png" width="200" height="281">
+<img align="right" src="https://alexander-hagg.github.io/images/pub5.png" width="400">
 
 I take my inspiration from real-world design problems, from computational fluid dynamics, the built environment, computational chemistry and art.
 
