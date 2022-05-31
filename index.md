@@ -14,4 +14,4 @@ My doctoral thesis centers on cocreativity between human engineers and evolution
 
 I take my inspiration from real-world design problems, from computational fluid dynamics, the built environment, computational chemistry and art.
 
-![Book logo](/images/pub2.png)
+<img src="https://alexander-hagg.github.io/images/pub2.png" width="200" height="281">
