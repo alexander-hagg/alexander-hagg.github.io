@@ -13,3 +13,5 @@ I am a nature-inspired researcher with a background in computer science, specifi
 My doctoral thesis centers on cocreativity between human engineers and evolutionary and machine learning algorithms. I am most experienced with multisolution optimization methods like quality diversity, neuroevolution, and machine learning techniques like variational autoencoders and generative adversarial learning.
 
 I take my inspiration from real-world design problems, from computational fluid dynamics, the built environment, computational chemistry and art.
+
+![Book logo](/images/pub2.png)
