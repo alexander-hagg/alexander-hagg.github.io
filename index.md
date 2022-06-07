@@ -14,7 +14,7 @@ I am a nature-inspired researcher with a background in computer science, specifi
 My <b>doctoral thesis</b> centers on cocreativity between human engineers and evolutionary and machine learning algorithms. I am most experienced with multisolution optimization methods like quality diversity, neuroevolution, and machine learning techniques like variational autoencoders and generative adversarial learning.
 
 <img align="right" src="https://alexander-hagg.github.io/images/pub5.png" width="400">
-Quality diversity revolves around the idea that we want to find solutions that vary with respect to certain behavioral feature dimensions, just like nature does.
+<b>Quality diversity</b> revolves around the idea that we want to find solutions that vary with respect to certain behavioral feature dimensions, just like nature does.
 
 I take my inspiration from nature, real-world design problems, from computational fluid dynamics, the built environment, computational chemistry, and art.
 
