@@ -8,7 +8,7 @@ tags:
   - interaction
 ---
 
-<img align="left" src="https://alexander-hagg.github.io/images/sm01.png" width="600">
+<img align="left" src="https://alexander-hagg.github.io/images/sm01.png" width="200">
 
 The Spiegelmaschine project aims to provide an interactive model between painter and machine. The Spiegelmaschine is trained on 1000 paintings by [Steffen Terk](http://steffenterk.com/). 
 
