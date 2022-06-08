@@ -12,3 +12,14 @@ tags:
 The Spiegelmaschine project aims to provide an interactive model between painter and machine. The Spiegelmaschine is trained on 1000 paintings by [Steffen Terk](http://steffenterk.com/). 
 
 An interface provides the ability to generate large numbers of random paintings that look like Steffen went into overdrive. 
+
+The Spiegelmaschine even has a [Twitter](https://twitter.com/spiegelmaschine), so be sure to follow the machine, if you are interested.
+
+
+<img align="left" src="https://alexander-hagg.github.io/images/sm05.png" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm06.png" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm07.png" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm08.png" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm09.png" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm10.png" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm11.png" width="400">
