@@ -9,3 +9,5 @@ location: "Sankt Augustin, Germany"
 ---
 
 Exercise that accompanied the lecture series on abstract algebra and number theory.
+
+Period: 2012

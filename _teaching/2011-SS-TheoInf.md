@@ -9,3 +9,5 @@ location: "Sankt Augustin, Germany"
 ---
 
 This tutorial was given to students that had difficulties understanding the concepts of the theoretical computer science.
+
+Period: 2011

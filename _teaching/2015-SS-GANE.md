@@ -9,3 +9,5 @@ location: "Sankt Augustin, Germany"
 ---
 
 For 10 semesters I gave courses on genetic algorithms and neuroevolution, including lectures and exercises and practical projects. Students implemented GAs, various genetic operators, and learned how to analyze results. In the neurevolution course, students learned how to evolve neural networks. Evolutionary techniques and neural networks were the two corner stones of these courses that I fully built and managed myself.
+
+Period: 2015-2019

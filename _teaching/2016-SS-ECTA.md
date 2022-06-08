@@ -9,3 +9,5 @@ location: "Sankt Augustin, Germany"
 ---
 
 Master's course on evolutionary computation, consisting of genetic algorithms, neuroevolution, genetic programming and the like. Heavily application oriented.
+
+Period: 2016
