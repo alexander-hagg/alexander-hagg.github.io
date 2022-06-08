@@ -1,6 +1,6 @@
 ---
 title: 'Spiegelmaschine'
-date: 2012-08-14
+date: 2022-08-14
 permalink: /posts/2022/06/spiegelmaschine/
 tags:
   - generative art
