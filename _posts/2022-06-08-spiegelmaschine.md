@@ -17,9 +17,9 @@ The Spiegelmaschine even has a [Twitter](https://twitter.com/spiegelmaschine), s
 
 
 <img align="left" src="https://alexander-hagg.github.io/images/sm05.png" width="400">
-<img align="left" src="https://alexander-hagg.github.io/images/sm06.png" width="400">
-<img align="left" src="https://alexander-hagg.github.io/images/sm07.png" width="400">
-<img align="left" src="https://alexander-hagg.github.io/images/sm08.png" width="400">
-<img align="left" src="https://alexander-hagg.github.io/images/sm09.png" width="400">
-<img align="left" src="https://alexander-hagg.github.io/images/sm10.png" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm06.jpeg" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm07.jpeg" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm08.jpeg" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm09.jpeg" width="400">
+<img align="left" src="https://alexander-hagg.github.io/images/sm10.jpeg" width="400">
 <img align="left" src="https://alexander-hagg.github.io/images/sm11.png" width="400">
