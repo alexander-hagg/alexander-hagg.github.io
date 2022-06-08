@@ -16,7 +16,7 @@ I am a nature-inspired researcher with a background in computer science, specifi
 <img align="right" src="https://alexander-hagg.github.io/images/pub2.png" width="100" height="140">
 My <b>doctoral thesis</b> centers on cocreativity between human engineers and evolutionary and machine learning algorithms. I am most experienced with multisolution optimization methods like quality diversity, neuroevolution, and machine learning techniques like variational autoencoders and generative adversarial learning.
 
-<img align="right" src="https://alexander-hagg.github.io/images/06.png" width="100" height="140">
+<img align="right" src="https://alexander-hagg.github.io/images/06.png" width="300" height="420">
 In the dissertation, I was able to generate large numbers of solutions to expensive optimization problems, most prominently in the fluid dynamics domain.
 
 
