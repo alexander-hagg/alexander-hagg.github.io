@@ -13,13 +13,13 @@ The Spiegelmaschine project aims to provide an interactive model between painter
 
 An interface provides the ability to generate large numbers of random paintings that look like Steffen went into overdrive. 
 
-The Spiegelmaschine even has a [Twitter](https://twitter.com/spiegelmaschine), so be sure to follow the machine, if you are interested.
+The Spiegelmaschine even has its own [Twitter account](https://twitter.com/spiegelmaschine), so be sure to follow the machine, if you are interested.
 
 
 <img align="left" src="https://alexander-hagg.github.io/images/sm05.png" width="400">
-<img align="left" src="https://alexander-hagg.github.io/images/sm06.jpeg" width="400">
+<img align="right" src="https://alexander-hagg.github.io/images/sm06.jpeg" width="400">
 <img align="left" src="https://alexander-hagg.github.io/images/sm07.jpeg" width="400">
-<img align="left" src="https://alexander-hagg.github.io/images/sm08.jpeg" width="400">
+<img align="right" src="https://alexander-hagg.github.io/images/sm08.jpeg" width="400">
 <img align="left" src="https://alexander-hagg.github.io/images/sm09.jpeg" width="400">
-<img align="left" src="https://alexander-hagg.github.io/images/sm10.jpeg" width="400">
+<img align="right" src="https://alexander-hagg.github.io/images/sm10.jpeg" width="400">
 <img align="left" src="https://alexander-hagg.github.io/images/sm11.png" width="400">
