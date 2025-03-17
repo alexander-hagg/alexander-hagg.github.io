@@ -91,6 +91,7 @@ author:
   researchgate     :  "https://www.researchgate.net/profile/Alexander-Hagg?ev=hdr_xprf"
   uri              :
   bitbucket        :
+  bluesky          : "https://bsky.app/profile/midazc.bsky.social"
   codepen          :
   dribbble         :
   flickr           :
@@ -102,14 +103,15 @@ author:
   instagram        :
   impactstory      : #"https://profiles.impactstory.org/u/xxxx-xxxx-xxxx-xxxx"
   lastfm           :
-  linkedin         : "https://www.linkedin.com/in/alexander-hagg-66185b4"
+  linkedin         : "alexander-hagg-66185b4"
   orcid            : "https://orcid.org/0000-0002-8668-1796"
+  mastodon         : "https://bonn.social/@midazc"
   pinterest        :
   soundcloud       :
   stackoverflow    : # http://stackoverflow.com/users/123456/username
   steam            :
   tumblr           :
-  twitter          : "midazc"
+  twitter          : 
   vine             :
   weibo            :
   xing             :
