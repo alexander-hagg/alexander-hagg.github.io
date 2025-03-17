@@ -27,7 +27,7 @@ import re
 #todo: incorporate different collection types rather than a catch all publications, requires other changes to template
 publist = {
     "proceeding": {
-        "file" : "proceedings.bib",
+        "file" : "citations.bib",
         "venuekey": "booktitle",
         "venue-pretext": "In the proceedings of ",
         "collection" : {"name":"publications",
@@ -35,7 +35,7 @@ publist = {
         
     },
     "journal":{
-        "file": "journals.bib",
+        "file": "citations.bib",
         "venuekey" : "journal",
         "venue-pretext" : "",
         "collection" : {"name":"publications",
@@ -88,6 +88,7 @@ for pubsource in publist:
             
             #strip out {} as needed (some bibtex entries that maintain formatting)
             clean_title = b["title"].replace("{", "").replace("}","").replace("\\","").replace(" ","-")    
+            print(f'clean_title: {clean_title}')
 
             url_slug = re.sub("\\[.*\\]|[^a-zA-Z0-9_-]", "", clean_title)
             url_slug = url_slug.replace("--","-")
@@ -100,6 +101,8 @@ for pubsource in publist:
 
             #citation authors - todo - add highlighting for primary author?
             for author in bibdata.entries[bib_id].persons["author"]:
+                print(f'author.first_names: {author.first_names}')
+                print(f'author.last_names: {author.last_names}')
                 citation = citation+" "+author.first_names[0]+" "+author.last_names[0]+", "
 
             #citation title
