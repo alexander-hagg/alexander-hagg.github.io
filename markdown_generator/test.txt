@@ -1,0 +1,572 @@
+clean_title: How-to-successfully-apply-genetic-algorithms-in-practice:-Representation-and-parametrization
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+SUCESSFULLY PARSED asteroth2015successfully: " How to successfully apply genetic algorithms in practice: Re ... "
+clean_title: Evolving-parsimonious-networks-by-mixing-activation-functions
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Maximilian']
+author.last_names: ['Mensing']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+SUCESSFULLY PARSED hagg2017evolving: " Evolving parsimonious networks by mixing activation function ... "
+clean_title: Multi-stage-evolution-of-single-and-multi-objective-MCLP:-Successive-placement-of-charging-stations
+author.first_names: ['Helge']
+author.last_names: ['Spieker']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Adam']
+author.last_names: ['Gaier']
+author.first_names: ['Stefanie']
+author.last_names: ['Meilinger']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+WARNING Missing Expected Field 'booktitle' from entry spieker2017multi: " Multi-stage evolution of singl ... "
+clean_title: Hierarchical-surrogate-modeling-for-illumination-algorithms
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+SUCESSFULLY PARSED hagg2017hierarchical: " Hierarchical surrogate modeling for illumination algorithms  "
+clean_title: Methodische-Grundlegung-f"ur-eine-Strategie-zum-sukzessiven-Ausbau-der-Ladeinfrastruktur-f"ur-Elektromobilit"at-in-Bonn-und-dem-Rhein-Sieg-Kreis:-Studie-zur-Strategie-f"ur-den-Ausbau-der-Ladeinfrastruktur-im-Hinblick-auf-E-Autos-und-E-Zweir"ader
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Helge']
+author.last_names: ['Spieker']
+author.first_names: ['Alexander']
+author.last_names: ['Oslislo']
+author.first_names: ['Volker']
+author.last_names: ['Jacobs']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Stefanie']
+author.last_names: ['Meilinger']
+WARNING Missing Expected Field 'booktitle' from entry hagg2015methodische: " Methodische Grundlegung f{\"u} ... "
+clean_title: Successive-evolution-of-charging-station-placement
+author.first_names: ['Helge']
+author.last_names: ['Spieker']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Stefanie']
+author.last_names: ['Meilinger']
+author.first_names: ['Volker']
+author.last_names: ['Jacobs']
+author.first_names: ['Alexander']
+author.last_names: ['Oslislo']
+SUCESSFULLY PARSED spieker2015successive: " Successive evolution of charging station placement  "
+clean_title: On-recognizing-transparent-objects-in-domestic-environments-using-fusion-of-multiple-sensor-modalities
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Frederik']
+author.last_names: ['Hegger']
+author.first_names: ['Paul']
+author.last_names: ['Pl{\\"o}ger']
+SUCESSFULLY PARSED hagg2017recognizing: " On recognizing transparent objects in domestic environments  ... "
+clean_title: The-b-it-bots-Robo-Cup@-Home-2014-Team-Description-Paper
+author.first_names: ['Rhama']
+author.last_names: ['Dwiputra']
+author.first_names: ['Matthias']
+author.last_names: ['F{\\"u}ller']
+author.first_names: ['Frederik']
+author.last_names: ['Hegger']
+author.first_names: ['Sven']
+author.last_names: ['Schneider']
+author.first_names: ['Nico']
+author.last_names: ['Hochgeschwender']
+author.first_names: ['Iman']
+author.last_names: ['Awaad']
+author.first_names: ["Jos{\\'e}"]
+author.last_names: ['Loza']
+author.first_names: ['Alexey']
+author.last_names: ['Ozhigov']
+author.first_names: ['Saugata']
+author.last_names: ['Biswas']
+author.first_names: ['Niranjan']
+author.last_names: ['Deshpande']
+WARNING Missing Expected Field 'booktitle' from entry dwiputra2014b: " The b-it-bots Robo-Cup@ Home 2 ... "
+clean_title: Prototype-discovery-using-quality-diversity
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+SUCESSFULLY PARSED hagg2018prototype: " Prototype discovery using quality-diversity  "
+clean_title: Modeling-user-selection-in-quality-diversity
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+SUCESSFULLY PARSED hagg2019modeling: " Modeling user selection in quality diversity  "
+clean_title: Prediction-of-neural-network-performance-by-phenotypic-modeling
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Martin']
+author.last_names: ['Zaefferer']
+author.first_names: ['J{\\"o}rg']
+author.last_names: ['Stork']
+author.first_names: ['Adam']
+author.last_names: ['Gaier']
+SUCESSFULLY PARSED hagg2019prediction: " Prediction of neural network performance by phenotypic model ... "
+clean_title: AErOmAt-Abschlussbericht
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+SUCESSFULLY PARSED asteroth2020aeromat: " AErOmAt Abschlussbericht  "
+clean_title: Designing-air-flow-with-surrogate-assisted-phenotypic-niching
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Dominik']
+author.last_names: ['Wilde']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+SUCESSFULLY PARSED hagg2020designing: " Designing air flow with surrogate-assisted phenotypic nichin ... "
+clean_title: An-analysis-of-phenotypic-diversity-in-multi-solution-optimization
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Mike']
+author.last_names: ['Preuss']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+SUCESSFULLY PARSED hagg2020analysis: " An analysis of phenotypic diversity in multi-solution optimi ... "
+clean_title: Einsatz-von-K"unstlicher-Intelligenz-im-internationalen-Spitzensport--Eine-Erhebung-des-Status-Quo
+author.first_names: ['Fabian']
+author.last_names: ['Hammes']
+author.first_names: ['Daniel']
+author.last_names: ['Link']
+author.first_names: ['Martin']
+author.last_names: ['Lames']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Mark']
+author.last_names: ['Pfeiffer']
+WARNING Missing Expected Field 'booktitle' from entry hammes2020einsatz: " Einsatz von K{\"u}nstlicher In ... "
+clean_title: Session-Informations-und-Feedbacksysteme
+author.first_names: ['Luca']
+author.last_names: ['Reeb']
+author.first_names: ['Daniel']
+author.last_names: ['Dzibela']
+author.first_names: ['Robert']
+author.last_names: ['Marzilger']
+author.first_names: ['Nicolas']
+author.last_names: ['Witt']
+author.first_names: ['Ronald']
+author.last_names: ['Burger']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Mark']
+author.last_names: ['Pfeiffer']
+author.first_names: ['Fabian']
+author.last_names: ['Hammes']
+author.first_names: ['Daniel']
+author.last_names: ['Link']
+WARNING Missing Expected Field 'booktitle' from entry reeb2020session: " Session Informations-und Feedb ... "
+clean_title: Einsatzm"oglichkeiten-und-Transfer-von-K"unstlicher-Intelligenz-im-inter-nationalen-Spitzensport--zwischen-Small-und-Big-Data
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Mark']
+author.last_names: ['Pfeiffer']
+author.first_names: ['Fabian']
+author.last_names: ['Hammes']
+author.first_names: ['Daniel']
+author.last_names: ['Link']
+WARNING Missing Expected Field 'booktitle' from entry hagg2020einsatzmoglichkeiten: " Einsatzm{\"o}glichkeiten und T ... "
+clean_title: A-Deep-Dive-Into-Exploring-the-Preference-Hypervolume
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+SUCESSFULLY PARSED hagg2020deep: " A Deep Dive Into Exploring the Preference Hypervolume  "
+clean_title: Expressivity-of-parameterized-and-data-driven-representations-in-quality-diversity-search
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Sebastian']
+author.last_names: ['Berns']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Simon']
+author.last_names: ['Colton']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+SUCESSFULLY PARSED hagg2021expressivity: " Expressivity of parameterized and data-driven representation ... "
+clean_title: Phenotypic-niching-using-quality-diversity-algorithms
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+WARNING Missing Expected Field 'booktitle' from entry hagg2021phenotypic: " Phenotypic niching using quali ... "
+clean_title: Discovering-the-preference-hypervolume:-an-interactive-model-for-real-world-computational-co-creativity
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+SUCESSFULLY PARSED hagg2021discovering: " Discovering the preference hypervolume: an interactive model ... "
+clean_title: Artificial-intelligence-in-elite-sports—A-narrative-review-of-success-stories-and-challenges
+author.first_names: ['Fabian']
+author.last_names: ['Hammes']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Daniel']
+author.last_names: ['Link']
+WARNING Missing Expected Field 'booktitle' from entry hammes2022artificial: " Artificial intelligence in eli ... "
+clean_title: K"unstliche-Intelligenz-f"ur-den-Spitzensport-im-Spannungsfeld-zwischen-Big-und-Small-Data
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Christian']
+author.last_names: ['Rasche']
+author.first_names: ['Kevin']
+author.last_names: ['Bach']
+author.first_names: ['Mark']
+author.last_names: ['Pfeiffer']
+SUCESSFULLY PARSED hagg2022kunstliche: " K{\"u}nstliche Intelligenz f{\"u}r den Spitzensport im Spann ... "
+clean_title: Smooth-solution-space-exploration-by-introducing-local-similarity-search-in-a-MAP-Elites-algorithm
+author.first_names: ['Mauro']
+author.last_names: ['Ricchiuti']
+author.first_names: ['Rob']
+author.last_names: ['Saunders']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+WARNING Missing Expected Field 'booktitle' from entry ricchiutismooth: " Smooth solution space explorat ... "
+clean_title: Determining-Lennard-Jones-Parameters-Using-Multiscale-Target-Data-through-Presampling-Enhanced,-Surrogate-Assisted-Global-Optimization
+author.first_names: ['Max']
+author.last_names: ['Müller']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Robin']
+author.last_names: ['Strickstrock']
+author.first_names: ['Marco']
+author.last_names: ['Hülsmann']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Karl']
+author.last_names: ['Kirschner']
+author.first_names: ['Dirk']
+author.last_names: ['Reith']
+WARNING Missing Expected Field 'booktitle' from entry müller2023determining: " Determining Lennard-Jones Para ... "
+clean_title: Efficient-Quality-Diversity-Optimization-of-3D-Buildings-through-2D-Pre-optimization
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Martin']
+author.last_names: ['Kliemank']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Dominik']
+author.last_names: ['Wilde']
+author.first_names: ['Mario']
+author.last_names: ['Bedrunka']
+author.first_names: ['Holger']
+author.last_names: ['Foysi']
+author.first_names: ['Dirk']
+author.last_names: ['Reith']
+WARNING Missing Expected Field 'booktitle' from entry hagg2023efficient: " Efficient Quality Diversity Op ... "
+clean_title: On-the-Suitability-of-Representations-for-Quality-Diversity-Optimization-of-Shapes
+author.first_names: ['Ludovico']
+author.last_names: ['Scarton']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+SUCESSFULLY PARSED scarton2023suitability: " On the Suitability of Representations for Quality Diversity  ... "
+clean_title: Open-source-machine-learning-in-computational-chemistry
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Karl']
+author.last_names: ['Kirschner']
+WARNING Missing Expected Field 'booktitle' from entry hagg2023open: " Open-source machine learning i ... "
+clean_title: Fine-Tuning-Property-Domain-Weighting-Factors-and-the-Objective-Function-in-Force-Field-Parameter-Optimization
+author.first_names: ['Robin']
+author.last_names: ['Strickstrock']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Marco']
+author.last_names: ['H{\\"u}lsmann']
+author.first_names: ['Karl']
+author.last_names: ['Kirschner']
+author.first_names: ['Dirk']
+author.last_names: ['Reith']
+WARNING Missing Expected Field 'booktitle' from entry strickstrock2024fine: " Fine-Tuning Property Domain We ... "
+clean_title: How-to-successfully-apply-genetic-algorithms-in-practice:-Representation-and-parametrization
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+WARNING Missing Expected Field 'journal' from entry asteroth2015successfully: " How to successfully apply gene ... "
+clean_title: Evolving-parsimonious-networks-by-mixing-activation-functions
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Maximilian']
+author.last_names: ['Mensing']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+WARNING Missing Expected Field 'journal' from entry hagg2017evolving: " Evolving parsimonious networks ... "
+clean_title: Multi-stage-evolution-of-single-and-multi-objective-MCLP:-Successive-placement-of-charging-stations
+author.first_names: ['Helge']
+author.last_names: ['Spieker']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Adam']
+author.last_names: ['Gaier']
+author.first_names: ['Stefanie']
+author.last_names: ['Meilinger']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+SUCESSFULLY PARSED spieker2017multi: " Multi-stage evolution of single-and multi-objective MCLP: Su ... "
+clean_title: Hierarchical-surrogate-modeling-for-illumination-algorithms
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+WARNING Missing Expected Field 'journal' from entry hagg2017hierarchical: " Hierarchical surrogate modelin ... "
+clean_title: Methodische-Grundlegung-f"ur-eine-Strategie-zum-sukzessiven-Ausbau-der-Ladeinfrastruktur-f"ur-Elektromobilit"at-in-Bonn-und-dem-Rhein-Sieg-Kreis:-Studie-zur-Strategie-f"ur-den-Ausbau-der-Ladeinfrastruktur-im-Hinblick-auf-E-Autos-und-E-Zweir"ader
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Helge']
+author.last_names: ['Spieker']
+author.first_names: ['Alexander']
+author.last_names: ['Oslislo']
+author.first_names: ['Volker']
+author.last_names: ['Jacobs']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Stefanie']
+author.last_names: ['Meilinger']
+WARNING Missing Expected Field 'journal' from entry hagg2015methodische: " Methodische Grundlegung f{\"u} ... "
+clean_title: Successive-evolution-of-charging-station-placement
+author.first_names: ['Helge']
+author.last_names: ['Spieker']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Stefanie']
+author.last_names: ['Meilinger']
+author.first_names: ['Volker']
+author.last_names: ['Jacobs']
+author.first_names: ['Alexander']
+author.last_names: ['Oslislo']
+WARNING Missing Expected Field 'journal' from entry spieker2015successive: " Successive evolution of chargi ... "
+clean_title: On-recognizing-transparent-objects-in-domestic-environments-using-fusion-of-multiple-sensor-modalities
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Frederik']
+author.last_names: ['Hegger']
+author.first_names: ['Paul']
+author.last_names: ['Pl{\\"o}ger']
+WARNING Missing Expected Field 'journal' from entry hagg2017recognizing: " On recognizing transparent obj ... "
+clean_title: The-b-it-bots-Robo-Cup@-Home-2014-Team-Description-Paper
+author.first_names: ['Rhama']
+author.last_names: ['Dwiputra']
+author.first_names: ['Matthias']
+author.last_names: ['F{\\"u}ller']
+author.first_names: ['Frederik']
+author.last_names: ['Hegger']
+author.first_names: ['Sven']
+author.last_names: ['Schneider']
+author.first_names: ['Nico']
+author.last_names: ['Hochgeschwender']
+author.first_names: ['Iman']
+author.last_names: ['Awaad']
+author.first_names: ["Jos{\\'e}"]
+author.last_names: ['Loza']
+author.first_names: ['Alexey']
+author.last_names: ['Ozhigov']
+author.first_names: ['Saugata']
+author.last_names: ['Biswas']
+author.first_names: ['Niranjan']
+author.last_names: ['Deshpande']
+SUCESSFULLY PARSED dwiputra2014b: " The b-it-bots Robo-Cup@ Home 2014 Team Description Paper  "
+clean_title: Prototype-discovery-using-quality-diversity
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+WARNING Missing Expected Field 'journal' from entry hagg2018prototype: " Prototype discovery using qual ... "
+clean_title: Modeling-user-selection-in-quality-diversity
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+WARNING Missing Expected Field 'journal' from entry hagg2019modeling: " Modeling user selection in qua ... "
+clean_title: Prediction-of-neural-network-performance-by-phenotypic-modeling
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Martin']
+author.last_names: ['Zaefferer']
+author.first_names: ['J{\\"o}rg']
+author.last_names: ['Stork']
+author.first_names: ['Adam']
+author.last_names: ['Gaier']
+WARNING Missing Expected Field 'journal' from entry hagg2019prediction: " Prediction of neural network p ... "
+clean_title: AErOmAt-Abschlussbericht
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+WARNING Missing Expected Field 'journal' from entry asteroth2020aeromat: " AErOmAt Abschlussbericht  "
+clean_title: Designing-air-flow-with-surrogate-assisted-phenotypic-niching
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Dominik']
+author.last_names: ['Wilde']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+WARNING Missing Expected Field 'journal' from entry hagg2020designing: " Designing air flow with surrog ... "
+clean_title: An-analysis-of-phenotypic-diversity-in-multi-solution-optimization
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Mike']
+author.last_names: ['Preuss']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+WARNING Missing Expected Field 'journal' from entry hagg2020analysis: " An analysis of phenotypic dive ... "
+clean_title: Einsatz-von-K"unstlicher-Intelligenz-im-internationalen-Spitzensport--Eine-Erhebung-des-Status-Quo
+author.first_names: ['Fabian']
+author.last_names: ['Hammes']
+author.first_names: ['Daniel']
+author.last_names: ['Link']
+author.first_names: ['Martin']
+author.last_names: ['Lames']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Mark']
+author.last_names: ['Pfeiffer']
+SUCESSFULLY PARSED hammes2020einsatz: " Einsatz von K{\"u}nstlicher Intelligenz im internationalen S ... "
+WARNING Missing Expected Field 'year' from entry reeb2020session: " Session Informations-und Feedb ... "
+clean_title: Einsatzm"oglichkeiten-und-Transfer-von-K"unstlicher-Intelligenz-im-inter-nationalen-Spitzensport--zwischen-Small-und-Big-Data
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Mark']
+author.last_names: ['Pfeiffer']
+author.first_names: ['Fabian']
+author.last_names: ['Hammes']
+author.first_names: ['Daniel']
+author.last_names: ['Link']
+SUCESSFULLY PARSED hagg2020einsatzmoglichkeiten: " Einsatzm{\"o}glichkeiten und Transfer von K{\"u}nstlicher In ... "
+clean_title: A-Deep-Dive-Into-Exploring-the-Preference-Hypervolume
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+WARNING Missing Expected Field 'journal' from entry hagg2020deep: " A Deep Dive Into Exploring the ... "
+clean_title: Expressivity-of-parameterized-and-data-driven-representations-in-quality-diversity-search
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Sebastian']
+author.last_names: ['Berns']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Simon']
+author.last_names: ['Colton']
+author.first_names: ['Thomas']
+author.last_names: ['B{\\"a}ck']
+WARNING Missing Expected Field 'journal' from entry hagg2021expressivity: " Expressivity of parameterized  ... "
+clean_title: Phenotypic-niching-using-quality-diversity-algorithms
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+SUCESSFULLY PARSED hagg2021phenotypic: " Phenotypic niching using quality diversity algorithms  "
+clean_title: Discovering-the-preference-hypervolume:-an-interactive-model-for-real-world-computational-co-creativity
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+WARNING Missing Expected Field 'journal' from entry hagg2021discovering: " Discovering the preference hyp ... "
+clean_title: Artificial-intelligence-in-elite-sports—A-narrative-review-of-success-stories-and-challenges
+author.first_names: ['Fabian']
+author.last_names: ['Hammes']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Daniel']
+author.last_names: ['Link']
+SUCESSFULLY PARSED hammes2022artificial: " Artificial intelligence in elite sports—A narrative review o ... "
+clean_title: K"unstliche-Intelligenz-f"ur-den-Spitzensport-im-Spannungsfeld-zwischen-Big-und-Small-Data
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Christian']
+author.last_names: ['Rasche']
+author.first_names: ['Kevin']
+author.last_names: ['Bach']
+author.first_names: ['Mark']
+author.last_names: ['Pfeiffer']
+WARNING Missing Expected Field 'journal' from entry hagg2022kunstliche: " K{\"u}nstliche Intelligenz f{\ ... "
+WARNING Missing Expected Field 'year' from entry ricchiutismooth: " Smooth solution space explorat ... "
+clean_title: Determining-Lennard-Jones-Parameters-Using-Multiscale-Target-Data-through-Presampling-Enhanced,-Surrogate-Assisted-Global-Optimization
+author.first_names: ['Max']
+author.last_names: ['Müller']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Robin']
+author.last_names: ['Strickstrock']
+author.first_names: ['Marco']
+author.last_names: ['Hülsmann']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Karl']
+author.last_names: ['Kirschner']
+author.first_names: ['Dirk']
+author.last_names: ['Reith']
+SUCESSFULLY PARSED müller2023determining: " Determining Lennard-Jones Parameters Using Multiscale Target ... "
+clean_title: Efficient-Quality-Diversity-Optimization-of-3D-Buildings-through-2D-Pre-optimization
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Martin']
+author.last_names: ['Kliemank']
+author.first_names: ['Alexander']
+author.last_names: ['Asteroth']
+author.first_names: ['Dominik']
+author.last_names: ['Wilde']
+author.first_names: ['Mario']
+author.last_names: ['Bedrunka']
+author.first_names: ['Holger']
+author.last_names: ['Foysi']
+author.first_names: ['Dirk']
+author.last_names: ['Reith']
+SUCESSFULLY PARSED hagg2023efficient: " Efficient Quality Diversity Optimization of 3D Buildings thr ... "
+clean_title: On-the-Suitability-of-Representations-for-Quality-Diversity-Optimization-of-Shapes
+author.first_names: ['Ludovico']
+author.last_names: ['Scarton']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+WARNING Missing Expected Field 'journal' from entry scarton2023suitability: " On the Suitability of Represen ... "
+clean_title: Open-source-machine-learning-in-computational-chemistry
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Karl']
+author.last_names: ['Kirschner']
+SUCESSFULLY PARSED hagg2023open: " Open-source machine learning in computational chemistry  "
+clean_title: Fine-Tuning-Property-Domain-Weighting-Factors-and-the-Objective-Function-in-Force-Field-Parameter-Optimization
+author.first_names: ['Robin']
+author.last_names: ['Strickstrock']
+author.first_names: ['Alexander']
+author.last_names: ['Hagg']
+author.first_names: ['Marco']
+author.last_names: ['H{\\"u}lsmann']
+author.first_names: ['Karl']
+author.last_names: ['Kirschner']
+author.first_names: ['Dirk']
+author.last_names: ['Reith']
+SUCESSFULLY PARSED strickstrock2024fine: " Fine-Tuning Property Domain Weighting Factors and the Object ... "
