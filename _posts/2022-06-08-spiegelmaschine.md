@@ -1,7 +1,7 @@
 ---
 title: 'Spiegelmaschine'
 date: 2022-08-14
-permalink: /posts/2022/06/spiegelmaschine/
+permalink: /posts/2022/08/spiegelmaschine/
 tags:
   - generative art
   - artificial intelligence

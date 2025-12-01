@@ -1,13 +1,11 @@
 ---
-title: 'Defying The Code'
+title: 'Defying the Code: A Declaration of Human Autonomy'
 date: 2025-08-14
 permalink: /posts/2025/06/defyingthecode/
 tags:
   - artificial intelligence
   - interaction
 ---
-
-# Defying the Code: A Declaration of Human Autonomy
 
 With AI, there is a wealth of new opportunities and problems that are slowly becoming better understood. Currently, large companies like OpenAI are absorbing (process) knowledge by training on our current dialogues with AI systems [1]. An oligopoly on knowledge, tools, and processes is emerging. At the same time, people have more difficulty training their own natural neural networks because, for example, they no longer go through the writing process themselves; they no longer "generate" textual or visual artefacts, because artificial generative models are used instead. A lot of professions are disappearing -- of course, many bullshit jobs [2], for example in marketing, but also positions held by people who could influence the course of the world, for example in journalism, where too much automation was already happening even before the era of large language models. Of course there are still enough media out there that did not yet fall into this trap. Take for example "Die Blätter für deutsche und internationale Politik,": but hardly anyone reads that. This is more about Bild, Murdoch & Co., De Telegraaf et al. [4], which influence a large group of people and can thereby radiate power downwards, and which are already using AI more and more, not to mention that huge number of state and private actors that can use AI to swamp the internet with generated information [3]. It is not realistic that we have a good answer to this.
 
@@ -19,7 +17,7 @@ Of course, AI also means that without it you are no longer fast enough. I now do
 
 There are ways to better deal with AI. Open-source/open-weights models and the associated software are one way to take a more democratic path, perhaps, but there is still a lot of uncertainty about it. Ultimately, the problem is the "compute": open models are meaningless without computing power. And inference with LLMs requires gigantic amounts of computing power and energy [16].
 
-<img align="left" src="https://alexander-hagg.github.io/images/defying.jpg" width="200">
+<img align="center" src="https://alexander-hagg.github.io/images/defying.jpg" width="100%">
 
 I think a much more important point is: right now, a critical mass of people must learn to think even faster, more critically, and then we can hope that enough people will turn their backs on the current economic system and adopt a better model. There are good examples for better models, anarcho-syndicalism is perhaps one of the better ones, but they are vulnerable: whether Paris, Catalonia, Ukraine -- all with blood-stained streets, either stabbed in the back by state communists, but for the most part attacked from the front by fascists, conservatives, and royalists [17]. The Mietshäuser Syndikat [18], and also the Neue Stadtgärtnerei Initiative [19], in which I have invested a lot of time as a future member of the syndicate, create spaces to organize more from the bottom up, to have more freedom of action and at the same time to try to maintain an ecological balance. But it is a slow oil slick. Robust, but slow. This is good, because the slowness gives us time to reflect and to love. But we are all racing towards a trauma that is so great that I sometimes don't know if I dare to tell it to the children of my generation.
 
