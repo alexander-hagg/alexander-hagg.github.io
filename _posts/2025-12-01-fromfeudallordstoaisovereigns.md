@@ -5,6 +5,8 @@ permalink: /posts/2025/12/fromfeudallordstoaisovereigns/
 tags:
   - artificial intelligence
   - technofeudalism
+  - capitalism
+  - open source
 ---
 
 <img align="center" src="https://alexander-hagg.github.io/images/feudalism.png" width="600">
