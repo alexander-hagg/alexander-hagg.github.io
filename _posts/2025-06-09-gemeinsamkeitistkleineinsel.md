@@ -10,7 +10,7 @@ tags:
   - Klimawandel
 ---
 
-<img align="center" src="https://alexander-hagg.github.io/images/kleininsel.jpg" width="100%">
+<img align="center" src="https://alexander-hagg.github.io/images/kleininsel.jpg" width="600">
 
 Wir stehen am Abgrund, und ein Großteil von uns kneift die Augen fest zusammen. Der TED-Talk von David Finnigan über die Psychologie des Klimawandels legte schmerzhaft den Finger in die Wunde: Klimaleugner wollen die Konsequenzen der Klimakatastrophe nicht wahrhaben und leugnen daher die Katastrophe selbst. Doch was ist mit uns, den "Nicht-Leugnern"? Wir glauben zwar an die wissenschaftlichen Fakten, doch unser Handeln -- geprägt von kognitiver Dissonanz und vielleicht sogar unbewussten Terror-Management-Strategien -- spricht oft eine andere Sprache. Wir fliegen in den Urlaub, konsumieren weiter, als gäbe es kein Morgen, und -- vielleicht am fatalsten -- wir erziehen unsere Kinder, als würde ihre Zukunft ein Spiegelbild unserer Vergangenheit sein. Sie wird es nicht.
 
