@@ -43,7 +43,7 @@ Its strategy is not to compete with the Sovereigns on their own turf, but to mak
 
 The power of the Platform Lords comes from owning the "digital toll roads" where we live and work. The grassroots response is to build "public roads" owned by no one.
 
-This is already happening. We see it in the free and open source software movement. We see it at the Chaos Computer Club and the Electronic Frontier Foundation. We see it in distributed chat services like Matrix, where users can choose their own provider but still talk to anyone, breaking the walled gardens of services like WhatsApp. We see it in the federated social network Mastodon. The core principle is the use of **open protocols, not proprietary platforms**. These peer-to-peer systems ensure no single company can become the gatekeeper.
+This is already happening. We see it in the free and open source software movement. We see it at the Chaos Computer Club and the Electronic Frontier Foundation. We see it in distributed chat services like Matrix, where users can choose their own provider but still talk to anyone, breaking the walled gardens of services like WhatsApp. We see it in the federated social network Mastodon. We see it in open weights and open source large language models like LAION. The core principle is the use of **open protocols, not proprietary platforms**, **public peer-to-peer datasets**, and **open weights AI models**. These peer-to-peer systems ensure no single company can become the gatekeeper.
 
 ### Prong 2: Starving the Sovereigns
 
