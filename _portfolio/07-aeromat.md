@@ -14,10 +14,8 @@ Computational aerodynamic optimisation is limited by the high cost of CFD simula
 
 ### Key contributions
 
-- **Surrogate-Assisted Illumination (SAIL)** — combining Gaussian process surrogates with illumination algorithms for data-efficient exploration of aerodynamic design spaces
+- **Surrogate-assisted phenotypic niching, (SPHEN)** — combining Gaussian process surrogates with illumination algorithms for data-efficient exploration of aerodynamic design spaces and their morphological and flow features
 - **Hierarchical surrogate modelling** — multi-level surrogate models for further reducing computational cost
-- **Indirect surface encodings** — compact, high-quality shape representations enabling global search
-
 ### Partners
 
 Prof. Dirk Reith (lead, H-BRS / TREE), Prof. Alexander Asteroth, Fraunhofer SCAI, DLR, University of Siegen. Funded by BMBF.
