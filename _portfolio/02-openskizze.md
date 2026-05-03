@@ -84,6 +84,7 @@ The widget below illustrates the two core outputs: the **QD archive** (left — 
 4. **Explore** — the UMAP reveals which design families produce similar cold airflow patterns; parallel coordinate plots surface trade-offs
 5. **Cluster** — similar designs grouped into archetypes (best, most representative, consensus map per type)
 6. **Compare** — side-by-side 3D visualization with wind flow fields; export PDF report
+7. **Export** — exporting into usable documentation and urban planning formats
 
 ### Evaluation site
 

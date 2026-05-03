@@ -16,7 +16,7 @@ The **CytoTransport** research cluster combines expertise in biomedicine, comput
   <img src="/images/cytotransport-visual.svg" alt="3D representation of a protein ion channel" />
 </div>
 
-My role is in the **in-silico modeling and new methods development** field — building computational models and machine learning surrogates that reduce the cost of understanding molecular mechanisms, using approaches developed in the quality diversity and optimization domain.
+My role is in the **in-silico modeling and new methods development** field — building computational models and machine learning surrogates that reduce the cost of understanding molecular mechanisms using approaches developed in the deep learning and quality diversity optimization domains, predicting effects of mutations, and predicting molecular structural conformations.
 
 ### Fields of research
 

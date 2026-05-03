@@ -18,11 +18,6 @@ Computational aerodynamic optimisation is limited by the high cost of CFD simula
 - **Hierarchical surrogate modelling** — multi-level surrogate models for further reducing computational cost
 - **Indirect surface encodings** — compact, high-quality shape representations enabling global search
 
-### Awards
-
-- 🏆 **Best Student Paper** — AIAA Aviation and Aeronautics Forum 2017 (MDO track): *Aerodynamic Design Exploration through Surrogate-Assisted Illumination*
-- 🏆 **Best Paper, Complex Systems** — GECCO 2017: *Data-Efficient Exploration, Optimization, and Modeling of Diverse Designs through Surrogate-Assisted Illumination*
-
 ### Partners
 
 Prof. Dirk Reith (lead, H-BRS / TREE), Prof. Alexander Asteroth, Fraunhofer SCAI, DLR, University of Siegen. Funded by BMBF.
