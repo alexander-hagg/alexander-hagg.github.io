@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 300" width="440" height="300" style="background:#fff">
+  <!-- Neue Stadtgärtnerei: corrected site plan, Bonn-Dransdorf -->
+  <!-- Geography: cold air flows FROM SOUTH, UHI is to the NORTH -->
+  <!-- NW = Montag Stiftung land, NE = old greenhouses / NSG housing, S = agroforestry -->
+
+  <!-- ── Urban heat island band — NORTH ── -->
+  <rect x="0" y="0" width="440" height="42" fill="#fde8d8" opacity="0.55"/>
+  <text x="220" y="14" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#c0663a" font-weight="600">▲ Urban Heat Island (north) ▲</text>
+  <!-- heat shimmer arrows pointing down into site -->
+  <g stroke="#f4a261" stroke-width="1" opacity="0.5">
+    <line x1="110" y1="40" x2="110" y2="56"/><polygon points="107,53 110,59 113,53" fill="#f4a261"/>
+    <line x1="220" y1="40" x2="220" y2="56"/><polygon points="217,53 220,59 223,53" fill="#f4a261"/>
+    <line x1="330" y1="40" x2="330" y2="56"/><polygon points="327,53 330,59 333,53" fill="#f4a261"/>
+  </g>
+
+  <!-- ── Cold air inflow — SOUTH ── -->
+  <rect x="0" y="258" width="440" height="42" fill="#e3eef9" opacity="0.55"/>
+  <text x="220" y="291" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#2166ac" font-weight="600">▼ Cold air inflow (from south) ▼</text>
+  <!-- cool arrows pointing up into site -->
+  <g stroke="#2166ac" stroke-width="1.2" opacity="0.55">
+    <line x1="130" y1="258" x2="130" y2="242"/><polygon points="127,245 130,239 133,245" fill="#2166ac"/>
+    <line x1="220" y1="258" x2="220" y2="242"/><polygon points="217,245 220,239 223,245" fill="#2166ac"/>
+    <line x1="310" y1="258" x2="310" y2="242"/><polygon points="307,245 310,239 313,245" fill="#2166ac"/>
+  </g>
+
+  <!-- ── Site boundary ── -->
+  <polygon points="80,60 80,238 360,238 360,60" fill="#f4f9f4" stroke="#c2ddc5" stroke-width="1.5"/>
+
+  <!-- ── Internal zone dividers ── -->
+  <!-- Vertical split NW | NE at x=220 -->
+  <line x1="220" y1="60" x2="220" y2="155" stroke="#c2ddc5" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Horizontal split upper | agroforestry at y=155 -->
+  <line x1="80" y1="155" x2="360" y2="155" stroke="#c2ddc5" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- ── NW zone: Montag Stiftung ── -->
+  <rect x="80" y="60" width="140" height="95" rx="0" fill="#e8f3e9" opacity="0.6"/>
+  <text x="150" y="95" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8.5" fill="#2d6337" font-weight="600">NW · Montag Stiftung</text>
+  <text x="150" y="107" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8.5" fill="#2d6337" font-weight="600">Urbane Räume</text>
+  <!-- schematic building footprints -->
+  <rect x="96"  y="72" width="38" height="26" rx="2" fill="#6aad6a" opacity="0.45"/>
+  <rect x="142" y="68" width="30" height="22" rx="2" fill="#6aad6a" opacity="0.38"/>
+  <rect x="100" y="108" width="44" height="20" rx="2" fill="#6aad6a" opacity="0.35"/>
+  <text x="150" y="125" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="#3a7d44" opacity="0.85">land &amp; buildings</text>
+
+  <!-- ── NE zone: old greenhouses → NSG housing ── -->
+  <rect x="220" y="60" width="140" height="95" rx="0" fill="#e0eef5" opacity="0.55"/>
+  <text x="290" y="82" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#1a4060" font-weight="600">NE · old greenhouses</text>
+  <text x="290" y="94" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#1a4060" font-weight="600">→ NSG housing</text>
+  <!-- greenhouse outlines -->
+  <rect x="228" y="102" width="50" height="22" rx="2" fill="none" stroke="#2166ac" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+  <rect x="284" y="102" width="50" height="22" rx="2" fill="none" stroke="#2166ac" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+  <!-- future housing blocks -->
+  <rect x="234" y="110" width="36" height="14" rx="2" fill="#3a7d44" opacity="0.55"/>
+  <rect x="290" y="110" width="36" height="14" rx="2" fill="#3a7d44" opacity="0.45"/>
+  <text x="290" y="134" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7" fill="#1a4060" opacity="0.85">regen. materials · regen. energy</text>
+  <!-- Repair cafe + bike repair on NSG premises -->
+  <g transform="translate(226,140)" opacity="0.8">
+    <rect x="0" y="0" width="34" height="13" rx="3" fill="#e0eef5" stroke="#2166ac" stroke-width="0.8"/>
+    <text x="17" y="9" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7" fill="#1a4060">🔧 repair café</text>
+  </g>
+  <g transform="translate(264,140)" opacity="0.8">
+    <rect x="0" y="0" width="34" height="13" rx="3" fill="#e0eef5" stroke="#2166ac" stroke-width="0.8"/>
+    <text x="17" y="9" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7" fill="#1a4060">🚲 bike repair</text>
+  </g>
+
+  <!-- ── South zone: agroforestry ── -->
+  <rect x="80" y="155" width="280" height="83" rx="0" fill="#c8e6c9" opacity="0.45"/>
+  <text x="220" y="185" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9.5" fill="#2d6337" font-weight="600">South · Agroforestry</text>
+  <text x="220" y="198" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#2d6337">(cold air inflow zone)</text>
+  <!-- tree rows -->
+  <g fill="#3a7d44" opacity="0.55">
+    <circle cx="112" cy="216" r="8"/><circle cx="136" cy="210" r="7"/><circle cx="160" cy="218" r="8"/>
+    <circle cx="184" cy="212" r="7"/><circle cx="208" cy="219" r="8"/><circle cx="232" cy="213" r="7"/>
+    <circle cx="256" cy="220" r="8"/><circle cx="280" cy="214" r="7"/><circle cx="304" cy="218" r="8"/>
+    <circle cx="120" cy="232" r="6"/><circle cx="148" cy="228" r="6"/><circle cx="176" cy="234" r="6"/>
+    <circle cx="204" cy="229" r="6"/><circle cx="232" cy="234" r="6"/><circle cx="260" cy="228" r="6"/>
+    <circle cx="288" cy="232" r="6"/><circle cx="316" cy="226" r="6"/>
+  </g>
+
+  <!-- ── Bike + foot paths (S-N, centre of site, side by side) ── -->
+  <path d="M216,258 L216,60" fill="none" stroke="#f4a261" stroke-width="2" stroke-dasharray="6,3" opacity="0.6"/>
+  <path d="M224,258 L224,60" fill="none" stroke="#8d6e63" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.55"/>
+  <text x="212" y="115" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7" fill="#c07020" opacity="0.85" transform="rotate(-90,212,115)">🚲 bike</text>
+  <text x="228" y="115" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7" fill="#6d4c41" opacity="0.8" transform="rotate(-90,228,115)">foot path</text>
+
+  <!-- ── Compass rose ── -->
+  <g transform="translate(400,88)">
+    <line x1="0" y1="14" x2="0" y2="-14" stroke="#555" stroke-width="1.5"/>
+    <line x1="-14" y1="0" x2="14" y2="0" stroke="#555" stroke-width="1.5"/>
+    <text x="0" y="-17" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="10" fill="#222" font-weight="700">N</text>
+    <text x="0" y="26"  text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9"  fill="#888">S</text>
+    <text x="18" y="4"  text-anchor="start"  font-family="-apple-system,sans-serif" font-size="9"  fill="#888">E</text>
+    <text x="-18" y="4" text-anchor="end"    font-family="-apple-system,sans-serif" font-size="9"  fill="#888">W</text>
+    <polygon points="0,-14 -4,-4 0,-8 4,-4" fill="#222"/>
+  </g>
+
+  <!-- ── Site label ── -->
+  <text x="220" y="278" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#3a7d44" font-weight="600">Neue Stadtgärtnerei · Bonn-Dransdorf</text>
+</svg>

@@ -7,10 +7,10 @@
 
 # Site Settings
 locale                   : "en-US"
-title                    : "Bio"
-title_separator          : "-"
+title                    : "Alexander Hagg"
+title_separator          : "—"
 name                     : &name "Alexander Hagg"
-description              : &description "personal description"
+description              : &description "Researcher, builder, community member. AI for real-world impact — from urban climate adaptation to open-source tools and grassroots science."
 url                      : https://alexander-hagg.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "alexander-hagg/alexander-hagg.github.io"
@@ -82,7 +82,7 @@ analytics:
 author:
   name             : "Alexander Hagg"
   avatar           : "profile.jpg"
-  bio              : "Bio"
+  bio              : "Researcher · Builder · Community member"
   location         : "Bonn, Germany"
   employer         :
   pubmed           : 
