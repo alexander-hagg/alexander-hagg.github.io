@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" width="400" height="280" style="background:#fff">
+  <!-- OpenSKIZZE: bird's-eye urban layout, diverse building footprints -->
+  <defs>
+    <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L6,3 z" fill="#3a7d44" opacity="0.7"/>
+    </marker>
+  </defs>
+
+  <!-- Green space (park) -->
+  <rect x="40" y="40" width="120" height="80" rx="6" fill="#c8e6c9" opacity="0.6"/>
+  <text x="100" y="88" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#2d6337">green space</text>
+
+  <!-- Building cluster A — compact, tall -->
+  <rect x="200" y="44" width="36" height="32" rx="2" fill="#3a7d44" opacity="0.75"/>
+  <rect x="244" y="44" width="28" height="48" rx="2" fill="#3a7d44" opacity="0.65"/>
+  <rect x="280" y="44" width="22" height="36" rx="2" fill="#3a7d44" opacity="0.55"/>
+  <rect x="310" y="44" width="42" height="26" rx="2" fill="#3a7d44" opacity="0.45"/>
+
+  <!-- Building cluster B — medium density -->
+  <rect x="200" y="110" width="48" height="38" rx="2" fill="#6aad6a" opacity="0.65"/>
+  <rect x="258" y="110" width="38" height="30" rx="2" fill="#6aad6a" opacity="0.55"/>
+  <rect x="306" y="110" width="46" height="42" rx="2" fill="#6aad6a" opacity="0.45"/>
+
+  <!-- Building cluster C — low density, spread -->
+  <rect x="40" y="150" width="30" height="24" rx="2" fill="#a5d6a7" opacity="0.7"/>
+  <rect x="82" y="152" width="28" height="22" rx="2" fill="#a5d6a7" opacity="0.7"/>
+  <rect x="124" y="148" width="32" height="26" rx="2" fill="#a5d6a7" opacity="0.7"/>
+
+  <!-- Streets -->
+  <line x1="180" y1="30" x2="180" y2="250" stroke="#ddd" stroke-width="6"/>
+  <line x1="30" y1="136" x2="368" y2="136" stroke="#ddd" stroke-width="6"/>
+
+  <!-- Wind flow arrows -->
+  <g stroke="#3a7d44" stroke-width="1.2" opacity="0.4" fill="none" marker-end="url(#arrow)">
+    <line x1="40" y1="200" x2="130" y2="200"/>
+    <line x1="40" y1="216" x2="120" y2="216"/>
+    <line x1="40" y1="232" x2="140" y2="232"/>
+  </g>
+
+  <!-- Diverse solution dots (archive visualization, small) -->
+  <g opacity="0.85">
+    <circle cx="48" cy="270" r="4" fill="#f4a261"/>
+    <circle cx="60" cy="266" r="4" fill="#3a7d44"/>
+    <circle cx="72" cy="272" r="4" fill="#3a7d44"/>
+    <circle cx="84" cy="264" r="4" fill="#3a7d44"/>
+    <circle cx="96" cy="270" r="3" fill="#6aad6a"/>
+    <circle cx="108" cy="268" r="4" fill="#3a7d44"/>
+    <circle cx="120" cy="272" r="3" fill="#6aad6a"/>
+    <circle cx="132" cy="266" r="4" fill="#f4a261"/>
+    <circle cx="144" cy="270" r="4" fill="#3a7d44"/>
+    <circle cx="156" cy="264" r="3" fill="#3a7d44"/>
+  </g>
+  <text x="200" y="273" text-anchor="start" font-family="-apple-system,sans-serif" font-size="9" fill="#888">archive of design families</text>
+
+  <!-- Label -->
+  <text x="200" y="258" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="10" fill="#3a7d44" font-weight="bold">OpenSKIZZE</text>
+</svg>
