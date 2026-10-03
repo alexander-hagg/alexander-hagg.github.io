@@ -9,25 +9,12 @@ redirect_from:
 
 {% include base_path %}
 
-<div class="cv-embed">
-  {%- comment -%}
-    Do not remove `fitvidsignore`. assets/js/_main.js runs `$("#main").fitVids()`,
-    and FitVids 1.1 wraps every <object> in a zero-height `.fluid-width-video-wrapper`
-    when it cannot derive an aspect ratio (objects with CSS width/height but no HTML
-    width/height attributes yield `padding-top: NaN%`). That collapses this embed.
-    See the "Responsive CV embed" note in _sass/_custom.scss.
-  {%- endcomment -%}
-  <object class="fitvidsignore" data="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf" type="application/pdf" aria-label="Alexander Hagg — academic CV (PDF)">
-    <p class="cv-embed__fallback">Your browser cannot display embedded PDFs. <a href="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf">Download the academic CV (PDF)</a>.</p>
-  </object>
-</div>
-
 <p class="cv-downloads">
   <a class="btn" href="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf">Download academic CV (PDF)</a>
 </p>
 
 <p class="cv-intro">
-  Dutch researcher in AI & optimization with international experience in research, teaching, and research management. The full academic CV is available as the PDF above; this page summarizes education, experience, skills, grants, supervision, service, and languages. It complements the <a href="{{ base_path }}/publications/">research</a>, <a href="{{ base_path }}/portfolio/">projects</a>, <a href="{{ base_path }}/teaching/">teaching</a>, and <a href="{{ base_path }}/talks/">talks</a> pages.
+  Dutch researcher in AI & optimization with international experience in research, teaching, and research management. The full academic CV is available as a PDF download above; this page summarizes education, experience, skills, grants, supervision, service, and languages. It complements the <a href="{{ base_path }}/publications/">research</a>, <a href="{{ base_path }}/portfolio/">projects</a>, <a href="{{ base_path }}/teaching/">teaching</a>, and <a href="{{ base_path }}/talks/">talks</a> pages.
 </p>
 
 <div class="cv-section">
@@ -78,6 +65,12 @@ redirect_from:
 <div class="cv-section">
 <h2>Professional & Research Experience</h2>
 <ol class="timeline">
+  <li class="timeline__item">
+    <span class="timeline__period">2026– (18 months)</span>
+    <p class="timeline__title">Project Leader (Principal Investigator), OpenSKIZZE-Praxis (DBU)</p>
+    <p class="timeline__org">H-BRS (TREE), Sankt Augustin</p>
+    <p class="timeline__desc">Follow-up to OpenSKIZZE that operationalizes the AI assistant within formal municipal Bauleitplanung (land-use planning) processes. Develops a standardized "climate-resilience building block" — an adapted OpenSKIZZE tool plus action guides and text modules — piloted and validated with the City of Bonn, and published as open-source modules for established GIS (GRASS GIS, QGIS) in cooperation with the Open Source Geospatial Foundation (OSGeo). Partners: Open Source Geospatial Foundation (OSGeo), City of Bonn. <a href="{{ base_path }}/portfolio/openskizze/">Case study</a></p>
+  </li>
   <li class="timeline__item">
     <span class="timeline__period">2025–present</span>
     <p class="timeline__title">Co-Lead / Deputy Head, Digital Twin 4 Multiphysics Laboratory (A²S)</p>
