@@ -2,8 +2,16 @@
 title: "UMMBAS — Molecular Modelling for Bio-Chemical Applications"
 excerpt: "Interdisciplinary initiative combining computational chemistry, machine learning, and immersive VR visualisation to decode biochemical systems."
 collection: portfolio
-permalink: /portfolio/p-ummbas/
+permalink: /portfolio/ummbas/
+redirect_from:
+  - /portfolio/p-ummbas/
 tags: [molecular dynamics, machine learning, VR, computational chemistry, H-BRS]
+ref: ummbas
+related_publications:
+  - lennard-jones-params
+  - fine-tuning-force-field
+  - speed-up-force-field
+  - open-source-ml-chemistry
 ---
 
 <span class="tag-pill">2023–2025</span>&nbsp;<span class="tag-pill">Computational Chemistry</span>&nbsp;<span class="tag-pill">Machine Learning</span>&nbsp;<span class="tag-pill">VR</span>
@@ -24,7 +32,7 @@ Traditional and novel optimisation methods are combined with machine learning an
 
 ### My role
 
-I contributed to ML-accelerated force field parameterisation and surrogate-assisted optimisation methods — building on my work in [CytoTransport](/portfolio/cytotransport/) and [AErOmAt](/portfolio/p-aeromat/).
+I contributed to ML-accelerated force field parameterisation and surrogate-assisted optimisation methods — building on my work in [CytoTransport](/portfolio/cytotransport/) and [AErOmAt](/portfolio/aeromat/).
 
 ### Partners
 

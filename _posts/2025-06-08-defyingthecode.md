@@ -1,13 +1,16 @@
 ---
 title: 'Defying the Code: A Declaration of Human Autonomy'
-date: 2025-08-14
+date: 2025-06-08
 permalink: /posts/2025/06/defyingthecode/
 tags:
   - artificial intelligence
   - interaction
 ---
 
-<img align="center" src="https://alexander-hagg.github.io/images/defying.jpg" width="600">
+<img align="center" src="/images/defying.jpg" width="600" height="327" loading="lazy" decoding="async"
+     srcset="/images/defying-480w.jpg 480w, /images/defying.jpg 800w"
+     sizes="(max-width: 640px) 100vw, 600px"
+     alt="Illustration accompanying the essay Defying the Code">
 
 With AI, there is a wealth of new opportunities and problems that are slowly becoming better understood. Currently, large companies like OpenAI are absorbing (process) knowledge by training on our current dialogues with AI systems [1]. An oligopoly on knowledge, tools, and processes is emerging. At the same time, people have more difficulty training their own natural neural networks because, for example, they no longer go through the writing process themselves; they no longer "generate" textual or visual artefacts, because artificial generative models are used instead. A lot of professions are disappearing -- of course, many bullshit jobs [2], for example in marketing, but also positions held by people who could influence the course of the world, for example in journalism, where too much automation was already happening even before the era of large language models. Of course there are still enough media out there that did not yet fall into this trap. Take for example "Die Blätter für deutsche und internationale Politik,": but hardly anyone reads that. This is more about Bild, Murdoch & Co., De Telegraaf et al. [4], which influence a large group of people and can thereby radiate power downwards, and which are already using AI more and more, not to mention that huge number of state and private actors that can use AI to swamp the internet with generated information [3]. It is not realistic that we have a good answer to this.
 

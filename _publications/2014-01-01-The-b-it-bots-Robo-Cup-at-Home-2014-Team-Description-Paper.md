@@ -1,6 +1,8 @@
 ---
 title: "The b-it-bots Robo-Cup at Home 2014 Team Description Paper"
 collection: publications
+ref: robocup-home-2014
+tags: [robotics]
 permalink: /publication/2014-01-01-The-b-it-bots-Robo-Cup-at-Home-2014-Team-Description-Paper
 date: 2014-01-01
 venue: 'Joao Pessoa, Brazil'

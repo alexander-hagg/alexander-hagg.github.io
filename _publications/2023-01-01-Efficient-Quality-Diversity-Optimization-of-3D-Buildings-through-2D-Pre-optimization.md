@@ -1,6 +1,10 @@
 ---
 title: "Efficient Quality Diversity Optimization of 3D Buildings through 2D Pre-optimization"
 collection: publications
+ref: efficient-qd-3d-buildings
+tags: [quality diversity, urban climate]
+related_portfolio:
+  - openskizze
 permalink: /publication/2023-01-01-Efficient-Quality-Diversity-Optimization-of-3D-Buildings-through-2D-Pre-optimization
 date: 2023-01-01
 venue: 'Evolutionary computation'

@@ -4,6 +4,15 @@ excerpt: "An open-source AI assistant for climate-adapted urban planning — sur
 collection: portfolio
 permalink: /portfolio/openskizze/
 tags: [AI, urban planning, climate, open source, quality diversity, surrogate model, UMAP, machine learning]
+ref: openskizze
+header:
+  teaser: openskizze-visual.svg
+related_publications:
+  - designing-air-flow
+  - efficient-qd-3d-buildings
+  - full-domain-analysis
+related_talks:
+  - kluger-transfer-tandem
 ---
 
 <span class="tag-pill">DBU Funded</span>&nbsp;<span class="tag-pill">Urban Climate</span>&nbsp;<span class="tag-pill">Open Source</span>&nbsp;<span class="tag-pill">Quality Diversity</span>&nbsp;<span class="tag-pill">Surrogate Models</span>&nbsp;<span class="tag-pill">UMAP</span>
@@ -15,8 +24,66 @@ Climate-adapted building requires knowledge that most planners don't have easy a
 **OpenSKIZZE** translates findings from climate models into concrete, usable design options — early in the planning process, before expensive expertise is typically called in.
 
 <div class="blend-visual">
-  <img src="/images/openskizze-visual.svg" alt="OpenSKIZZE urban planning tool interface" />
+  <img src="/images/openskizze-visual.svg" alt="OpenSKIZZE urban planning tool interface" loading="lazy" decoding="async" />
 </div>
+
+<p class="demo-jump"><a href="#interactive-demo" class="btn btn--primary">Jump to the interactive demo ↓</a></p>
+
+---
+
+### Interactive demo
+
+The widget below illustrates the two core outputs: the **QD archive** (left — each cell is one design archetype, coloured by the selected view) and the **UMAP embedding** (right — how designs cluster by predicted behaviour). **Hover, tap/click, or use the keyboard** (arrow keys to move the selected cell, Enter/Space to inspect, Escape to clear) to link the archive, preview, and UMAP. Use the **View** selector to switch the colour scale between the surrogate-predicted **cold airflow score** and the **surrogate uncertainty**.
+
+<div id="openskizze-demo">
+  <div class="demo-header">Surrogate-assisted QD · Archive & Airflow UMAP</div>
+  <div class="demo-topbar">
+    <div class="demo-ctrl">
+      <label for="ctrl-view">View</label>
+      <select id="ctrl-view">
+        <option value="score">Cold airflow score</option>
+        <option value="uncertainty">Surrogate uncertainty</option>
+      </select>
+    </div>
+    <div class="demo-ctrl">
+      <label for="ctrl-height">Max height &nbsp;<span class="demo-value" id="val-height">6</span> fl.</label>
+      <input type="range" id="ctrl-height" min="2" max="10" value="6" step="1">
+    </div>
+    <div class="demo-ctrl">
+      <label for="ctrl-green">Min green &nbsp;<span class="demo-value" id="val-green">30</span>%</label>
+      <input type="range" id="ctrl-green" min="10" max="60" value="30" step="5">
+    </div>
+    <div class="demo-ctrl">
+      <label for="ctrl-density">Max density &nbsp;<span class="demo-value" id="val-density">0.50</span></label>
+      <input type="range" id="ctrl-density" min="0.2" max="0.8" value="0.5" step="0.05">
+    </div>
+    <div class="demo-ctrl">
+      <button type="button" id="demo-clear" class="demo-clear">Clear selection</button>
+    </div>
+  </div>
+  <div class="demo-canvas-wrap">
+    <canvas id="qd-canvas" width="760" height="340"
+            role="application"
+            tabindex="0"
+            aria-label="Interactive OpenSKIZZE demo: a quality-diversity design archive, a design preview, and a UMAP embedding of predicted airflow."
+            aria-describedby="demo-desc"></canvas>
+    <p id="demo-desc" class="visually-hidden">This interactive demo has three linked panels. The left panel is a quality-diversity archive: a grid of design archetypes, each drawn as a small isometric city, where the horizontal axis is green-space percentage and the vertical axis is building density. The centre panel shows an enlarged preview of the currently selected design with its statistics. The right panel is a UMAP scatter plot in which each dot is a design, positioned so that designs with similar predicted airflow cluster together. Hover, tap, or click a cell in the archive or a dot in the UMAP to select a design; the selection persists and links all three panels. With the canvas focused, use the arrow keys to move the selected archive cell, Enter or Space to inspect it, and Escape to clear the selection. A text readout below the canvas reports the selected design's green space, density, height, airflow score, uncertainty, and feasibility.</p>
+    <p id="demo-readout" class="demo-readout" role="status" aria-live="polite">No design selected. Hover, tap, or use the arrow keys to select a design.</p>
+    <p class="demo-legend">
+      <strong>Left:</strong> QD archive — each cell is a distinct design archetype shown as an isometric city. The colour bar encodes the selected view (cold airflow score or surrogate uncertainty); the selected cell is also marked with a black border and corner square.<br>
+      <strong>Centre:</strong> Hover, tap, or select any cell to see the full design preview with stats.<br>
+      <strong>Right:</strong> UMAP — clusters of designs with similar predicted behaviour.<br>
+      <span class="demo-legend__swatch" style="color:#2166ac;">■</span> Strong cold airflow &nbsp;
+      <span class="demo-legend__swatch" style="color:#f4a261;">■</span> Blocked / weak &nbsp;
+      <span class="demo-legend__swatch" style="color:#1a9850;">■</span> Confident &nbsp;
+      <span class="demo-legend__swatch" style="color:#d73027;">■</span> Uncertain
+    </p>
+  </div>
+</div>
+
+<script src="/assets/js/openskizze-demo.js"></script>
+
+---
 
 ### How it works: surrogate-assisted quality diversity
 
@@ -30,49 +97,6 @@ The core of OpenSKIZZE is a **surrogate-assisted quality diversity (QD) optimiza
 4. To make the high-dimensional airflow fields interpretable, a **UMAP model** projects them into 2D — revealing clusters of layouts that produce similar airflow behaviour, even when their building footprints look very different.
 
 The result: planners receive a structured vocabulary of design archetypes, each backed by a predicted cold airflow map and uncertainty estimate, ready for expert review and comparison.
-
----
-
-### Interactive demo
-
-The widget below illustrates the two core outputs: the **QD archive** (left — each cell is one design archetype, coloured by surrogate-predicted cold airflow score) and the **UMAP embedding** (right — how designs cluster by predicted airflow behaviour). Hover over either view to link them.
-
-<div id="openskizze-demo">
-  <div class="demo-header">Surrogate-assisted QD · Archive &amp; Airflow UMAP</div>
-  <div class="demo-topbar">
-    <div class="demo-ctrl">
-      <label>View</label>
-      <select id="ctrl-view">
-        <option value="score">Cold airflow score</option>
-        <option value="uncertainty">Surrogate uncertainty</option>
-      </select>
-    </div>
-    <div class="demo-ctrl">
-      <label>Max height &nbsp;<span class="demo-value" id="val-height">6</span> fl.</label>
-      <input type="range" id="ctrl-height" min="2" max="10" value="6" step="1">
-    </div>
-    <div class="demo-ctrl">
-      <label>Min green &nbsp;<span class="demo-value" id="val-green">30</span>%</label>
-      <input type="range" id="ctrl-green" min="10" max="60" value="30" step="5">
-    </div>
-    <div class="demo-ctrl">
-      <label>Max density &nbsp;<span class="demo-value" id="val-density">0.50</span></label>
-      <input type="range" id="ctrl-density" min="0.2" max="0.8" value="0.5" step="0.05">
-    </div>
-  </div>
-  <div class="demo-canvas-wrap">
-    <canvas id="qd-canvas" width="760" height="340"></canvas>
-    <p class="demo-legend">
-      <strong>Left:</strong> QD archive — each cell is a distinct design archetype shown as an isometric city. Colour bar = cold airflow score.<br>
-      <strong>Centre:</strong> Hover any cell to see the full design preview with stats.<br>
-      <strong>Right:</strong> UMAP — clusters of designs with similar predicted airflow behaviour.
-      <span style="color:#2166ac;font-weight:700;">■</span> Strong cold airflow &nbsp;
-      <span style="color:#f4a261;font-weight:700;">■</span> Blocked / weak
-    </p>
-  </div>
-</div>
-
-<script src="/assets/js/openskizze-demo.js"></script>
 
 ---
 
@@ -99,4 +123,3 @@ Funded by the [**Deutsche Bundesstiftung Umwelt (DBU)**](https://www.dbu.de/en/)
 ### Open science commitment
 
 OpenSKIZZE is developed fully in the open — open-source code, open training data, and open model weights. We believe that publicly funded climate tools must be publicly accessible, reproducible, and extensible by the communities they are meant to serve.
-

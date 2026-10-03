@@ -1,6 +1,7 @@
 ---
 title: "Workshop on AI: Large Language Models and Generative AI"
 collection: talks
+ref: llm-generative-ai-workshop
 type: "Workshop"
 permalink: /talks/2023-01-01-workshop-llm-generative-ai
 venue: "H-BRS (PhD/M.Sc. programme)"

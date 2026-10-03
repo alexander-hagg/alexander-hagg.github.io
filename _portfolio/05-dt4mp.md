@@ -2,8 +2,14 @@
 title: "DT4MP — DigitalTwin-4-Multiphysics Lab"
 excerpt: "Research lab combining urban digital twins with industrial multi-physics simulation, powered by AI and machine learning."
 collection: portfolio
-permalink: /portfolio/p-dt4mp/
+permalink: /portfolio/dt4mp/
+redirect_from:
+  - /portfolio/p-dt4mp/
 tags: [digital twin, urban, CFD, machine learning, Fraunhofer, H-BRS]
+ref: dt4mp
+related_talks:
+  - innovationstreffen-digital-twins
+  - workshop-digital-twin-troisdorf
 ---
 
 <span class="tag-pill">2023–2027</span>&nbsp;<span class="tag-pill">Digital Twins</span>&nbsp;<span class="tag-pill">Urban AI</span>&nbsp;<span class="tag-pill">Industry</span>

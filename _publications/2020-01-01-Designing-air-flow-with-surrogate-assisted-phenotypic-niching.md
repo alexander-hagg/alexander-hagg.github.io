@@ -1,6 +1,11 @@
 ---
 title: "Designing air flow with surrogate-assisted phenotypic niching"
 collection: publications
+ref: designing-air-flow
+tags: [surrogate models, urban climate, quality diversity]
+related_portfolio:
+  - openskizze
+  - aeromat
 permalink: /publication/2020-01-01-Designing-air-flow-with-surrogate-assisted-phenotypic-niching
 date: 2020-01-01
 venue: 'In the proceedings of International Conference on Parallel Problem Solving from Nature'

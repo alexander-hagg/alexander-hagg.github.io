@@ -1,6 +1,10 @@
 ---
 title: "Artificial intelligence in elite sports—A narrative review of success stories and challenges"
 collection: publications
+ref: ai-elite-sports-review
+tags: [sports AI]
+related_portfolio:
+  - kiss-bis
 permalink: /publication/2022-01-01-Artificial-intelligence-in-elite-sportsA-narrative-review-of-success-stories-and-challenges
 date: 2022-01-01
 venue: 'Frontiers in Sports and Active Living'

@@ -2,8 +2,14 @@
 title: "ELaBoR — EV Charging Infrastructure Optimisation"
 excerpt: "Evolutionary optimisation of electric vehicle charging station placement for the Bonn / Rhein-Sieg region."
 collection: portfolio
-permalink: /portfolio/p-elabor/
+permalink: /portfolio/elabor/
+redirect_from:
+  - /portfolio/p-elabor/
 tags: [evolutionary algorithms, urban planning, electric mobility, optimisation, sustainability]
+ref: elabor
+related_publications:
+  - successive-charging-stations
+  - multi-stage-mclp
 ---
 
 <span class="tag-pill">2014–2016</span>&nbsp;<span class="tag-pill">Evolutionary Optimisation</span>&nbsp;<span class="tag-pill">Urban Planning</span>&nbsp;<span class="tag-pill">Electric Mobility</span>

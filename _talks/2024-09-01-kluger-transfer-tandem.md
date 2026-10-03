@@ -1,6 +1,9 @@
 ---
 title: "Luftqualität und Klimawandel in der Stadtplanung – Wie künstliche Intelligenz uns hilft"
 collection: talks
+ref: kluger-transfer-tandem
+related_portfolio:
+  - openskizze
 type: "Talk"
 permalink: /talks/2024-09-01-kluger-transfer-tandem
 venue: "KLUGER Transfer Tandem Talk"

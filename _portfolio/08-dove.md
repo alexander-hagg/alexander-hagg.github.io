@@ -2,8 +2,17 @@
 title: "DoVE — Evolutionary Design of Aerodynamic Vehicle Bodies"
 excerpt: "Evolving 3D aerodynamic velomobile bodies using neural indirect encodings and real-world drag analysis via computer vision."
 collection: portfolio
-permalink: /portfolio/p-dove/
+permalink: /portfolio/dove/
+redirect_from:
+  - /portfolio/p-dove/
 tags: [evolutionary algorithms, aerodynamics, CPPN, computer vision, generative design]
+ref: dove
+header:
+  teaser: 10.png
+related_publications:
+  - suitability-representations-shapes
+  - expressivity-representations
+  - evolving-parsimonious-networks
 ---
 
 <span class="tag-pill">2014–2018</span>&nbsp;<span class="tag-pill">Evolutionary Algorithms</span>&nbsp;<span class="tag-pill">3D Shape Optimisation</span>&nbsp;<span class="tag-pill">Computer Vision</span>

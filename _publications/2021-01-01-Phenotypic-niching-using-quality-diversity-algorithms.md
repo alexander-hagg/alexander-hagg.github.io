@@ -1,6 +1,8 @@
 ---
 title: "Phenotypic niching using quality diversity algorithms"
 collection: publications
+ref: phenotypic-niching
+tags: [quality diversity]
 permalink: /publication/2021-01-01-Phenotypic-niching-using-quality-diversity-algorithms
 date: 2021-01-01
 venue: 'Metaheuristics for Finding Multiple Solutions'

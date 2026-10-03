@@ -4,6 +4,14 @@ excerpt: "In-silico modeling of cellular transport mechanisms — bridging biome
 collection: portfolio
 permalink: /portfolio/cytotransport/
 tags: [DFG, biology, computational modeling, in-silico, ion channels]
+ref: cytotransport
+header:
+  teaser: cytotransport-visual.svg
+related_publications:
+  - fine-tuning-force-field
+  - speed-up-force-field
+  - lennard-jones-params
+  - open-source-ml-chemistry
 ---
 
 <span class="tag-pill">DFG Funded</span>&nbsp;<span class="tag-pill">Biology</span>&nbsp;<span class="tag-pill">In-silico Modeling</span>&nbsp;<span class="tag-pill">Open Source</span>
@@ -13,7 +21,7 @@ tags: [DFG, biology, computational modeling, in-silico, ion channels]
 The **CytoTransport** research cluster combines expertise in biomedicine, computational modeling, structural biology, chemistry, and materials science to investigate how cells move molecules across membranes — processes that are central to diseases like hypertension and Liddle's syndrome.
 
 <div class="blend-visual">
-  <img src="/images/cytotransport-visual.svg" alt="3D representation of a protein ion channel" />
+  <img src="/images/cytotransport-visual.svg" alt="3D representation of a protein ion channel" loading="lazy" decoding="async" />
 </div>
 
 My role is in the **in-silico modeling and new methods development** field — building computational models and machine learning surrogates that reduce the cost of understanding molecular mechanisms using approaches developed in the deep learning and quality diversity optimization domains, predicting effects of mutations, and predicting molecular structural conformations.

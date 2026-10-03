@@ -1,6 +1,9 @@
 ---
 title: "Beyond Open Data and Towards Grass Roots Urban Ecology"
 collection: talks
+ref: barcamp-urban-ecology
+related_portfolio:
+  - neue-stadtgaertnerei
 type: "Talk"
 permalink: /talks/2024-06-01-barcamp-urban-ecology
 venue: "Barcamp Nachhaltige Zukunft Bonn"

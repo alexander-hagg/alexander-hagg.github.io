@@ -1,6 +1,9 @@
 ---
 title: "Workshop Digitaler Zwilling"
 collection: talks
+ref: workshop-digital-twin-troisdorf
+related_portfolio:
+  - dt4mp
 type: "Workshop"
 permalink: /talks/2025-03-01-workshop-digitaler-zwilling-troisdorf
 venue: "Stadt Troisdorf"

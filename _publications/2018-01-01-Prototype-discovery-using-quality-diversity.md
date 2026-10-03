@@ -1,6 +1,10 @@
 ---
 title: "Prototype discovery using quality-diversity"
 collection: publications
+ref: prototype-discovery
+tags: [quality diversity, co-creativity]
+related_portfolio:
+  - spiegelmaschine
 permalink: /publication/2018-01-01-Prototype-discovery-using-quality-diversity
 date: 2018-01-01
 venue: 'In the proceedings of Parallel Problem Solving from Nature--PPSN XV: 15th International Conference, Coimbra, Portugal, September 8--12, 2018, Proceedings, Part I 15'

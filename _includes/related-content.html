@@ -1,0 +1,73 @@
+{% include base_path %}
+
+{% comment %}
+  Reusable cross-linking block.
+  Renders related items declared in front matter via explicit `ref` values:
+    related_portfolio:    [ref, ...]  -> site.portfolio
+    related_publications: [ref, ...]  -> site.publications
+    related_talks:        [ref, ...]  -> site.talks
+    related_posts:        [ref, ...]  -> site.posts
+  Items are matched on their `ref` front-matter field. Nothing renders when
+  no related items are declared, so the include is safe to call everywhere.
+{% endcomment %}
+
+{% assign has_related = false %}
+{% if page.related_portfolio and page.related_portfolio.size > 0 %}{% assign has_related = true %}{% endif %}
+{% if page.related_publications and page.related_publications.size > 0 %}{% assign has_related = true %}{% endif %}
+{% if page.related_talks and page.related_talks.size > 0 %}{% assign has_related = true %}{% endif %}
+{% if page.related_posts and page.related_posts.size > 0 %}{% assign has_related = true %}{% endif %}
+
+{% if has_related %}
+<div class="related-content">
+  <h3 class="related-content__title">Related</h3>
+  <ul class="related-content__list">
+
+    {% for ref in page.related_portfolio %}
+      {% for item in site.portfolio %}
+        {% if item.ref == ref %}
+          <li class="related-content__item">
+            <span class="related-content__type related-content__type--portfolio">Case study</span>
+            <a href="{{ base_path }}{{ item.url }}">{{ item.title }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+
+    {% for ref in page.related_publications %}
+      {% for item in site.publications %}
+        {% if item.ref == ref %}
+          <li class="related-content__item">
+            <span class="related-content__type related-content__type--publication">Publication</span>
+            <a href="{{ base_path }}{{ item.url }}">{{ item.title }}</a>
+            <span class="related-content__meta">{{ item.venue }}{% if item.date %}, {{ item.date | date: "%Y" }}{% endif %}</span>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+
+    {% for ref in page.related_talks %}
+      {% for item in site.talks %}
+        {% if item.ref == ref %}
+          <li class="related-content__item">
+            <span class="related-content__type related-content__type--talk">Talk</span>
+            <a href="{{ base_path }}{{ item.url }}">{{ item.title }}</a>
+            <span class="related-content__meta">{{ item.venue }}{% if item.date %}, {{ item.date | date: "%Y" }}{% endif %}</span>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+
+    {% for ref in page.related_posts %}
+      {% for item in site.posts %}
+        {% if item.ref == ref %}
+          <li class="related-content__item">
+            <span class="related-content__type related-content__type--post">Writing</span>
+            <a href="{{ base_path }}{{ item.url }}">{{ item.title }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+
+  </ul>
+</div>
+{% endif %}

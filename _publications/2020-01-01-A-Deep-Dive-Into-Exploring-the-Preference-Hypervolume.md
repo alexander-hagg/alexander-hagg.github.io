@@ -1,6 +1,10 @@
 ---
 title: "A Deep Dive Into Exploring the Preference Hypervolume"
 collection: publications
+ref: deep-dive-preference-hypervolume
+tags: [co-creativity, quality diversity]
+related_portfolio:
+  - spiegelmaschine
 permalink: /publication/2020-01-01-A-Deep-Dive-Into-Exploring-the-Preference-Hypervolume
 date: 2020-01-01
 venue: 'In the proceedings of International Conference on Computational Creativity'

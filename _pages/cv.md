@@ -9,7 +9,17 @@ redirect_from:
 
 {% include base_path %}
 
-<object data="../files/Hagg_Alexander_CV_Academic.pdf" width="1000" height="1000" type='application/pdf'></object>
+<div class="cv-embed">
+  <object data="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf" type="application/pdf" aria-label="Alexander Hagg — academic CV (PDF)">
+    <p class="cv-embed__fallback">Your browser cannot display embedded PDFs. <a href="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf">Download the academic CV (PDF)</a>.</p>
+  </object>
+</div>
+
+<p class="cv-downloads">
+  <a class="btn" href="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf">Download academic CV (PDF)</a>
+  <a class="btn" href="{{ base_path }}/files/Hagg_Alexander_CV_EN.pdf">Download CV — English (PDF)</a>
+  <a class="btn" href="{{ base_path }}/files/Hagg_Alexander_CV_DE.pdf">Download CV — Deutsch (PDF)</a>
+</p>
 
 Publications
 ======

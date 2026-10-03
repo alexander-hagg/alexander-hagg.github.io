@@ -4,6 +4,11 @@ excerpt: "A grassroots initiative in Bonn-Dransdorf creating climate-resilient s
 collection: portfolio
 permalink: /portfolio/neue-stadtgaertnerei/
 tags: [community, sustainability, housing, Bonn, climate, agroforestry]
+ref: neue-stadtgaertnerei
+header:
+  teaser: nsg-visual.svg
+related_talks:
+  - barcamp-urban-ecology
 ---
 
 <span class="tag-pill">Community</span>&nbsp;<span class="tag-pill">Housing</span>&nbsp;<span class="tag-pill">Bonn</span>&nbsp;<span class="tag-pill">Climate</span>&nbsp;<span class="tag-pill">Open Science</span>
@@ -13,7 +18,7 @@ tags: [community, sustainability, housing, Bonn, climate, agroforestry]
 The **Neue Stadtgärtnerei** is a volunteer-driven initiative aiming to transform the site of the old city nursery in Bonn-Dransdorf into a community space for climate-adapted living. It sits in a cold air inflow corridor — cold air flows in from the south, while the urban heat island lies to the north. A site with genuine environmental significance and equally genuine potential for housing justice.
 
 <div class="blend-visual">
-  <img src="/images/nsg-visual.svg" alt="Neue Stadtgärtnerei — Bonn-Dransdorf site" />
+  <img src="/images/nsg-visual.svg" alt="Neue Stadtgärtnerei — Bonn-Dransdorf site" loading="lazy" decoding="async" />
   <p style="font-size:0.75em;color:#888;text-align:center;margin-top:0.3em;">3D site model coming soon</p>
 </div>
 

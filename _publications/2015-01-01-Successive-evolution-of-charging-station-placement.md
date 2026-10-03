@@ -1,6 +1,10 @@
 ---
 title: "Successive evolution of charging station placement"
 collection: publications
+ref: successive-charging-stations
+tags: [mobility, evolutionary computation]
+related_portfolio:
+  - elabor
 permalink: /publication/2015-01-01-Successive-evolution-of-charging-station-placement
 date: 2015-01-01
 venue: 'In the proceedings of 2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA)'

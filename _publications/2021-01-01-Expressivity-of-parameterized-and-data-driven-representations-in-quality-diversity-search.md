@@ -1,6 +1,10 @@
 ---
 title: "Expressivity of parameterized and data-driven representations in quality diversity search"
 collection: publications
+ref: expressivity-representations
+tags: [quality diversity, co-creativity]
+related_portfolio:
+  - dove
 permalink: /publication/2021-01-01-Expressivity-of-parameterized-and-data-driven-representations-in-quality-diversity-search
 date: 2021-01-01
 venue: 'In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference'

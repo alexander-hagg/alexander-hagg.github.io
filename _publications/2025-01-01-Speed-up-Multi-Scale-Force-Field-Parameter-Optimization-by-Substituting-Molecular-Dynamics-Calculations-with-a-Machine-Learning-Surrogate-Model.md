@@ -1,6 +1,11 @@
 ---
 title: "Speed up Multi-Scale Force-Field Parameter Optimization by Substituting Molecular Dynamics Calculations with a Machine Learning Surrogate Model"
 collection: publications
+ref: speed-up-force-field
+tags: [computational chemistry, surrogate models]
+related_portfolio:
+  - cytotransport
+  - ummbas
 permalink: /publication/2025-01-01-Speed-up-Multi-Scale-Force-Field-Parameter-Optimization-by-Substituting-Molecular-Dynamics-Calculations-with-a-Machine-Learning-Surrogate-Model
 date: 2025-01-01
 venue: 'ChemPhysChem'

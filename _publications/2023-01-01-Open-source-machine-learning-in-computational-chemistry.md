@@ -1,6 +1,11 @@
 ---
 title: "Open-source machine learning in computational chemistry"
 collection: publications
+ref: open-source-ml-chemistry
+tags: [computational chemistry]
+related_portfolio:
+  - cytotransport
+  - ummbas
 permalink: /publication/2023-01-01-Open-source-machine-learning-in-computational-chemistry
 date: 2023-01-01
 venue: 'Journal of chemical information and modeling'

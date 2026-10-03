@@ -1,6 +1,10 @@
 ---
 title: "K&quot;unstliche Intelligenz f&quot;ur den Spitzensport im Spannungsfeld zwischen Big und Small Data"
 collection: publications
+ref: ki-elite-sports-german
+tags: [sports AI]
+related_portfolio:
+  - kiss-bis
 permalink: /publication/2022-01-01-Kunstliche-Intelligenz-fur-den-Spitzensport-im-Spannungsfeld-zwischen-Big-und-Small-Data
 date: 2022-01-01
 venue: 'In the proceedings of Hochschule Bonn-Rhein-Sieg'

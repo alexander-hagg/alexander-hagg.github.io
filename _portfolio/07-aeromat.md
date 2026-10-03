@@ -2,8 +2,17 @@
 title: "AErOmAt — Surrogate-Assisted Aerodynamic Optimisation"
 excerpt: "Metamodel-assisted exploration and optimisation of aerodynamic shapes — developing surrogate-illumination methods that won two best paper awards."
 collection: portfolio
-permalink: /portfolio/p-aeromat/
+permalink: /portfolio/aeromat/
+redirect_from:
+  - /portfolio/p-aeromat/
 tags: [surrogate models, quality diversity, CFD, aerodynamics, BMBF, GECCO, AIAA]
+ref: aeromat
+header:
+  teaser: 07.png
+related_publications:
+  - hierarchical-surrogate
+  - designing-air-flow
+  - aeromat-final-report
 ---
 
 <span class="tag-pill">2016–2019</span>&nbsp;<span class="tag-pill">Surrogate Models</span>&nbsp;<span class="tag-pill">Quality Diversity</span>&nbsp;<span class="tag-pill">CFD</span>&nbsp;<span class="tag-pill">BMBF Funded</span>

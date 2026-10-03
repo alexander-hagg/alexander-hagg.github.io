@@ -1,6 +1,10 @@
 ---
 title: "Einsatz von Künstlicher Intelligenz im internationalen Spitzensport--Eine Erhebung des Status Quo"
 collection: publications
+ref: ki-status-quo
+tags: [sports AI]
+related_portfolio:
+  - kiss-bis
 permalink: /publication/2020-01-01-Einsatz-von-Knstlicher-Intelligenz-im-internationalen-Spitzensport-Eine-Erhebung-des-Status-Quo
 date: 2020-01-01
 venue: 'spinfortec 2020 digital'

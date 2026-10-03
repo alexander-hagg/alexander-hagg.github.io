@@ -1,6 +1,11 @@
 ---
 title: "Fine-tuning property domain weighting factors and the objective function in force-field parameter optimization"
 collection: publications
+ref: fine-tuning-force-field
+tags: [computational chemistry]
+related_portfolio:
+  - cytotransport
+  - ummbas
 permalink: /publication/2025-01-01-Fine-tuning-property-domain-weighting-factors-and-the-objective-function-in-force-field-parameter-optimization
 date: 2025-01-01
 venue: 'Journal of Molecular Graphics and Modelling'

@@ -24,6 +24,13 @@
 <meta name="theme-color" content="#ffffff">
 <link rel="stylesheet" href="{{ base_path }}/assets/css/academicons.css"/>
 
+{%- comment -%}
+  MathJax is opt-in to avoid loading ~1 MB of JavaScript on every page.
+  Enable it per page with `math: true` in the front matter, or site-wide
+  with `math: true` in _config.yml. No current content uses math, so it is
+  disabled by default.
+{%- endcomment -%}
+{% if page.math or site.math %}
 <script type="text/x-mathjax-config"> MathJax.Hub.Config({ TeX: { equationNumbers: { autoNumber: "all" } } }); </script>
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config({
@@ -34,5 +41,6 @@
   });
 </script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=TeX-MML-AM_CHTML' async></script>
+{% endif %}
 
 <!-- end custom head snippets -->

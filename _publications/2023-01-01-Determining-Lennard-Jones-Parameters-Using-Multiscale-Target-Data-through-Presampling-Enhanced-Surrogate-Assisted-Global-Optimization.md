@@ -1,6 +1,11 @@
 ---
 title: "Determining Lennard-Jones Parameters Using Multiscale Target Data through Presampling-Enhanced, Surrogate-Assisted Global Optimization"
 collection: publications
+ref: lennard-jones-params
+tags: [computational chemistry, surrogate models]
+related_portfolio:
+  - cytotransport
+  - ummbas
 permalink: /publication/2023-01-01-Determining-Lennard-Jones-Parameters-Using-Multiscale-Target-Data-through-Presampling-Enhanced-Surrogate-Assisted-Global-Optimization
 date: 2023-01-01
 venue: 'Journal of chemical information and modeling'

@@ -1,6 +1,8 @@
 ---
 title: "On recognizing transparent objects in domestic environments using fusion of multiple sensor modalities"
 collection: publications
+ref: transparent-objects
+tags: [robotics]
 permalink: /publication/2017-01-01-On-recognizing-transparent-objects-in-domestic-environments-using-fusion-of-multiple-sensor-modalities
 date: 2017-01-01
 venue: 'In the proceedings of RoboCup 2016: Robot World Cup XX 20'

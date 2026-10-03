@@ -1,6 +1,7 @@
 ---
 title: "AI as a programming and data analysis buddy (or how to start worrying and love the AI)"
 collection: talks
+ref: ai-buddy-ki-wrap
 type: "Talk"
 permalink: /talks/2025-04-01-ai-buddy-ki-wrap
 venue: "KI-Wrap, Bibliothek H-BRS"

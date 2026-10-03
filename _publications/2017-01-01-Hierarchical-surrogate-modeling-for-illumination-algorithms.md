@@ -1,6 +1,10 @@
 ---
 title: "Hierarchical surrogate modeling for illumination algorithms"
 collection: publications
+ref: hierarchical-surrogate
+tags: [surrogate models, quality diversity]
+related_portfolio:
+  - aeromat
 permalink: /publication/2017-01-01-Hierarchical-surrogate-modeling-for-illumination-algorithms
 date: 2017-01-01
 venue: 'In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion'

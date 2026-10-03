@@ -4,6 +4,12 @@ excerpt: "Systematic research into the mismatch between AI/ML methods and elite 
 collection: portfolio
 permalink: /portfolio/kiss-bis/
 tags: [machine learning, sports science, small data, systematic review, BISp]
+ref: kiss-bis
+related_publications:
+  - ki-status-quo
+  - ki-transfer-small-big-data
+  - ki-elite-sports-german
+  - ai-elite-sports-review
 ---
 
 <span class="tag-pill">2019–2020</span>&nbsp;<span class="tag-pill">Machine Learning</span>&nbsp;<span class="tag-pill">Sports Science</span>&nbsp;<span class="tag-pill">Small Data</span>

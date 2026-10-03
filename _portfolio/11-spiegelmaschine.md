@@ -4,6 +4,16 @@ excerpt: "A generative art project trained on 1000 paintings by artist Steffen T
 collection: portfolio
 permalink: /portfolio/spiegelmaschine/
 tags: [generative art, AI, machine learning, creativity, GAN]
+ref: spiegelmaschine
+header:
+  teaser: sm01.png
+related_publications:
+  - discovering-preference-hypervolume
+  - deep-dive-preference-hypervolume
+  - modeling-user-selection
+  - prototype-discovery
+related_posts:
+  - spiegelmaschine-post
 ---
 
 <span class="tag-pill">Generative Art</span>&nbsp;<span class="tag-pill">AI</span>&nbsp;<span class="tag-pill">Co-creativity</span>

@@ -380,6 +380,21 @@ a {
       width: 130px;
       accent-color: $accent-green;
     }
+
+    .demo-clear {
+      font-size: $type-size-7;
+      font-weight: 700;
+      padding: 0.3em 0.8em;
+      border: 1px solid $accent-green-border;
+      border-radius: 3px;
+      background: #fff;
+      color: $accent-green;
+      cursor: pointer;
+
+      &:hover {
+        background: $accent-green-pale;
+      }
+    }
   }
 
   .demo-canvas-wrap {
@@ -395,6 +410,22 @@ a {
       max-width: 760px;
       height: auto;
       display: block;
+
+      &:focus-visible {
+        outline: 3px solid $accent-green;
+        outline-offset: 2px;
+      }
+    }
+
+    .demo-readout {
+      margin: 0.6em 0 0;
+      padding: 0.5em 0.7em;
+      font-size: $type-size-7;
+      color: #2a2a2a;
+      background: $accent-green-pale;
+      border-left: 3px solid $accent-green;
+      border-radius: 0 3px 3px 0;
+      line-height: 1.45;
     }
 
     .demo-legend {
@@ -403,5 +434,416 @@ a {
       color: $gray;
       line-height: 1.4;
     }
+  }
+}
+
+/*
+   Project card actions (homepage CTAs)
+   ========================================================================== */
+
+.project-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 1.2em;
+}
+
+.project-card__link--demo {
+  display: inline-block;
+  padding: 0.4em 0.9em;
+  border-radius: 4px;
+  background: $accent-green;
+  color: #fff !important;
+  text-decoration: none;
+
+  &::after {
+    content: "";
+  }
+
+  &:hover {
+    background: darken($accent-green, 10%);
+    color: #fff !important;
+  }
+}
+
+/*
+   Jump-to-demo link (portfolio pages)
+   ========================================================================== */
+
+.demo-jump {
+  margin: 1.5em 0;
+}
+
+.btn--primary {
+  background-color: $accent-green;
+
+  &:hover {
+    background-color: darken($accent-green, 10%);
+  }
+}
+
+/*
+   Contact block (homepage)
+   ========================================================================== */
+
+.contact-block {
+  background: $accent-green-pale;
+  border-left: 4px solid $accent-green;
+  border-radius: 0 4px 4px 0;
+  padding: 1.2em 1.5em;
+  margin: 1.5em 0 2.5em;
+
+  p {
+    margin: 0;
+    font-size: $type-size-5;
+    line-height: 1.6;
+    color: #2a2a2a;
+
+    & + p {
+      margin-top: 0.5em;
+    }
+  }
+}
+
+/*
+   Social share — Mastodon / Bluesky
+   ========================================================================== */
+
+.page__share .btn--mastodon {
+  background-color: #6364ff;
+
+  &:hover {
+    background-color: darken(#6364ff, 10%);
+  }
+}
+
+.page__share .btn--bluesky {
+  background-color: #0085ff;
+
+  &:hover {
+    background-color: darken(#0085ff, 10%);
+  }
+}
+
+.share-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  margin-right: 0.15em;
+}
+
+/*
+   Portfolio index grid
+   ========================================================================== */
+
+.portfolio-intro {
+  font-size: $type-size-5;
+  color: #444;
+  max-width: 720px;
+  margin: 0 0 1.5em;
+}
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5em;
+  margin: 1.5em 0 2.5em;
+}
+
+.portfolio-grid .project-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.portfolio-grid .project-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.portfolio-grid .project-card__link {
+  margin-top: auto;
+}
+
+.project-card__visual--placeholder {
+  background: linear-gradient(135deg, $accent-green-pale 0%, #f6faf6 100%);
+  border-bottom: 1px solid $accent-green-border;
+}
+
+.project-card__monogram {
+  font-size: 2.4em;
+  font-weight: 800;
+  color: $accent-green;
+  opacity: 0.55;
+  line-height: 1;
+}
+
+.project-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+  margin: 0 0 1em;
+}
+
+.tag-pill--sm {
+  font-size: $type-size-8;
+  padding: 0.15em 0.55em;
+  letter-spacing: 0.04em;
+}
+
+/*
+   Related content (cross-linking)
+   ========================================================================== */
+
+.related-content {
+  margin: 2.5em 0 1em;
+  padding-top: 1.2em;
+  border-top: 2px solid $accent-green-border;
+
+  &__title {
+    font-size: $type-size-6;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $accent-green;
+    margin: 0 0 0.8em;
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5em;
+    padding: 0.55em 0;
+    border-bottom: 1px solid $accent-green-border;
+    font-size: $type-size-5;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    a {
+      font-weight: 600;
+    }
+  }
+
+  &__type {
+    flex: 0 0 auto;
+    font-size: $type-size-8;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.15em 0.5em;
+    border-radius: 2em;
+    background: $accent-green-pale;
+    color: $accent-green;
+    border: 1px solid $accent-green-border;
+
+    &--publication {
+      background: #eef4fb;
+      color: #2166ac;
+      border-color: #cfe0f2;
+    }
+
+    &--talk {
+      background: #fdf3e7;
+      color: #b5651d;
+      border-color: #f2ddc2;
+    }
+
+    &--post {
+      background: #f3eefb;
+      color: #6a4c93;
+      border-color: #ddd0f0;
+    }
+  }
+
+  &__meta {
+    font-size: $type-size-7;
+    color: $gray;
+  }
+}
+
+/*
+   Publications — grouping and filter
+   ========================================================================== */
+
+.pub-filter {
+  margin: 1.5em 0 2em;
+  padding: 1em 1.2em;
+  border: 1px solid $accent-green-border;
+  border-radius: 6px;
+  background: #fafcfa;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em;
+    margin-bottom: 0.6em;
+
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+
+  &__label {
+    font-size: $type-size-7;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $accent-green;
+    margin-right: 0.4em;
+    min-width: 3.5em;
+  }
+
+  &__btn {
+    font-size: $type-size-7;
+    font-weight: 600;
+    padding: 0.25em 0.7em;
+    border: 1px solid $accent-green-border;
+    border-radius: 2em;
+    background: #fff;
+    color: #444;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      background: $accent-green-pale;
+      color: $accent-green;
+    }
+
+    &.is-active {
+      background: $accent-green;
+      border-color: $accent-green;
+      color: #fff;
+    }
+  }
+
+  &__status {
+    margin: 0.6em 0 0;
+    font-size: $type-size-7;
+    color: $gray;
+  }
+}
+
+.pub-year {
+  margin-bottom: 2em;
+
+  &__heading {
+    font-size: $type-size-4;
+    font-weight: 800;
+    color: $accent-green;
+    margin: 0 0 0.6em;
+    padding-bottom: 0.3em;
+    border-bottom: 2px solid $accent-green-border;
+  }
+}
+
+.pub-item {
+  padding: 0.7em 0;
+  border-bottom: 1px solid $accent-green-border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &__title {
+    font-size: $type-size-5;
+    font-weight: 600;
+    margin: 0 0 0.25em;
+    line-height: 1.35;
+
+    a {
+      color: #1a1a1a;
+      text-decoration: none;
+
+      &:hover {
+        color: $accent-green;
+      }
+    }
+  }
+
+  &__meta {
+    font-size: $type-size-6;
+    color: $gray;
+    margin: 0 0 0.4em;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35em;
+    margin: 0;
+  }
+}
+
+/*
+   Content images — responsive / lazy-loading
+   ========================================================================== */
+
+.page__content img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Floated post images should not overflow narrow viewports */
+@media (max-width: 640px) {
+  .page__content img[align="left"],
+  .page__content img[align="right"] {
+    float: none !important;
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+    margin: 1em 0;
+  }
+}
+
+/*
+   Responsive CV embed
+   ========================================================================== */
+
+.cv-embed {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  aspect-ratio: 0.707; // A4 portrait (210 / 297)
+  margin: 1.5em 0 1em;
+  border: 1px solid $accent-green-border;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fafafa;
+
+  object {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  &__fallback {
+    padding: 1.5em;
+    font-size: $type-size-5;
+    color: #444;
+  }
+}
+
+.cv-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+  margin: 0 0 2em;
+}
+
+/* On small screens the embedded PDF is hard to use — prefer the download links */
+@media (max-width: 640px) {
+  .cv-embed {
+    display: none;
   }
 }

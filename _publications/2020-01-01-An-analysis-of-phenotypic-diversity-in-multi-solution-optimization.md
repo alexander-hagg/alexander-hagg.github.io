@@ -1,6 +1,8 @@
 ---
 title: "An analysis of phenotypic diversity in multi-solution optimization"
 collection: publications
+ref: phenotypic-diversity-analysis
+tags: [quality diversity]
 permalink: /publication/2020-01-01-An-analysis-of-phenotypic-diversity-in-multi-solution-optimization
 date: 2020-01-01
 venue: 'In the proceedings of International Conference on Bioinspired Methods and Their Applications'

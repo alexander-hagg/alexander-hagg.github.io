@@ -1,6 +1,10 @@
 ---
 title: "Full Domain Analysis in Fluid Dynamics"
 collection: publications
+ref: full-domain-analysis
+tags: [surrogate models, urban climate]
+related_portfolio:
+  - openskizze
 permalink: /publication/2025-01-01-Full-Domain-Analysis-in-Fluid-Dynamics
 date: 2025-01-01
 venue: 'Machine Learning and Knowledge Extraction'

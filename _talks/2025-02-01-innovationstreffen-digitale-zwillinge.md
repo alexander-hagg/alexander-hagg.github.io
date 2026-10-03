@@ -1,6 +1,9 @@
 ---
 title: "Innovationstreffen digitale Zwillinge für urbane Nachhaltigkeit"
 collection: talks
+ref: innovationstreffen-digital-twins
+related_portfolio:
+  - dt4mp
 type: "Workshop"
 permalink: /talks/2025-02-01-innovationstreffen-digitale-zwillinge
 venue: "H-BRS ZWT / DT4MP Lab"

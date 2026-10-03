@@ -9,7 +9,10 @@ tags:
   - open source
 ---
 
-<img align="center" src="https://alexander-hagg.github.io/images/feudalism.png" width="600">
+<img align="center" src="/images/feudalism.png" width="600" height="600" loading="lazy" decoding="async"
+     srcset="/images/feudalism-480w.png 480w, /images/feudalism-960w.png 960w, /images/feudalism.png 1024w"
+     sizes="(max-width: 640px) 100vw, 600px"
+     alt="Illustration accompanying the essay on feudalism and AI sovereigns">
 
 Our world is built on a simple, unspoken hypothesis: power structures don’t disappear; they just get new layers. Feudalism never truly vanished. It was simply built upon by capitalism. This is a core idea explored by former Greek finance minister Yanis Varoufakis in his book, *Technofeudalism: What Killed Capitalism*. In his talks and writing, he argues that we are living through the next great layering, a shift so profound it has subjugated capitalism itself and placed us under a new set of invisible rulers.
 

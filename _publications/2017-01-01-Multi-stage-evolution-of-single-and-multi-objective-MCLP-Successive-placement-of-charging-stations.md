@@ -1,6 +1,11 @@
 ---
 title: "Multi-stage evolution of single-and multi-objective MCLP: Successive placement of charging stations"
 collection: publications
+ref: multi-stage-mclp
+tags: [mobility, evolutionary computation]
+related_portfolio:
+  - elabor
+  - stella
 permalink: /publication/2017-01-01-Multi-stage-evolution-of-single-and-multi-objective-MCLP-Successive-placement-of-charging-stations
 date: 2017-01-01
 venue: 'Soft Computing'

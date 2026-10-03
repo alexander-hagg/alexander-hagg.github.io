@@ -1,6 +1,10 @@
 ---
 title: "Einsatzmöglichkeiten und Transfer von Künstlicher Intelligenz im inter-nationalen Spitzensport--zwischen Small und Big Data"
 collection: publications
+ref: ki-transfer-small-big-data
+tags: [sports AI]
+related_portfolio:
+  - kiss-bis
 permalink: /publication/2020-01-01-Einsatzmglichkeiten-und-Transfer-von-Knstlicher-Intelligenz-im-inter-nationalen-Spitzensport-zwischen-Small-und-Big-Data
 date: 2020-01-01
 venue: 'spinfortec 2020 digital'

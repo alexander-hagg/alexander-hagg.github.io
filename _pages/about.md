@@ -48,7 +48,10 @@ redirect_from:
       <span class="project-card__tag">DBU · Urban Planning</span>
       <h2 class="project-card__title">OpenSKIZZE</h2>
       <p class="project-card__desc">Surrogate-assisted quality diversity optimization generates thousands of diverse building layouts, each evaluated for cold airflow impact without CFD simulation. A UMAP model reveals which designs cluster by airflow behaviour.</p>
-      <a href="/portfolio/openskizze/" class="project-card__link">See the project</a>
+      <div class="project-card__actions">
+        <a href="/portfolio/openskizze/#interactive-demo" class="project-card__link project-card__link--demo">Try the interactive demo</a>
+        <a href="/portfolio/openskizze/" class="project-card__link">See the project</a>
+      </div>
     </div>
   </div>
 
@@ -93,4 +96,11 @@ Real problems don't fit neatly into papers. That's why I work across computation
     <span class="writing-teasers__title"><a href="/posts/2025/06/gemeinsamkeitistkleineinsel/">Gemeinsamkeit ist k(l)eine Insel</a></span>
   </li>
 </ul>
+
+<p class="section-header">Stay in touch</p>
+
+<div class="contact-block">
+  <p>Questions, collaborations, or feedback? <a href="mailto:info@haggdesign.de">Email me at info@haggdesign.de</a>.</p>
+  <p>Prefer to follow along? <a href="/feed.xml">Subscribe to the RSS feed</a>.</p>
+</div>
 

@@ -1,6 +1,10 @@
 ---
 title: "Discovering the preference hypervolume: an interactive model for real world computational co-creativity"
 collection: publications
+ref: discovering-preference-hypervolume
+tags: [co-creativity, quality diversity]
+related_portfolio:
+  - spiegelmaschine
 permalink: /publication/2021-01-01-Discovering-the-preference-hypervolume-an-interactive-model-for-real-world-computational-co-creativity
 date: 2021-01-01
 venue: 'In the proceedings of Dissertation'

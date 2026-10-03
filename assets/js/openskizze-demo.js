@@ -28,6 +28,8 @@
     infeasBld:  '#b8b8b8',
     label:      '#555',
     accent:     '#3a7d44',
+    uncertLow:  [26, 152, 80],   // green – confident
+    uncertHigh: [215, 48, 39],   // red   – uncertain
   };
 
   // ── Score colour (t=0 orange, t=1 blue) ────────────────────────────────────
@@ -41,6 +43,23 @@
   }
   function scoreColor(t) { const [r,g,b]=scoreRGB(t); return `rgb(${r},${g},${b})`; }
   function scoreColorA(t,a) { const [r,g,b]=scoreRGB(t); return `rgba(${r},${g},${b},${a})`; }
+
+  // ── Uncertainty colour (t=0 confident green, t=1 uncertain red) ─────────────
+  function uncertRGB(t) {
+    const a = COL.uncertLow, b = COL.uncertHigh;
+    return [
+      Math.round(a[0] + (b[0]-a[0])*t),
+      Math.round(a[1] + (b[1]-a[1])*t),
+      Math.round(a[2] + (b[2]-a[2])*t),
+    ];
+  }
+  function uncertColor(t) { const [r,g,b]=uncertRGB(t); return `rgb(${r},${g},${b})`; }
+  function uncertColorA(t,a) { const [r,g,b]=uncertRGB(t); return `rgba(${r},${g},${b},${a})`; }
+
+  // ── Active colour scale — branches on the current viewMode ─────────────────
+  function activeRGB(t) { return viewMode === 'uncertainty' ? uncertRGB(t) : scoreRGB(t); }
+  function activeColor(t) { const [r,g,b]=activeRGB(t); return `rgb(${r},${g},${b})`; }
+  function activeColorA(t,a) { const [r,g,b]=activeRGB(t); return `rgba(${r},${g},${b},${a})`; }
 
   // ── Seeded RNG ─────────────────────────────────────────────────────────────
   function makePRNG(seed) {
@@ -167,7 +186,7 @@
         drawIsoGround(ctx2, ix, iy, tw, th, feasible ? COL.green : '#b0c8b0', feasible ? COL.greenDark : '#90a890', feasible);
       } else if (kind === 'building' && floors > 0) {
         const bldColor  = feasible ? COL.building   : COL.infeasBld;
-        const topColor  = feasible ? scoreColorA(score, 0.25) : '#d8d8d8';
+        const topColor  = feasible ? activeColorA(score, 0.25) : '#d8d8d8';
         const sideColor = feasible ? COL.buildingSide: '#a8a8a8';
         drawIsoBox(ctx2, ix, iy, tw, th, floors * floorH, bldColor, topColor, sideColor);
       } else {
@@ -240,14 +259,66 @@
   const valHeight   = document.getElementById('val-height');
   const valGreen    = document.getElementById('val-green');
   const valDensity  = document.getElementById('val-density');
+  const readout     = document.getElementById('demo-readout');
+  const clearBtn    = document.getElementById('demo-clear');
 
   let maxHeight  = 6, minGreen = 30, maxDensity = 0.5;
   let viewMode   = 'score';
-  let hovered    = null;
+  let hovered    = null;   // transient pointer hover
+  let selected   = null;   // persistent selection (click / tap / keyboard)
+  let focused    = false;  // canvas has keyboard focus
   const DPR      = window.devicePixelRatio || 1;
 
   function isFeasible(cell) {
     return cell.height <= maxHeight && cell.greenPct >= minGreen && cell.density <= maxDensity;
+  }
+
+  // ── Selection state ────────────────────────────────────────────────────────
+  // `hovered` is transient (pointer); `selected` persists after click/tap/keyboard.
+  function activeCell() { return hovered || selected; }
+
+  function selectCell(cell) {
+    selected = cell;
+    updateReadout();
+    draw();
+  }
+
+  function clearSelection() {
+    selected = null;
+    updateReadout();
+    draw();
+  }
+
+  function moveSelection(key) {
+    let col, row;
+    if (selected) { col = selected.col; row = selected.row; }
+    else { col = Math.floor(COLS/2); row = Math.floor(ROWS/2); }
+    if (key === 'ArrowLeft')  col = Math.max(0, col - 1);
+    if (key === 'ArrowRight') col = Math.min(COLS - 1, col + 1);
+    if (key === 'ArrowUp')    row = Math.min(ROWS - 1, row + 1);
+    if (key === 'ArrowDown')  row = Math.max(0, row - 1);
+    const cell = archive.find(c => c.col === col && c.row === row);
+    if (cell) selectCell(cell);
+  }
+
+  // Textual readout of the selected design — makes the visualisation
+  // interpretable without relying on colour alone.
+  function updateReadout() {
+    if (!readout) return;
+    const cell = activeCell();
+    if (!cell) {
+      readout.textContent = 'No design selected. Hover, tap, or use the arrow keys to select a design.';
+      return;
+    }
+    const feasible = isFeasible(cell);
+    readout.textContent =
+      'Design at column ' + (cell.col + 1) + ', row ' + (cell.row + 1) + ': ' +
+      'green space ' + cell.greenPct + '%, ' +
+      'density ' + cell.density + ', ' +
+      'max height ' + cell.height + ' floors, ' +
+      'airflow score ' + (cell.score * 100).toFixed(0) + '%, ' +
+      'uncertainty ' + (cell.uncertainty * 100).toFixed(0) + '%, ' +
+      (feasible ? 'feasible.' : 'out of bounds.');
   }
 
   // ── Layout constants (computed each draw from current canvas size) ──────────
@@ -319,6 +390,16 @@
     drawArchive(W, H);
     drawPreview(W, H);
     drawUMAP(W, H);
+
+    // Visible keyboard-focus indicator drawn on the canvas itself
+    if (focused) {
+      ctx.save();
+      ctx.strokeStyle = COL.accent;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.strokeRect(1, 1, W - 2, H - 2);
+      ctx.restore();
+    }
   }
 
   // ── Panel 1: QD Archive ────────────────────────────────────────────────────
@@ -335,9 +416,10 @@
       const { x, y, w, h } = cellRect(cell.col, cell.row);
       const feasible = isFeasible(cell);
       const isHov = hovered && hovered.col===cell.col && hovered.row===cell.row;
+      const isSel = selected && selected.col===cell.col && selected.row===cell.row;
 
       // Background tint by score (or infeasible grey)
-      ctx.fillStyle = feasible ? scoreColorA(cell.score, 0.18) : '#f2f2f2';
+      ctx.fillStyle = feasible ? activeColorA(cell.score, 0.18) : '#f2f2f2';
       ctx.fillRect(x, y, w, h);
 
       // Draw tiny isometric city inside each cell (with small inset)
@@ -351,12 +433,19 @@
 
       // Score bar on left edge
       if (feasible) {
-        ctx.fillStyle = scoreColor(cell.score);
+        ctx.fillStyle = activeColor(cell.score);
         ctx.fillRect(x, y, 3, h);
       }
 
-      // Hover highlight
-      if (isHov) {
+      // Selection / hover highlight. The selected cell also gets a small
+      // corner marker so the state is not conveyed by colour alone.
+      if (isSel) {
+        ctx.strokeStyle = '#1a1a1a';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x+1.5, y+1.5, w-3, h-3);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(x+3, y+3, 5, 5);
+      } else if (isHov) {
         ctx.strokeStyle = '#1a1a1a';
         ctx.lineWidth = 2;
         ctx.strokeRect(x+1, y+1, w-2, h-2);
@@ -410,7 +499,8 @@
     ctx.fillStyle = '#f7faf8';
     ctx.fillRect(ox, 0, pw, H);
 
-    if (!hovered) {
+    const active = activeCell();
+    if (!active) {
       // Idle state: show a collage of 4 diverse designs
       ctx.fillStyle = COL.accent;
       ctx.font = `bold ${fs}px -apple-system,sans-serif`;
@@ -419,7 +509,7 @@
 
       ctx.fillStyle = '#aaa';
       ctx.font = `${Math.round(fs*0.85)}px -apple-system,sans-serif`;
-      ctx.fillText('hover a cell →', ox+pw/2, H/2);
+      ctx.fillText('hover or tap a cell →', ox+pw/2, H/2);
 
       // Draw 4 example thumbnails from corners of the archive
       const samples = [
@@ -437,7 +527,7 @@
         drawIso(ctx, cell.layout, tw2, th2, bx, by, true, cell.score);
         ctx.restore();
         // Score bar top
-        ctx.fillStyle = scoreColor(cell.score);
+        ctx.fillStyle = activeColor(cell.score);
         ctx.fillRect(bx, by, tw2, 3);
         // Mini label
         ctx.fillStyle='#888'; ctx.font=`${Math.round(H*0.024)}px -apple-system,sans-serif`;
@@ -447,7 +537,7 @@
       return;
     }
 
-    const cell = hovered;
+    const cell = active;
     const feasible = isFeasible(cell);
 
     // Title
@@ -469,7 +559,7 @@
       const bary = vizY + vizH + 2;
       const barW = pw - 20;
       ctx.fillStyle = '#eee'; ctx.fillRect(ox+10, bary, barW, 5);
-      ctx.fillStyle = scoreColor(cell.score); ctx.fillRect(ox+10, bary, barW*cell.score, 5);
+      ctx.fillStyle = activeColor(cell.score); ctx.fillRect(ox+10, bary, barW*cell.score, 5);
     }
 
     // Stats block
@@ -480,6 +570,7 @@
       ['Density (GRZ)',`${cell.density}`],
       ['Max height',   `${cell.height} floors`],
       ['Airflow score',`${(cell.score*100).toFixed(0)}%`],
+      ['Uncertainty',  `${(cell.uncertainty*100).toFixed(0)}%`],
       ['Status',       feasible ? '✓ feasible' : '✗ out of bounds'],
     ];
     ctx.font = `${Math.round(H*0.028)}px -apple-system,sans-serif`;
@@ -488,6 +579,7 @@
       ctx.fillStyle='#888'; ctx.textAlign='left';  ctx.fillText(label+':', ox+10, ly);
       ctx.fillStyle = (label==='Status') ? (feasible?COL.accent:'#c0392b')
                     : (label==='Airflow score') ? scoreColor(cell.score)
+                    : (label==='Uncertainty') ? uncertColor(cell.uncertainty)
                     : '#1a1a1a';
       ctx.textAlign='right'; ctx.fillText(val, ox+pw-8, ly);
     });
@@ -518,15 +610,16 @@
     archive.forEach(cell => {
       const feasible = isFeasible(cell);
       const isHov = hovered && hovered.col===cell.col && hovered.row===cell.row;
+      const isSel = selected && selected.col===cell.col && selected.row===cell.row;
       const px = ox+UPAD.left + cell.ux*upw;
       const py = UPAD.top + cell.uy*uph;
 
       ctx.beginPath();
-      ctx.arc(px, py, isHov ? R+4 : R, 0, Math.PI*2);
-      ctx.fillStyle = feasible ? scoreColor(cell.score) : '#ddd';
+      ctx.arc(px, py, isSel ? R+5 : (isHov ? R+4 : R), 0, Math.PI*2);
+      ctx.fillStyle = feasible ? activeColor(cell.score) : '#ddd';
       ctx.fill();
-      ctx.strokeStyle = isHov ? '#1a1a1a' : 'rgba(0,0,0,0.1)';
-      ctx.lineWidth = isHov ? 2 : 0.5;
+      ctx.strokeStyle = (isSel || isHov) ? '#1a1a1a' : 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = isSel ? 3 : (isHov ? 2 : 0.5);
       ctx.stroke();
     });
 
@@ -541,11 +634,13 @@
     // Colour scale legend strip
     const stripY = H - UPAD.bottom + 18, stripX = ox+UPAD.left, stripW = upw, stripH = 5;
     const grad = ctx.createLinearGradient(stripX,0,stripX+stripW,0);
-    grad.addColorStop(0, scoreColor(0)); grad.addColorStop(1, scoreColor(1));
+    grad.addColorStop(0, activeColor(0)); grad.addColorStop(1, activeColor(1));
     ctx.fillStyle=grad; ctx.fillRect(stripX, stripY, stripW, stripH);
     ctx.fillStyle='#888'; ctx.font=`${Math.round(H*0.024)}px -apple-system,sans-serif`;
-    ctx.textAlign='left';  ctx.fillText('blocked',stripX, stripY+stripH+9);
-    ctx.textAlign='right'; ctx.fillText('cold air',stripX+stripW, stripY+stripH+9);
+    const loLabel = viewMode === 'uncertainty' ? 'confident' : 'blocked';
+    const hiLabel = viewMode === 'uncertainty' ? 'uncertain' : 'cold air';
+    ctx.textAlign='left';  ctx.fillText(loLabel,stripX, stripY+stripH+9);
+    ctx.textAlign='right'; ctx.fillText(hiLabel,stripX+stripW, stripY+stripH+9);
   }
 
   // ── Resize ─────────────────────────────────────────────────────────────────
@@ -572,12 +667,49 @@
 
   canvas.addEventListener('mousemove', e=>{ const [x,y]=evXY(e); onMove(x,y); });
   canvas.addEventListener('mouseleave',()=>{ hovered=null; draw(); });
+
+  // Click / tap to select (persistent) — works without hover
+  canvas.addEventListener('click', e=>{
+    const [x,y]=evXY(e);
+    const cell=hitTest(x,y);
+    if (cell) selectCell(cell); else clearSelection();
+  });
+
   canvas.addEventListener('touchmove', e=>{
     e.preventDefault();
     const r=canvas.getBoundingClientRect();
     const sx=(canvas.width/DPR)/r.width, sy=(canvas.height/DPR)/r.height;
     onMove((e.touches[0].clientX-r.left)*sx,(e.touches[0].clientY-r.top)*sy);
   },{ passive:false });
+
+  canvas.addEventListener('touchend', e=>{
+    const t=e.changedTouches[0];
+    const r=canvas.getBoundingClientRect();
+    const sx=(canvas.width/DPR)/r.width, sy=(canvas.height/DPR)/r.height;
+    const cell=hitTest((t.clientX-r.left)*sx,(t.clientY-r.top)*sy);
+    if (cell) selectCell(cell);
+  },{ passive:true });
+
+  // Keyboard navigation: arrows move the selected archive cell,
+  // Enter/Space inspects, Escape clears.
+  canvas.addEventListener('keydown', e=>{
+    const k=e.key;
+    if (k==='ArrowLeft'||k==='ArrowRight'||k==='ArrowUp'||k==='ArrowDown') {
+      e.preventDefault();
+      moveSelection(k);
+    } else if (k==='Enter'||k===' '||k==='Spacebar') {
+      e.preventDefault();
+      if (!selected) selectCell(archive[Math.floor(ROWS/2)*COLS+Math.floor(COLS/2)]);
+      else updateReadout();
+    } else if (k==='Escape') {
+      clearSelection();
+    }
+  });
+
+  canvas.addEventListener('focus', ()=>{ focused=true; draw(); });
+  canvas.addEventListener('blur',  ()=>{ focused=false; draw(); });
+
+  if (clearBtn) clearBtn.addEventListener('click', clearSelection);
 
   function updateControls() {
     maxHeight  = parseInt(ctrlHeight.value,10);
@@ -587,6 +719,7 @@
     if(valHeight)  valHeight.textContent  = maxHeight;
     if(valGreen)   valGreen.textContent   = minGreen;
     if(valDensity) valDensity.textContent = maxDensity.toFixed(2);
+    updateReadout();
     draw();
   }
 

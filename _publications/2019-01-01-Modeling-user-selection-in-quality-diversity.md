@@ -1,6 +1,10 @@
 ---
 title: "Modeling user selection in quality diversity"
 collection: publications
+ref: modeling-user-selection
+tags: [quality diversity, co-creativity]
+related_portfolio:
+  - spiegelmaschine
 permalink: /publication/2019-01-01-Modeling-user-selection-in-quality-diversity
 date: 2019-01-01
 venue: 'In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference'

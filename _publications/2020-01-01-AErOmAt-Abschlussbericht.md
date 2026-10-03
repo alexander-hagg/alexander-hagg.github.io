@@ -1,6 +1,10 @@
 ---
 title: "AErOmAt Abschlussbericht"
 collection: publications
+ref: aeromat-final-report
+tags: [surrogate models]
+related_portfolio:
+  - aeromat
 permalink: /publication/2020-01-01-AErOmAt-Abschlussbericht
 date: 2020-01-01
 venue: 'In the proceedings of Hochschule Bonn-Rhein-Sieg'

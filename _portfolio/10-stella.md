@@ -2,8 +2,16 @@
 title: "STELLA — Efficient Mobility for Electric Velomobiles"
 excerpt: "Energy-optimal driving strategies and human-machine hybridisation for electrically assisted velomobiles."
 collection: portfolio
-permalink: /portfolio/p-stella/
+permalink: /portfolio/stella/
+redirect_from:
+  - /portfolio/p-stella/
 tags: [evolutionary algorithms, optimisation, electric mobility, human-machine systems, velomobile]
+ref: stella
+related_publications:
+  - apply-genetic-algorithms
+  - multi-stage-mclp
+related_talks:
+  - ga-tutorial-inista
 ---
 
 <span class="tag-pill">2013–2017</span>&nbsp;<span class="tag-pill">Evolutionary Optimisation</span>&nbsp;<span class="tag-pill">Human-Machine Systems</span>&nbsp;<span class="tag-pill">Efficient Mobility</span>
