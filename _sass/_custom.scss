@@ -626,10 +626,19 @@ a {
   }
 }
 
+.social-icon,
 .share-icon {
   width: 1em;
   height: 1em;
   vertical-align: -0.125em;
+  fill: currentColor;
+}
+
+.social-icon {
+  margin-right: 0.35em;
+}
+
+.share-icon {
   margin-right: 0.15em;
 }
 
@@ -775,6 +784,13 @@ a {
    Publications — grouping and filter
    ========================================================================== */
 
+/* The theme reset sets `article, section { display: block }`, which overrides
+   the user-agent `[hidden] { display: none }` rule. Re-assert it so the
+   publications filter (and any other `hidden` toggling) actually hides items. */
+[hidden] {
+  display: none !important;
+}
+
 .pub-filter {
   margin: 1.5em 0 2em;
   padding: 1em 1.2em;
@@ -914,7 +930,11 @@ a {
   position: relative;
   width: 100%;
   max-width: 1000px;
-  aspect-ratio: 0.707; // A4 portrait (210 / 297)
+  // A definite height is required: a percentage height on the <object> would
+  // collapse to zero in browsers that do not resolve percentages against an
+  // `aspect-ratio`-derived height.
+  height: 80vh;
+  min-height: 520px;
   margin: 1.5em 0 1em;
   border: 1px solid $accent-green-border;
   border-radius: 6px;
@@ -942,10 +962,12 @@ a {
   margin: 0 0 2em;
 }
 
-/* On small screens the embedded PDF is hard to use — prefer the download links */
+/* On small screens keep the embed visible but shorter; the download links
+   below remain the primary fallback. */
 @media (max-width: 640px) {
   .cv-embed {
-    display: none;
+    height: 60vh;
+    min-height: 360px;
   }
 }
 

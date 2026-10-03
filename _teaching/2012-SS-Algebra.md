@@ -1,7 +1,7 @@
 ---
 title: "Algebra and Number Theory"
 collection: teaching
-type: "Undergraduate course"
+type: "Tutorial"
 permalink: /teaching/2012-SS-Algebra
 venue: "Bonn-Rhein-Sieg University of Applied Sciences, CS"
 date: 2012-06-01

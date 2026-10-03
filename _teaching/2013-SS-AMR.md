@@ -1,7 +1,7 @@
 ---
 title: "Autonomous Mobile Robots"
 collection: teaching
-type: "Graduate course"
+type: "Tutorial"
 permalink: /teaching/2013-SS-AMR
 venue: "Bonn-Rhein-Sieg University of Applied Sciences, CS"
 date: 2013-06-01

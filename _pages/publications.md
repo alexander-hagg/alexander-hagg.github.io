@@ -110,7 +110,7 @@ thematic layout — not a computed embedding.
   <section class="pub-year" data-year="{{ group.name }}">
     <h2 class="pub-year__heading">{{ group.name }}</h2>
     {% for post in group.items %}
-      <article class="pub-item" data-year="{{ group.name }}" data-tags="{{ post.tags | join: ' ' | slugify }}">
+      <article class="pub-item" data-year="{{ group.name }}" data-tags="|{% for tag in post.tags %}{{ tag | slugify }}|{% endfor %}">
         <h3 class="pub-item__title"><a href="{{ post.url }}">{{ post.title }}</a></h3>
         <p class="pub-item__meta">Published in <i>{{ post.venue }}</i>, {{ post.date | date: "%Y" }}</p>
         {% if post.tags %}
@@ -135,7 +135,7 @@ thematic layout — not a computed embedding.
     var visible = 0;
     items.forEach(function (item) {
       var okYear = state.year === 'all' || item.getAttribute('data-year') === state.year;
-      var okTheme = state.theme === 'all' || (item.getAttribute('data-tags') || '').indexOf(state.theme) !== -1;
+      var okTheme = state.theme === 'all' || (item.getAttribute('data-tags') || '').indexOf('|' + state.theme + '|') !== -1;
       var show = okYear && okTheme;
       item.hidden = !show;
       if (show) visible++;
