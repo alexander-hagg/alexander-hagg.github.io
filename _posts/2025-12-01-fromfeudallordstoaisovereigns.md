@@ -1,6 +1,7 @@
 ---
 title: 'From Feudal Lords to AI Sovereigns -- And How We Win'
 date: 2025-12-01
+lang: en
 permalink: /posts/2025/12/fromfeudallordstoaisovereigns/
 tags:
   - artificial intelligence

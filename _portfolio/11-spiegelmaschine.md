@@ -37,3 +37,9 @@ Spiegelmaschine makes this concrete: the artist remains the author of the aesthe
 Built using a **Generative Adversarial Network (GAN)** trained on a curated dataset of approximately 1000 high-resolution photographs of Steffen Terk's paintings. The model is not fine-tuned from a general foundation model — it was trained from a style-specific dataset to preserve the idiosyncrasies of an individual hand.
 
 [View on GitHub](http://github.com/alexander-hagg){: .btn}
+
+### Try the interactive toy
+
+The Spiegelmaschine post includes a small, self-contained generative-art toy — a seeded kaleidoscope inspired by the project. Adjust the symmetry, complexity, seed, and palette to explore the machine's visual language.
+
+[Play with the Spiegelmaschine toy →](/posts/2022/06/spiegelmaschine/#spiegelmaschine-toy){: .btn .btn--primary}

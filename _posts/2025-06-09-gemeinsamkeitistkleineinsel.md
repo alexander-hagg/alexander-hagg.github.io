@@ -1,6 +1,7 @@
 ---
 title: 'Gemeinsamkeit ist k(l)eine Insel: Überleben im Anthropozän oder Warum basisdemokratische Oasen unsere beste Chance gegen Kollaps und Faschismus sind'
 date: 2025-06-09
+lang: de
 permalink: /posts/2025/06/gemeinsamkeitistkleineinsel/
 tags:
   - Basisdemokratie

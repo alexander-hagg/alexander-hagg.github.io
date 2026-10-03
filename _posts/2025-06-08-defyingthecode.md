@@ -1,6 +1,7 @@
 ---
 title: 'Defying the Code: A Declaration of Human Autonomy'
 date: 2025-06-08
+lang: en
 permalink: /posts/2025/06/defyingthecode/
 tags:
   - artificial intelligence

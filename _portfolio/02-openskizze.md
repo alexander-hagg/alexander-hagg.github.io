@@ -13,6 +13,9 @@ related_publications:
   - full-domain-analysis
 related_talks:
   - kluger-transfer-tandem
+applet_scripts:
+  - /assets/js/openskizze-demo.js
+  - /assets/js/qd-archive-explainer.js
 ---
 
 <span class="tag-pill">DBU Funded</span>&nbsp;<span class="tag-pill">Urban Climate</span>&nbsp;<span class="tag-pill">Open Source</span>&nbsp;<span class="tag-pill">Quality Diversity</span>&nbsp;<span class="tag-pill">Surrogate Models</span>&nbsp;<span class="tag-pill">UMAP</span>
@@ -35,7 +38,7 @@ Climate-adapted building requires knowledge that most planners don't have easy a
 
 The widget below illustrates the two core outputs: the **QD archive** (left — each cell is one design archetype, coloured by the selected view) and the **UMAP embedding** (right — how designs cluster by predicted behaviour). **Hover, tap/click, or use the keyboard** (arrow keys to move the selected cell, Enter/Space to inspect, Escape to clear) to link the archive, preview, and UMAP. Use the **View** selector to switch the colour scale between the surrogate-predicted **cold airflow score** and the **surrogate uncertainty**.
 
-<div id="openskizze-demo">
+<div id="openskizze-demo" class="applet" data-applet="openskizze">
   <div class="demo-header">Surrogate-assisted QD · Archive & Airflow UMAP</div>
   <div class="demo-topbar">
     <div class="demo-ctrl">
@@ -81,7 +84,35 @@ The widget below illustrates the two core outputs: the **QD archive** (left — 
   </div>
 </div>
 
-<script src="/assets/js/openskizze-demo.js"></script>
+---
+
+### What is a quality-diversity archive?
+
+A conventional optimizer keeps only the single best solution it finds. A **quality-diversity (QD) archive** keeps the best solution for *every* cell of a behaviour space — so instead of one answer, you get a diverse, structured collection of good answers. Press **Run** below to fill the archive and watch coverage grow; hover, tap, or use the keyboard to inspect a cell.
+
+<div id="qd-explainer" class="applet" data-applet="qd-archive-explainer">
+  <div class="demo-header">QD archive · single best vs. diverse archive</div>
+  <div class="demo-topbar">
+    <div class="demo-ctrl">
+      <button type="button" id="qd-explainer-run" class="demo-clear">Run</button>
+    </div>
+    <div class="demo-ctrl">
+      <button type="button" id="qd-explainer-reset" class="demo-clear">Reset</button>
+    </div>
+  </div>
+  <div class="demo-canvas-wrap">
+    <canvas id="qd-explainer-canvas" width="760" height="420"
+            role="application"
+            tabindex="0"
+            aria-label="Quality-diversity archive explainer: a grid of behaviour-space cells that fill as solutions are added."
+            aria-describedby="qd-explainer-desc"></canvas>
+    <p id="qd-explainer-desc" class="visually-hidden">A grid representing a two-dimensional behaviour space. Pressing Run progressively fills each cell with the best solution found for that region, and a coverage bar shows how much of the space is covered. The single best solution across the whole archive is marked with a star. Hover, tap, or click a cell to inspect its quality and whether it is filled; with the canvas focused, use the arrow keys to move the inspected cell, Enter to inspect, and Escape to clear. A text readout reports coverage, the best quality, and the inspected cell.</p>
+    <p id="qd-explainer-readout" class="demo-readout" role="status" aria-live="polite">Archive coverage 0 of 96 cells (0%). No solutions yet — press Run to fill the archive.</p>
+    <p class="demo-legend">
+      <strong>How to read it:</strong> each cell is a region of behaviour space; darker blue means higher quality. A single-objective search would keep only the starred cell; a QD archive keeps the best solution in every filled cell, so the whole space is covered. The starred best cell is marked with a symbol, not colour alone.
+    </p>
+  </div>
+</div>
 
 ---
 

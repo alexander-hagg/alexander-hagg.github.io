@@ -3,6 +3,8 @@ layout: archive
 title: "Research"
 permalink: /publications/
 author_profile: true
+applet_scripts:
+  - /assets/js/publications-explorer.js
 ---
 
 {% include base_path %}
@@ -16,6 +18,72 @@ and
 
 {% assign pubs_by_year = site.publications | group_by_exp: "post", "post.date | date: '%Y'" | sort: "name" | reverse %}
 {% assign theme_list = site.publications | map: "tags" | join: "," | split: "," | uniq | sort %}
+
+<p class="section-header" id="publication-map">Publication map</p>
+
+<p>
+Explore the publications interactively. Each dot is one publication, positioned by
+<strong>year</strong> (horizontal axis) and <strong>primary theme</strong> (vertical axis).
+<strong>Hover, tap, or use the keyboard</strong> (arrow keys to move, Enter to open, Escape to clear)
+to inspect a publication, and use the filters to narrow the map. This is a deterministic
+thematic layout — not a computed embedding.
+</p>
+
+<div id="pub-explorer" class="applet" data-applet="publications-explorer">
+  <div class="demo-header">Publication map · year × theme</div>
+  <div class="demo-topbar">
+    <div class="demo-ctrl">
+      <label for="pub-explorer-year">Year</label>
+      <select id="pub-explorer-year">
+        <option value="all">All years</option>
+        {% for group in pubs_by_year %}
+          <option value="{{ group.name }}">{{ group.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="demo-ctrl">
+      <label for="pub-explorer-theme">Theme</label>
+      <select id="pub-explorer-theme">
+        <option value="all">All themes</option>
+        {% for theme in theme_list %}
+          <option value="{{ theme | slugify }}">{{ theme }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="demo-ctrl">
+      <button type="button" id="pub-explorer-reset" class="demo-clear">Reset</button>
+    </div>
+  </div>
+  <div class="demo-canvas-wrap">
+    <canvas id="pub-explorer-canvas" width="760" height="440"
+            role="application"
+            tabindex="0"
+            aria-label="Publication map: each dot is a publication, positioned by year on the horizontal axis and primary theme on the vertical axis."
+            aria-describedby="pub-explorer-desc"></canvas>
+    <p id="pub-explorer-desc" class="visually-hidden">An interactive map of the site's publications. The horizontal axis is the publication year and the vertical axis is the publication's primary theme. Each dot is one publication. Hover, tap, or click a dot to inspect it; the selection persists. With the canvas focused, use the arrow keys to move through the publications, Enter to open the selected publication page, and Escape to clear the selection. A text readout and a detail panel below the canvas report the selected publication's title, authors, venue, year, and tags. Year and theme filters narrow the map.</p>
+    <p id="pub-explorer-readout" class="demo-readout" role="status" aria-live="polite">No publication selected. Hover, tap, or use the arrow keys to inspect a publication.</p>
+    <div id="pub-explorer-detail" class="demo-detail" aria-live="polite"></div>
+    <p class="demo-legend">
+      <strong>How to read it:</strong> dots further right are more recent; dots higher up belong to a different primary theme (labelled on the left). The selected dot is marked with a black ring and cross, so the selection does not rely on colour alone.
+    </p>
+  </div>
+</div>
+
+{% assign qq = '&' | append: 'quot;' %}
+<script type="application/json" id="pub-explorer-data">
+[
+{% for post in site.publications %}
+  {
+    "title": {{ post.title | jsonify }},
+    "authors": {{ post.citation | split: qq | first | strip | jsonify }},
+    "venue": {{ post.venue | jsonify }},
+    "year": {{ post.date | date: "%Y" | jsonify }},
+    "tags": {{ post.tags | jsonify }},
+    "url": {{ post.url | relative_url | jsonify }}
+  }{% unless forloop.last %},{% endunless %}
+{% endfor %}
+]
+</script>
 
 <noscript><style>.pub-filter{display:none;}</style></noscript>
 

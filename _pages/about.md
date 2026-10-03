@@ -69,6 +69,23 @@ redirect_from:
 
 </div>
 
+<p class="section-header">Interactive</p>
+
+<div class="applet-links">
+  <a class="applet-link" href="/publications/#publication-map">
+    <span class="applet-link__title">Publication map</span>
+    <span class="applet-link__desc">Explore the research by year and theme.</span>
+  </a>
+  <a class="applet-link" href="/portfolio/openskizze/#qd-explainer">
+    <span class="applet-link__title">QD archive explainer</span>
+    <span class="applet-link__desc">See how quality-diversity search fills a behaviour space.</span>
+  </a>
+  <a class="applet-link" href="/posts/2022/06/spiegelmaschine/#spiegelmaschine-toy">
+    <span class="applet-link__title">Spiegelmaschine toy</span>
+    <span class="applet-link__desc">Play with a seeded mirror-symmetry kaleidoscope.</span>
+  </a>
+</div>
+
 <p class="section-header">Why I do this</p>
 
 <div class="philosophy-block">
@@ -79,6 +96,29 @@ Optimization and machine learning should expand human understanding, not automat
 Real problems don't fit neatly into papers. That's why I work across computational fluid dynamics, molecular force fields, urban planning, and community organizing. The methods transfer. The stakes are always real.
 </p>
 </div>
+
+<p class="section-header">Skills, languages & beyond</p>
+
+<div class="about-toolkit">
+  <div class="about-toolkit__block">
+    <h3>Methods & tools</h3>
+    <p>Applied machine learning (U-Net, GNNs, diffusion models, Gaussian processes, Random Forests, agentic AI & LLMs), Quality-Diversity and multi-solution optimization, and computational chemistry. Python, C/C++, Linux, ROS, PyTorch, scikit-learn, pyribs, NumPy/SciPy, OpenCV.</p>
+  </div>
+  <div class="about-toolkit__block">
+    <h3>Languages</h3>
+    <p><strong>Dutch</strong> — native · <strong>German</strong> — fluent · <strong>English</strong> — fluent</p>
+  </div>
+  <div class="about-toolkit__block">
+    <h3>Research management</h3>
+    <p>Project Leader / PI on third-party-funded projects (<a href="/portfolio/openskizze/">OpenSKIZZE</a>, <a href="/portfolio/ummbas/">UMMBAS</a>), with consortium leadership, budget responsibility, supervision of scientific staff, and grant writing.</p>
+  </div>
+  <div class="about-toolkit__block">
+    <h3>Beyond research</h3>
+    <p>Neoclassical music and improvisation, co-creative AI and generative art (<a href="/portfolio/spiegelmaschine/">Spiegelmaschine</a>), novel writing (aiming for publication in 2027), Indonesian cooking, and volunteering with the Neue Stadtgärtnerei.</p>
+  </div>
+</div>
+
+<p style="margin-top:1em; font-size:0.9em;">See the <a href="/cv/">full CV</a> for education, experience, grants, and awards.</p>
 
 <p class="section-header">Recent writing</p>
 
@@ -96,6 +136,20 @@ Real problems don't fit neatly into papers. That's why I work across computation
     <span class="writing-teasers__title"><a href="/posts/2025/06/gemeinsamkeitistkleineinsel/">Gemeinsamkeit ist k(l)eine Insel</a></span>
   </li>
 </ul>
+
+<p class="section-header">Recent talks</p>
+
+<ul class="writing-teasers">
+  {% assign recent_talks = site.talks | sort: "date" | reverse %}
+  {% for talk in recent_talks limit:4 %}
+  <li>
+    <span class="writing-teasers__date">{{ talk.date | date: "%b %Y" }}</span>
+    <span class="writing-teasers__title"><a href="{{ talk.url }}">{{ talk.title }}</a></span>
+  </li>
+  {% endfor %}
+</ul>
+
+<p class="talks-cta"><a href="/talks/">See all talks & presentations</a></p>
 
 <p class="section-header">Stay in touch</p>
 

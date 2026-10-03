@@ -5,12 +5,24 @@ permalink: /talks/
 author_profile: true
 ---
 
+{% include base_path %}
+
+<p class="talks-intro">
+  Talks, workshops, guest lectures, and posters — from conference tutorials and summer schools to public engagement on AI, climate adaptation, and digital twins. The most recent activity is listed first.
+</p>
+
 {% if site.talkmap_link == true %}
-
-<p style="text-decoration:underline;"><a href="/talkmap.html">See a map of all the places I've given a talk!</a></p>
-
+<p class="talks-map-link"><a href="{{ base_path }}/talkmap.html">See a map of all the places I've given a talk →</a></p>
 {% endif %}
 
-{% for post in site.talks reversed %}
-  {% include archive-single-talk.html %}
+{% assign talks_sorted = site.talks | sort: "date" | reverse %}
+{% assign talks_by_year = talks_sorted | group_by_exp: "item", "item.date | date: '%Y'" %}
+
+{% for year in talks_by_year %}
+<div class="talks-year">
+  <h2 class="talks-year__heading">{{ year.name }}</h2>
+  {% for post in year.items %}
+    {% include archive-single-talk.html %}
+  {% endfor %}
+</div>
 {% endfor %}

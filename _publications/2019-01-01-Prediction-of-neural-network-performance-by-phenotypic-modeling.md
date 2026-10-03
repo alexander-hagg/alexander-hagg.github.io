@@ -3,7 +3,9 @@ title: "Prediction of neural network performance by phenotypic modeling"
 collection: publications
 ref: prediction-nn-performance
 tags: [surrogate models]
-permalink: /publication/2019-01-01-Prediction-of-neural-network-performance-by-phenotypic-modeling
+permalink: /publication/2019-01-01-Prediction-of-neural-network-performance-by-phenotypic-modeling/
+redirect_from:
+  - /publication/2019-01-01-Prediction-of-neural-network-performance-by-phenotypic-modeling
 date: 2019-01-01
 venue: 'In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion'
 citation: ' Alexander Hagg,  Martin Zaefferer,  J{\&quot;o}rg Stork,  Adam Gaier, &quot;Prediction of neural network performance by phenotypic modeling.&quot; In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion, 2019.'

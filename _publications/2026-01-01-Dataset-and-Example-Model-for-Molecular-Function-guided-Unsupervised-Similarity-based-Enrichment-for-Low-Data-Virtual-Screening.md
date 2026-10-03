@@ -7,7 +7,9 @@ tags: [computational chemistry, virtual screening]
 related_portfolio:
   - cytotransport
   - ummbas
-permalink: /publication/2026-01-01-Dataset-and-Example-Model-for-Molecular-Function-guided-Unsupervised-Similarity-based-Enrichment-for-Low-Data-Virtual-Screening
+permalink: /publication/2026-01-01-Dataset-and-Example-Model-for-Molecular-Function-guided-Unsupervised-Similarity-based-Enrichment-for-Low-Data-Virtual-Screening/
+redirect_from:
+  - /publication/2026-01-01-Dataset-and-Example-Model-for-Molecular-Function-guided-Unsupervised-Similarity-based-Enrichment-for-Low-Data-Virtual-Screening
 date: 2026-01-01
 venue: 'Zenodo'
 citation: ' Alexander Hagg,  Dirk Reith,  Matthias Preller,  Karl Kirschner, "Dataset and Example Model for Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening." Zenodo, 2026.'

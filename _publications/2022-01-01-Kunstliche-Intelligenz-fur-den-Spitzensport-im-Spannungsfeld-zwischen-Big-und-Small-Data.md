@@ -5,7 +5,9 @@ ref: ki-elite-sports-german
 tags: [sports AI]
 related_portfolio:
   - kiss-bis
-permalink: /publication/2022-01-01-Kunstliche-Intelligenz-fur-den-Spitzensport-im-Spannungsfeld-zwischen-Big-und-Small-Data
+permalink: /publication/2022-01-01-Kunstliche-Intelligenz-fur-den-Spitzensport-im-Spannungsfeld-zwischen-Big-und-Small-Data/
+redirect_from:
+  - /publication/2022-01-01-Kunstliche-Intelligenz-fur-den-Spitzensport-im-Spannungsfeld-zwischen-Big-und-Small-Data
 date: 2022-01-01
 venue: 'In the proceedings of Hochschule Bonn-Rhein-Sieg'
 citation: ' Alexander Hagg,  Alexander Asteroth,  Christian Rasche,  Kevin Bach,  Mark Pfeiffer, &quot;K&amp;quot;unstliche Intelligenz f&amp;quot;ur den Spitzensport im Spannungsfeld zwischen Big und Small Data.&quot; In the proceedings of Hochschule Bonn-Rhein-Sieg, 2022.'

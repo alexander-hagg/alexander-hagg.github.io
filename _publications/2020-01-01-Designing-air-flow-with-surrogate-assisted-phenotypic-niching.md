@@ -6,7 +6,9 @@ tags: [surrogate models, urban climate, quality diversity]
 related_portfolio:
   - openskizze
   - aeromat
-permalink: /publication/2020-01-01-Designing-air-flow-with-surrogate-assisted-phenotypic-niching
+permalink: /publication/2020-01-01-Designing-air-flow-with-surrogate-assisted-phenotypic-niching/
+redirect_from:
+  - /publication/2020-01-01-Designing-air-flow-with-surrogate-assisted-phenotypic-niching
 date: 2020-01-01
 venue: 'In the proceedings of International Conference on Parallel Problem Solving from Nature'
 citation: ' Alexander Hagg,  Dominik Wilde,  Alexander Asteroth,  Thomas B{\&quot;a}ck, &quot;Designing air flow with surrogate-assisted phenotypic niching.&quot; In the proceedings of International Conference on Parallel Problem Solving from Nature, 2020.'

@@ -7,6 +7,97 @@ author_profile: true
 
 {% include base_path %}
 
-{% for post in site.teaching reversed %}
-  {% include archive-single.html %}
+<p class="cv-intro">
+  I teach research-oriented, English-language courses in evolutionary computation, machine learning, and autonomous systems. My guiding principle is to <strong>“de-blackbox”</strong> students: without a deep understanding of how software is implemented, technology risks becoming a black box. I aim to give students the methodological depth, cross-domain knowledge, and critical reflection needed to find new niches where technology creates broad societal value.
+</p>
+
+{% assign teaching_sorted = site.teaching | sort: "date" | reverse %}
+{% assign teaching_by_year = teaching_sorted | group_by_exp: "item", "item.date | date: '%Y'" %}
+
+{% for year in teaching_by_year %}
+<div class="teaching-year">
+  <h2 class="teaching-year__heading">{{ year.name }}</h2>
+  {% for post in year.items %}
+    {% include archive-single.html %}
+  {% endfor %}
+</div>
 {% endfor %}
+
+<div class="cv-section" id="supervision">
+<h2>Supervision</h2>
+
+<p>Successful primary, secondary, or tertiary supervision of over <strong>40 student theses and projects</strong> at H-BRS — frequently in close cooperation with industry and research partners. This reflects an independent strength in structured supervision, exam administration, and workshop organization.</p>
+
+<ul class="supervision-stats">
+  <li class="supervision-stat"><span class="supervision-stat__value">40+</span><span class="supervision-stat__label">Theses & projects</span></li>
+  <li class="supervision-stat"><span class="supervision-stat__value">19</span><span class="supervision-stat__label">M.Sc. theses</span></li>
+  <li class="supervision-stat"><span class="supervision-stat__value">13</span><span class="supervision-stat__label">B.Sc. theses</span></li>
+  <li class="supervision-stat"><span class="supervision-stat__value">12</span><span class="supervision-stat__label">Project works</span></li>
+</ul>
+
+<h3 class="skill-card__title">Selected supervised works</h3>
+<p class="cv-intro" style="font-size:0.9em;">A curated selection from the full list of supervised theses and R&D projects.</p>
+
+<ol class="timeline">
+  <li class="timeline__item">
+    <span class="timeline__period">2026</span>
+    <p class="timeline__title">Tania Guerrero — Master's Thesis</p>
+    <p class="timeline__desc">Precise prediction of urban cold airflow around buildings. <em>Project: <a href="{{ base_path }}/portfolio/openskizze/">OpenSKIZZE</a></em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2025</span>
+    <p class="timeline__title">Shashwat Pandey — Master's Thesis</p>
+    <p class="timeline__desc">On-chip multi-modal perception for industrial safety using a 3D Time-of-Flight camera on Hailo-8 NPU. <em>Cooperation with SICK</em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2025</span>
+    <p class="timeline__title">Noah Plingen — Master's Thesis</p>
+    <p class="timeline__desc">Impact of data and feature scope on variant effect predictors for ENaCs. <em>Project: <a href="{{ base_path }}/portfolio/cytotransport/">CytoTransport</a></em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2024</span>
+    <p class="timeline__title">Maximilian Mensing — Master's Thesis</p>
+    <p class="timeline__desc">Conditional GenAI model to generate optimal urban planning designs based on QD data. <em>Project: OpenSKIZZE</em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2024</span>
+    <p class="timeline__title">Marc Prismak — Master's Project</p>
+    <p class="timeline__desc">Whole-body vibrations on bicycles for delivery riders. <em>Cooperation with DGUV</em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2021</span>
+    <p class="timeline__title">Vishwas Sharma — Master's Thesis</p>
+    <p class="timeline__desc">Learning simulation for plastic sheet extrusion in a blow molding machine. <em>Cooperation with Kautex Textron</em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2019</span>
+    <p class="timeline__title">Maximilian Müller — Master's Thesis</p>
+    <p class="timeline__desc">Efficient global multiscale optimization of Lennard-Jones parameters for molecular simulations. <em>Project: <a href="{{ base_path }}/portfolio/ummbas/">UMMBAS</a></em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2019</span>
+    <p class="timeline__title">Oleg Bayer — Bachelor's Thesis</p>
+    <p class="timeline__desc">Route optimization for couriers in the Arab region — TSP/VRP with genetic algorithms. <em>Cooperation with Aramex</em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2017</span>
+    <p class="timeline__title">Jonas Meier — Bachelor's & Master's Thesis</p>
+    <p class="timeline__desc">Game design with biofeedback and SAIL (BA); automated feature engineering (MA). <em>Cooperation with inovex GmbH</em></p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2017</span>
+    <p class="timeline__title">Wei-Chan Hsu — R&D Project</p>
+    <p class="timeline__desc">SAIL robot recovery: data-efficient behavioral repertoire learning for damage recovery.</p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2015</span>
+    <p class="timeline__title">Ludovico Scarton — Master's Thesis</p>
+    <p class="timeline__desc">Surrogate modeling techniques for quality diversity optimization — voxel-based urban planning with OpenFOAM.</p>
+  </li>
+  <li class="timeline__item">
+    <span class="timeline__period">2009</span>
+    <p class="timeline__title">Dirk Rusche — Bachelor's Thesis</p>
+    <p class="timeline__desc">Combination of neuroevolution methods with gradient descent for feed-forward networks. <em>Awarded</em></p>
+  </li>
+</ol>
+</div>

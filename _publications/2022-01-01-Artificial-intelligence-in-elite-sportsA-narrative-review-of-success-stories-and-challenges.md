@@ -5,7 +5,9 @@ ref: ai-elite-sports-review
 tags: [sports AI]
 related_portfolio:
   - kiss-bis
-permalink: /publication/2022-01-01-Artificial-intelligence-in-elite-sportsA-narrative-review-of-success-stories-and-challenges
+permalink: /publication/2022-01-01-Artificial-intelligence-in-elite-sportsA-narrative-review-of-success-stories-and-challenges/
+redirect_from:
+  - /publication/2022-01-01-Artificial-intelligence-in-elite-sportsA-narrative-review-of-success-stories-and-challenges
 date: 2022-01-01
 venue: 'Frontiers in Sports and Active Living'
 citation: ' Fabian Hammes,  Alexander Hagg,  Alexander Asteroth,  Daniel Link, &quot;Artificial intelligence in elite sports—A narrative review of success stories and challenges.&quot; Frontiers in Sports and Active Living, 2022.'

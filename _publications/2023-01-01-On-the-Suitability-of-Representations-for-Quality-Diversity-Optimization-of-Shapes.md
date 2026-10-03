@@ -5,7 +5,9 @@ ref: suitability-representations-shapes
 tags: [quality diversity]
 related_portfolio:
   - dove
-permalink: /publication/2023-01-01-On-the-Suitability-of-Representations-for-Quality-Diversity-Optimization-of-Shapes
+permalink: /publication/2023-01-01-On-the-Suitability-of-Representations-for-Quality-Diversity-Optimization-of-Shapes/
+redirect_from:
+  - /publication/2023-01-01-On-the-Suitability-of-Representations-for-Quality-Diversity-Optimization-of-Shapes
 date: 2023-01-01
 venue: 'In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference'
 citation: ' Ludovico Scarton,  Alexander Hagg, &quot;On the Suitability of Representations for Quality Diversity Optimization of Shapes.&quot; In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference, 2023.'

@@ -5,7 +5,9 @@ ref: ki-transfer-small-big-data
 tags: [sports AI]
 related_portfolio:
   - kiss-bis
-permalink: /publication/2020-01-01-Einsatzmglichkeiten-und-Transfer-von-Knstlicher-Intelligenz-im-inter-nationalen-Spitzensport-zwischen-Small-und-Big-Data
+permalink: /publication/2020-01-01-Einsatzmglichkeiten-und-Transfer-von-Knstlicher-Intelligenz-im-inter-nationalen-Spitzensport-zwischen-Small-und-Big-Data/
+redirect_from:
+  - /publication/2020-01-01-Einsatzmglichkeiten-und-Transfer-von-Knstlicher-Intelligenz-im-inter-nationalen-Spitzensport-zwischen-Small-und-Big-Data
 date: 2020-01-01
 venue: 'spinfortec 2020 digital'
 citation: ' Alexander Hagg,  Alexander Asteroth,  Mark Pfeiffer,  Fabian Hammes,  Daniel Link, &quot;Einsatzmöglichkeiten und Transfer von Künstlicher Intelligenz im inter-nationalen Spitzensport--zwischen Small und Big Data.&quot; spinfortec 2020 digital, 2020.'

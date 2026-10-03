@@ -315,10 +315,22 @@ a {
 }
 
 /*
-   OpenSKIZZE interactive demo
+   Interactive applets (demo framework)
    ========================================================================== */
+/*
+   Applet container convention
+   ---------------------------
+   Any container element carrying the `.applet` class receives the shared
+   demo chrome: `.demo-header`, `.demo-topbar`, `.demo-ctrl`, `.demo-value`,
+   `.demo-clear`, `.demo-canvas-wrap`, `.demo-readout` and `.demo-legend`.
+   Individual applets are identified by `id` and/or `data-applet`, and their
+   JavaScript is loaded per page via the `applet_scripts` front-matter list
+   (see `_includes/applet-scripts.html` and CONTRIBUTING.md).
+   The OpenSKIZZE demo is the reference implementation.
+*/
 
-#openskizze-demo {
+.applet {
+  clear: both;
   border: 1px solid $accent-green-border;
   border-radius: 6px;
   background: #fff;
@@ -434,6 +446,46 @@ a {
       color: $gray;
       line-height: 1.4;
     }
+
+    .demo-detail {
+      margin-top: 0.6em;
+      padding: 0.7em 0.9em;
+      width: 100%;
+      max-width: 760px;
+      border: 1px solid $accent-green-border;
+      border-radius: 4px;
+      background: #fafcfa;
+      font-size: $type-size-6;
+      line-height: 1.5;
+
+      &:empty {
+        display: none;
+      }
+
+      &__title {
+        margin: 0 0 0.2em;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+
+      &__meta {
+        margin: 0;
+        font-size: $type-size-7;
+        color: #555;
+      }
+
+      &__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3em;
+        margin: 0.4em 0 0;
+      }
+
+      &__link {
+        margin: 0.5em 0 0;
+        font-weight: 700;
+      }
+    }
   }
 }
 
@@ -474,11 +526,60 @@ a {
   margin: 1.5em 0;
 }
 
+.clear-both {
+  clear: both;
+}
+
 .btn--primary {
   background-color: $accent-green;
 
   &:hover {
     background-color: darken($accent-green, 10%);
+  }
+}
+
+/*
+   Applet discovery links (homepage)
+   ========================================================================== */
+
+.applet-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1em;
+  margin: 1.5em 0 2.5em;
+}
+
+.applet-link {
+  display: block;
+  padding: 1em 1.2em;
+  border: 1px solid $accent-green-border;
+  border-radius: 6px;
+  background: #fff;
+  text-decoration: none;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 20px rgba(58, 125, 68, 0.12);
+    transform: translateY(-2px);
+  }
+
+  &__title {
+    display: block;
+    font-size: $type-size-5;
+    font-weight: 700;
+    color: $accent-green;
+    margin-bottom: 0.25em;
+
+    &::after {
+      content: " →";
+    }
+  }
+
+  &__desc {
+    display: block;
+    font-size: $type-size-7;
+    color: #555;
+    line-height: 1.45;
   }
 }
 
@@ -845,5 +946,580 @@ a {
 @media (max-width: 640px) {
   .cv-embed {
     display: none;
+  }
+}
+
+/*
+   Site search (Lunr)
+   ========================================================================== */
+
+.search__toggle {
+  height: 2em;
+  margin-inline: 0.75em;
+  padding: 0 0.4em;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: $accent-green;
+  font-size: $type-size-5;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    color: darken($accent-green, 12%);
+  }
+}
+
+.search-content {
+  display: none;
+  visibility: hidden;
+  padding: 1.5em 1em 2em;
+  background: #fff;
+  border-bottom: 1px solid $accent-green-border;
+
+  &.is--visible {
+    display: block;
+    visibility: visible;
+  }
+
+  &__inner-wrap {
+    max-width: 48em;
+    margin: 0 auto;
+  }
+
+  &__form {
+    margin: 0;
+  }
+
+  .search-input {
+    display: block;
+    width: 100%;
+    margin: 0 0 1em;
+    padding: 0.4em 0.2em;
+    border: 0;
+    border-bottom: 2px solid $accent-green-border;
+    outline: none;
+    background: transparent;
+    font-size: $type-size-4;
+
+    &:focus {
+      border-bottom-color: $accent-green;
+    }
+  }
+
+  .results__found {
+    margin-top: 0.5em;
+    font-size: $type-size-6;
+    color: $gray;
+  }
+
+  .archive__item {
+    margin-bottom: 1.5em;
+  }
+
+  .archive__item-title {
+    margin-top: 0;
+  }
+
+  .archive__item-excerpt {
+    margin-bottom: 0;
+  }
+}
+
+/* Hide page content while the search overlay is open (search is a full-screen
+   mode; toggled by assets/js/lunr/lunr-en.js). */
+.initial-content.is--hidden {
+  display: none;
+}
+
+/*
+   Post language indicator
+   ========================================================================== */
+
+.lang-badge {
+  display: inline-block;
+  margin-left: 0.5em;
+  padding: 0.1em 0.45em;
+  border: 1px solid $accent-green-border;
+  border-radius: 3px;
+  background: $accent-green-pale;
+  color: $accent-green;
+  font-size: $type-size-8;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   CV — HTML sections (skills, timeline, grants, experience, service, etc.)
+   ========================================================================== */
+
+.cv-intro {
+  margin: 0 0 1.5em;
+  font-size: $type-size-5;
+  color: #3a3a3a;
+}
+
+.cv-section {
+  margin: 2.5em 0 1em;
+}
+
+.cv-section > h2 {
+  font-size: $type-size-4;
+  font-weight: 800;
+  color: $accent-green;
+  margin: 0 0 0.8em;
+  padding-bottom: 0.3em;
+  border-bottom: 2px solid $accent-green-border;
+}
+
+/* Skills matrix ----------------------------------------------------------- */
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1em;
+  margin: 1em 0 0.5em;
+}
+
+.skill-card {
+  border: 1px solid $accent-green-border;
+  border-radius: 6px;
+  background: #fafcfa;
+  padding: 1em 1.1em;
+}
+
+.skill-card__title {
+  font-size: $type-size-6;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $accent-green;
+  margin: 0 0 0.5em;
+}
+
+.skill-card__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    position: relative;
+    padding: 0.3em 0 0.3em 1.1em;
+    font-size: $type-size-6;
+    line-height: 1.45;
+    color: #333;
+    border-bottom: 1px solid $accent-green-border;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.85em;
+      width: 0.4em;
+      height: 0.4em;
+      border-radius: 50%;
+      background: $accent-green;
+    }
+  }
+}
+
+/* Education / experience timeline ----------------------------------------- */
+
+.timeline {
+  list-style: none;
+  margin: 1em 0 0;
+  padding: 0 0 0 1.3em;
+  border-left: 2px solid $accent-green-border;
+}
+
+.timeline__item {
+  position: relative;
+  padding: 0 0 1.4em 1.1em;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: -1.42em;
+    top: 0.4em;
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid $accent-green;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.timeline__period {
+  display: inline-block;
+  font-size: $type-size-7;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: $accent-green;
+  margin-bottom: 0.15em;
+}
+
+.timeline__title {
+  font-size: $type-size-5;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.15em;
+  line-height: 1.3;
+}
+
+.timeline__org {
+  font-size: $type-size-6;
+  font-weight: 600;
+  color: #444;
+  margin: 0 0 0.25em;
+}
+
+.timeline__desc {
+  font-size: $type-size-6;
+  line-height: 1.5;
+  color: #555;
+  margin: 0 0 0.3em;
+}
+
+.timeline__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  margin: 0.3em 0 0;
+}
+
+/* Awards / grants list ---------------------------------------------------- */
+
+.award-list {
+  list-style: none;
+  margin: 1em 0 0;
+  padding: 0;
+}
+
+.award-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6em;
+  padding: 0.6em 0;
+  border-bottom: 1px solid $accent-green-border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.award-item__year {
+  flex: 0 0 auto;
+  min-width: 4.5em;
+  font-size: $type-size-6;
+  font-weight: 800;
+  color: $accent-green;
+}
+
+.award-item__body {
+  flex: 1 1 220px;
+  font-size: $type-size-6;
+  line-height: 1.45;
+  color: #333;
+}
+
+.award-item__title {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.award-item__meta {
+  color: #666;
+}
+
+/* Callout (research management / PI) -------------------------------------- */
+
+.cv-callout {
+  margin: 1.2em 0;
+  padding: 1.1em 1.2em;
+  border-left: 4px solid $accent-green;
+  border-radius: 0 6px 6px 0;
+  background: $accent-green-pale;
+
+  &__title {
+    font-size: $type-size-6;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $accent-green;
+    margin: 0 0 0.4em;
+  }
+
+  p {
+    margin: 0 0 0.5em;
+    font-size: $type-size-6;
+    line-height: 1.5;
+    color: #333;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+/* Languages --------------------------------------------------------------- */
+
+.lang-list {
+  list-style: none;
+  margin: 1em 0 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+    padding: 0.45em 0;
+    border-bottom: 1px solid $accent-green-border;
+    font-size: $type-size-6;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.lang-list__name {
+  font-weight: 700;
+  color: #1a1a1a;
+  min-width: 8em;
+}
+
+.lang-list__level {
+  color: #555;
+}
+
+/* Partner / tag chips ----------------------------------------------------- */
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin: 0.8em 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.25em 0.7em;
+  font-size: $type-size-7;
+  font-weight: 600;
+  border-radius: 2em;
+  background: #fff;
+  border: 1px solid $accent-green-border;
+  color: #444;
+}
+
+/* Experience / education two-column meta ---------------------------------- */
+
+.cv-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5em 2em;
+  align-items: start;
+}
+
+.supervision-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.8em;
+  margin: 1em 0 1.5em;
+  padding: 0;
+  list-style: none;
+}
+
+.supervision-stat {
+  border: 1px solid $accent-green-border;
+  border-radius: 6px;
+  background: #fafcfa;
+  padding: 0.9em 0.6em;
+  text-align: center;
+
+  &__value {
+    display: block;
+    font-size: 1.7em;
+    font-weight: 800;
+    line-height: 1.1;
+    color: $accent-green;
+  }
+
+  &__label {
+    display: block;
+    margin-top: 0.25em;
+    font-size: $type-size-7;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #555;
+  }
+}
+
+/* Compact toolkit block on the About page --------------------------------- */
+
+.about-toolkit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1em;
+  margin: 1em 0 0.5em;
+}
+
+.about-toolkit__block {
+  border: 1px solid $accent-green-border;
+  border-radius: 6px;
+  background: #fafcfa;
+  padding: 0.9em 1em;
+
+  h3 {
+    font-size: $type-size-7;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $accent-green;
+    margin: 0 0 0.4em;
+  }
+
+  p {
+    margin: 0;
+    font-size: $type-size-6;
+    line-height: 1.5;
+    color: #444;
+  }
+}
+
+/*
+   Teaching — grouped by year
+   ========================================================================== */
+
+.teaching-year {
+  margin-bottom: 2em;
+
+  &__heading {
+    font-size: $type-size-4;
+    font-weight: 800;
+    color: $accent-green;
+    margin: 0 0 0.6em;
+    padding-bottom: 0.3em;
+    border-bottom: 2px solid $accent-green-border;
+  }
+}
+
+/*
+   Talks — intro, year grouping, type badges
+   ========================================================================== */
+
+.talks-intro {
+  font-size: $type-size-5;
+  color: #444;
+  max-width: 720px;
+  margin: 0 0 1em;
+}
+
+.talks-map-link {
+  margin: 0 0 1.5em;
+  font-weight: 700;
+}
+
+.talks-year {
+  margin-bottom: 2em;
+
+  &__heading {
+    font-size: $type-size-4;
+    font-weight: 800;
+    color: $accent-green;
+    margin: 0 0 0.6em;
+    padding-bottom: 0.3em;
+    border-bottom: 2px solid $accent-green-border;
+  }
+}
+
+.talk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em 0.8em;
+  margin: 0 0 0.4em;
+}
+
+.talk-meta__date {
+  font-size: $type-size-7;
+  color: $gray;
+}
+
+.talk-type-badge {
+  display: inline-block;
+  padding: 0.15em 0.6em;
+  font-size: $type-size-8;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 2em;
+  background: #fdf3e7;
+  color: #b5651d;
+  border: 1px solid #f2ddc2;
+
+  &--talk {
+    background: #eef4fb;
+    color: #2166ac;
+    border-color: #cfe0f2;
+  }
+
+  &--poster {
+    background: #f3eefb;
+    color: #6a4c93;
+    border-color: #ddd0f0;
+  }
+
+  &--workshop {
+    background: $accent-green-pale;
+    color: $accent-green;
+    border-color: $accent-green-border;
+  }
+
+  &--guest-lecture {
+    background: #fdf3e7;
+    color: #b5651d;
+    border-color: #f2ddc2;
+  }
+
+  &--tutorial {
+    background: #eef4fb;
+    color: #2166ac;
+    border-color: #cfe0f2;
+  }
+}
+
+.talks-cta {
+  margin: 0 0 2.5em;
+
+  a {
+    display: inline-block;
+    padding: 0.5em 1.1em;
+    border-radius: 4px;
+    background: $accent-green;
+    color: #fff !important;
+    font-weight: 700;
+    font-size: $type-size-6;
+    text-decoration: none;
+
+    &:hover {
+      background: darken($accent-green, 10%);
+      color: #fff !important;
+    }
   }
 }

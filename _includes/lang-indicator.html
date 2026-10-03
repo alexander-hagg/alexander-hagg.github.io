@@ -1,0 +1,10 @@
+{%- comment -%}
+  Language badge for mixed-language sites.
+  Usage: {% include lang-indicator.html lang=post.lang %}
+  Renders nothing when no `lang` value is supplied, so untagged content is
+  unaffected. See CONTRIBUTING.md for the convention.
+{%- endcomment -%}
+{%- if include.lang -%}
+  {%- assign lang_code = include.lang | downcase -%}
+  <span class="lang-badge" title="{% if lang_code == 'de' %}This content is in German{% elsif lang_code == 'en' %}This content is in English{% else %}Language: {{ include.lang }}{% endif %}">{{ lang_code | upcase }}</span>
+{%- endif -%}

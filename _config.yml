@@ -15,10 +15,15 @@ url                      : https://alexander-hagg.github.io # the base hostname 
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "alexander-hagg/alexander-hagg.github.io"
 teaser                   :  # filename of teaser fallback teaser image placed in /images/, .e.g. "500x300.png"
-breadcrumbs              : false # true, false (default)
+breadcrumbs              : true # true, false (default)
 words_per_minute         : 160
 future                   : true
 read_more                : "disabled" # if enabled, adds "Read more" links to excerpts
+search                   : true # true, false (default) — Lunr site search
+search_full_content      : true # true, false (default) — index full page content, not just excerpts
+search_provider          : "lunr" # "lunr" (default), "google", "algolia"
+lunr:
+  search_within_pages    : true # also index standalone pages (not just collections)
 talkmap_link             : true #change to true to add link to talkmap on talks page
 math                     : false # load MathJax only when true (or set `math: true` in a page's front matter)
 comments:
@@ -128,6 +133,8 @@ include:
 exclude:
   - "*.sublime-project"
   - "*.sublime-workspace"
+  - ENGAGEMENT_REPORT.md
+  - qdrant_storage
   - .asset-cache
   - .bundle
   - .jekyll-assets-cache
@@ -258,7 +265,7 @@ sass:
 permalink: /:categories/:title/
 # paginate: 5 # amount of posts to show
 # paginate_path: /page:num/
-timezone: America/Los_Angeles # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+timezone: Europe/Berlin # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 
 # Plugins

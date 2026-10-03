@@ -5,7 +5,9 @@ ref: modeling-user-selection
 tags: [quality diversity, co-creativity]
 related_portfolio:
   - spiegelmaschine
-permalink: /publication/2019-01-01-Modeling-user-selection-in-quality-diversity
+permalink: /publication/2019-01-01-Modeling-user-selection-in-quality-diversity/
+redirect_from:
+  - /publication/2019-01-01-Modeling-user-selection-in-quality-diversity
 date: 2019-01-01
 venue: 'In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference'
 citation: ' Alexander Hagg,  Alexander Asteroth,  Thomas B{\&quot;a}ck, &quot;Modeling user selection in quality diversity.&quot; In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference, 2019.'

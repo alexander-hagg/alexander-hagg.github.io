@@ -5,7 +5,9 @@ ref: deep-dive-preference-hypervolume
 tags: [co-creativity, quality diversity]
 related_portfolio:
   - spiegelmaschine
-permalink: /publication/2020-01-01-A-Deep-Dive-Into-Exploring-the-Preference-Hypervolume
+permalink: /publication/2020-01-01-A-Deep-Dive-Into-Exploring-the-Preference-Hypervolume/
+redirect_from:
+  - /publication/2020-01-01-A-Deep-Dive-Into-Exploring-the-Preference-Hypervolume
 date: 2020-01-01
 venue: 'In the proceedings of International Conference on Computational Creativity'
 citation: ' Alexander Hagg,  Alexander Asteroth,  Thomas B{\&quot;a}ck, &quot;A Deep Dive Into Exploring the Preference Hypervolume.&quot; In the proceedings of International Conference on Computational Creativity, 2020.'

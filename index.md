@@ -1,8 +1,0 @@
----
-permalink: /home-legacy/
-title: "About me"
-excerpt: "About me"
-author_profile: true
-sitemap: false
----
-

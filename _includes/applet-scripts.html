@@ -1,0 +1,32 @@
+{%- comment -%}
+  Applet script loader
+  ====================
+  Loads interactive-demo scripts only on pages that declare them, so demo
+  JavaScript never ships on pages that do not use it.
+
+  Per-page scripts (preferred):
+    Add a list of asset paths to a page's front matter:
+
+      applet_scripts:
+        - /assets/js/my-demo.js
+
+  Optional global loader (site-wide):
+    Add a list of asset paths under `applet_scripts` in `_config.yml` to load
+    a shared runtime/loader on every page. Leave it unset to ship nothing.
+
+  Shared applet markup lives in the `.applet` container convention and the
+  shared styles live in `_sass/_custom.scss`. See CONTRIBUTING.md.
+{%- endcomment -%}
+{% include base_path %}
+
+{% if site.applet_scripts %}
+  {% for script in site.applet_scripts %}
+    <script src="{{ base_path }}{{ script }}" defer></script>
+  {% endfor %}
+{% endif %}
+
+{% if page.applet_scripts %}
+  {% for script in page.applet_scripts %}
+    <script src="{{ base_path }}{{ script }}" defer></script>
+  {% endfor %}
+{% endif %}

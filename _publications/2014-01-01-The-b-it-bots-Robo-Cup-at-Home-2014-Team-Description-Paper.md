@@ -3,7 +3,9 @@ title: "The b-it-bots Robo-Cup at Home 2014 Team Description Paper"
 collection: publications
 ref: robocup-home-2014
 tags: [robotics]
-permalink: /publication/2014-01-01-The-b-it-bots-Robo-Cup-at-Home-2014-Team-Description-Paper
+permalink: /publication/2014-01-01-The-b-it-bots-Robo-Cup-at-Home-2014-Team-Description-Paper/
+redirect_from:
+  - /publication/2014-01-01-The-b-it-bots-Robo-Cup-at-Home-2014-Team-Description-Paper
 date: 2014-01-01
 venue: 'Joao Pessoa, Brazil'
 citation: ' Rhama Dwiputra,  Matthias Füller,  Frederik Hegger,  Sven Schneider,  Nico Hochgeschwender,  Iman Awaad,  Jos{\&apos;e} Loza,  Alexey Ozhigov,  Saugata Biswas,  Niranjan Deshpande, &quot;The b-it-bots Robo-Cup at Home 2014 Team Description Paper.&quot; Joao Pessoa, Brazil, 2014.'

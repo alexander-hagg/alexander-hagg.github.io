@@ -5,7 +5,9 @@ ref: discovering-preference-hypervolume
 tags: [co-creativity, quality diversity]
 related_portfolio:
   - spiegelmaschine
-permalink: /publication/2021-01-01-Discovering-the-preference-hypervolume-an-interactive-model-for-real-world-computational-co-creativity
+permalink: /publication/2021-01-01-Discovering-the-preference-hypervolume-an-interactive-model-for-real-world-computational-co-creativity/
+redirect_from:
+  - /publication/2021-01-01-Discovering-the-preference-hypervolume-an-interactive-model-for-real-world-computational-co-creativity
 date: 2021-01-01
 venue: 'In the proceedings of Dissertation'
 citation: ' Alexander Hagg, &quot;Discovering the preference hypervolume: an interactive model for real world computational co-creativity.&quot; In the proceedings of Dissertation, 2021.'

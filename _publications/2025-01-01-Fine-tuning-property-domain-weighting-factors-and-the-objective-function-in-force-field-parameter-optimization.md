@@ -6,7 +6,9 @@ tags: [computational chemistry]
 related_portfolio:
   - cytotransport
   - ummbas
-permalink: /publication/2025-01-01-Fine-tuning-property-domain-weighting-factors-and-the-objective-function-in-force-field-parameter-optimization
+permalink: /publication/2025-01-01-Fine-tuning-property-domain-weighting-factors-and-the-objective-function-in-force-field-parameter-optimization/
+redirect_from:
+  - /publication/2025-01-01-Fine-tuning-property-domain-weighting-factors-and-the-objective-function-in-force-field-parameter-optimization
 date: 2025-01-01
 venue: 'Journal of Molecular Graphics and Modelling'
 citation: ' Robin Strickstrock,  Alexander Hagg,  Marco Hülsmann,  Karl Kirschner,  Dirk Reith, &quot;Fine-tuning property domain weighting factors and the objective function in force-field parameter optimization.&quot; Journal of Molecular Graphics and Modelling, 2025.'
