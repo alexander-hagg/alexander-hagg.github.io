@@ -924,6 +924,15 @@ a {
 
 /*
    Responsive CV embed
+   --------------------------------------------------------------------------
+   The <object> in _pages/cv.md carries `.fitvidsignore` on purpose. The theme
+   runs `$("#main").fitVids()` (assets/js/_main.js), which matches every
+   <object>. FitVids 1.1 derives its aspect ratio from the object's HTML
+   width/height attributes; when those are absent (as here, where sizing is
+   done in CSS) it computes `padding-top: NaN%`, wraps the object in a
+   zero-height `.fluid-width-video-wrapper` and re-positions it `absolute`, so
+   the PDF height collapses to 0 and becomes invisible. Opting the embed out of
+   FitVids lets the rules below size it against `.cv-embed`.
    ========================================================================== */
 
 .cv-embed {

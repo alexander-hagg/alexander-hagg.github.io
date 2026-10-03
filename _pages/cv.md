@@ -10,7 +10,14 @@ redirect_from:
 {% include base_path %}
 
 <div class="cv-embed">
-  <object data="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf" type="application/pdf" aria-label="Alexander Hagg — academic CV (PDF)">
+  {%- comment -%}
+    Do not remove `fitvidsignore`. assets/js/_main.js runs `$("#main").fitVids()`,
+    and FitVids 1.1 wraps every <object> in a zero-height `.fluid-width-video-wrapper`
+    when it cannot derive an aspect ratio (objects with CSS width/height but no HTML
+    width/height attributes yield `padding-top: NaN%`). That collapses this embed.
+    See the "Responsive CV embed" note in _sass/_custom.scss.
+  {%- endcomment -%}
+  <object class="fitvidsignore" data="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf" type="application/pdf" aria-label="Alexander Hagg — academic CV (PDF)">
     <p class="cv-embed__fallback">Your browser cannot display embedded PDFs. <a href="{{ base_path }}/files/Hagg_Alexander_CV_Academic.pdf">Download the academic CV (PDF)</a>.</p>
   </object>
 </div>
