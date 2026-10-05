@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenSKIZZE 2.0 — Generative Urban Climate Design</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cold: '#38bdf8',
+            heat: '#f97316',
+            green: '#4ade80',
+            slate2: '#1e293b'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* ---- Typography scale: 11 / 12 / 14 / 16 / 20 / 28 ---- */
+    :root {
+      --fs-11: 11px;
+      --fs-12: 12px;
+      --fs-14: 14px;
+      --fs-16: 16px;
+      --fs-20: 20px;
+      --fs-28: 28px;
+    }
+    .fs-11 { font-size: var(--fs-11); line-height: 1.35; }
+    .fs-12 { font-size: var(--fs-12); line-height: 1.45; }
+    .fs-14 { font-size: var(--fs-14); line-height: 1.5; }
+    .fs-16 { font-size: var(--fs-16); line-height: 1.5; }
+    .fs-20 { font-size: var(--fs-20); line-height: 1.25; }
+    .fs-28 { font-size: var(--fs-28); line-height: 1.1; }
+
+    /* ---- Panels: reduced blur + darker fill for readable contrast ---- */
+    .glass {
+      background: rgba(15, 23, 42, .62);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, .18);
+      border-radius: 0.75rem;
+    }
+    .phase-enter {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    .phase-active {
+      opacity: 1;
+      transform: translateY(0);
+      transition: all .45s ease;
+    }
+
+    /* ---- Tooltip: richer content, arrow, viewport-clamped ---- */
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(15, 23, 42, .96);
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, .28);
+      border-radius: .5rem;
+      padding: .5rem .625rem;
+      max-width: 240px;
+      z-index: 50;
+      box-shadow: 0 10px 24px rgba(2, 6, 23, .55);
+    }
+    .tooltip::before {
+      content: '';
+      position: absolute;
+      left: var(--arrow-x, 14px);
+      top: -6px;
+      margin-left: -6px;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 6px solid rgba(15, 23, 42, .96);
+    }
+    .tooltip.tooltip-above::before {
+      top: auto;
+      bottom: -6px;
+      border-bottom: none;
+      border-top: 6px solid rgba(15, 23, 42, .96);
+    }
+
+    /* ---- Presentation mode: hide sidebars, full-bleed iso ---- */
+    body.presentation #phase-explore { grid-template-columns: 1fr !important; }
+    body.presentation #phase-explore .pres-hide { display: none !important; }
+    body.presentation #phase-explore { padding: 0 !important; gap: 0 !important; }
+    body.presentation #phase-explore > .pres-iso { border-radius: 0; border-left: 0; border-right: 0; }
+
+    /* Accessible keyboard focus: always visible, never colour-only. */
+    :where(button, [role="button"], canvas, a, [tabindex]):focus-visible {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+    /* prefers-reduced-motion: instant phase changes, no transitions. */
+    @media (prefers-reduced-motion: reduce) {
+      .phase-active { transition: none !important; }
+      .phase-enter { transform: none !important; }
+    }
+    body.reduced-motion .phase-active { transition: none !important; }
+    body.reduced-motion .phase-enter { transform: none !important; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans overflow-x-hidden overflow-y-auto xl:overflow-hidden">
+  <div id="app" class="w-screen min-h-screen xl:h-screen grid grid-rows-[auto_1fr]">
+
+    <!-- ===================== Header ===================== -->
+    <header class="glass m-2 px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <span class="fs-20 font-semibold whitespace-nowrap">OpenSKIZZE <span class="text-cold">2.0</span></span>
+        <span class="fs-12 text-slate-300 hidden md:inline truncate">Surrogate-assisted Quality-Diversity design for climate-adaptive urban planning</span>
+      </div>
+
+      <ol id="phase-stepper" class="flex items-center gap-2 fs-12">
+        <li data-phase="SELECT" class="px-2 py-1 rounded-md text-cold font-semibold">1 · Site</li>
+        <li data-phase="OPTIMIZING" class="px-2 py-1 rounded-md text-slate-300">2 · Search</li>
+        <li data-phase="EXPLORE" class="px-2 py-1 rounded-md text-slate-300">3 · Explore</li>
+      </ol>
+
+      <div class="flex items-center gap-2">
+        <button id="btn-instant-demo" type="button"
+          class="fs-12 px-3 py-1.5 rounded-lg border border-cold/40 bg-cold/10 hover:bg-cold/20 text-cold transition whitespace-nowrap">
+          ⚡ Instant Demo Preset
+        </button>
+        <button id="btn-present" type="button" aria-pressed="false"
+          class="fs-12 px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-slate-100 transition whitespace-nowrap">
+          🖥️ Presentation
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================== Phase container ===================== -->
+    <main class="relative min-h-0 xl:overflow-hidden">
+
+      <!-- ===================== Phase 1 · Site ===================== -->
+      <section id="phase-select" class="phase-active grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4 p-4 h-auto xl:h-full min-h-0">
+        <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0">
+          <canvas id="CityMapCanvas" tabindex="0"
+            aria-label="Klimastadt site map. Use arrow keys to move the selection box."
+            class="w-full h-full block outline-none" style="touch-action:none"></canvas>
+        </div>
+
+        <aside class="glass p-4 flex flex-col gap-4 overflow-y-auto min-h-0">
+          <div>
+            <h2 class="fs-12 uppercase tracking-wider text-slate-300 mb-2">Site Presets</h2>
+            <div id="preset-list" class="flex flex-col gap-2"></div>
+          </div>
+
+          <div>
+            <h2 class="fs-12 uppercase tracking-wider text-slate-300 mb-2">Site Readout</h2>
+            <div id="site-readout" class="fs-14 text-slate-200"></div>
+          </div>
+
+          <button id="btn-run-search" type="button"
+            class="mt-auto w-full px-4 py-3 rounded-lg bg-cold text-slate-900 font-semibold hover:bg-sky-300 transition">
+            Run Generative Search (MAP-Elites)
+          </button>
+        </aside>
+      </section>
+
+      <!-- ===================== Phase 2 · Search ===================== -->
+      <section id="phase-optimizing" class="phase-enter hidden grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4 p-4 h-auto xl:h-full min-h-0">
+        <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0">
+          <canvas id="ArchiveCanvas" tabindex="0"
+            aria-label="MAP-Elites archive filling"
+            class="w-full h-full block outline-none"></canvas>
+        </div>
+
+        <aside class="glass p-4 flex flex-col gap-4 overflow-y-auto min-h-0">
+          <div id="eval-ticker" class="fs-14 text-slate-200 font-mono"></div>
+
+          <div class="glass p-2 relative">
+            <canvas id="PreviewCanvas" aria-hidden="true" class="w-full block" style="aspect-ratio:1/1"></canvas>
+          </div>
+
+          <div id="qd-explainer" class="fs-14 text-slate-200 leading-relaxed space-y-3">
+            <p>
+              <strong class="text-slate-100">What is a MAP-Elites archive?</strong>
+              Instead of searching for one "best" city, we keep the best design for
+              <em>every</em> combination of two goals: how many homes it creates
+              (left→right) and how well it lets cool night air flow through
+              (bottom→top). Each cell is a niche; the colour shows overall quality.
+              This is <em>Quality Diversity</em>: many good, different answers
+              instead of a single winner.
+            </p>
+            <p>
+              <strong class="text-slate-100">What are the archetypes?</strong>
+              The archive is grouped into four recurring design families — a green
+              cold-air finger, a porous courtyard carpet, a stepped windbreak, and a
+              maximum-density block. Click one to see its most representative design.
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <!-- ===================== Phase 3 · Explore ===================== -->
+      <section id="phase-explore" class="phase-enter hidden grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)_300px] gap-4 p-4 h-auto xl:h-full min-h-0">
+        <div class="glass p-3 flex flex-col gap-3 overflow-hidden min-h-0 pres-hide">
+          <div class="relative overflow-hidden min-h-[45vh] xl:min-h-0 flex-1">
+            <canvas id="ArchiveCanvas2" tabindex="0"
+              aria-label="MAP-Elites archive with archetypes"
+              class="w-full h-full block outline-none"></canvas>
+          </div>
+          <div id="archetype-legend" class="fs-12 text-slate-200"></div>
+        </div>
+
+        <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0 pres-iso">
+          <canvas id="IsoViewerCanvas" tabindex="0"
+            aria-label="Isometric parcel viewer"
+            class="w-full h-full block outline-none"></canvas>
+          <div id="layer-toggles" class="absolute top-2 right-2 flex flex-col gap-1"></div>
+          <div id="cell-tooltip" class="tooltip hidden"></div>
+        </div>
+
+        <aside class="glass p-4 flex flex-col gap-4 overflow-y-auto min-h-0 pres-hide">
+          <div id="audience-toggle" role="tablist" class="flex gap-1"></div>
+          <div id="dashboard-layman" class="fs-14 text-slate-200"></div>
+          <div id="dashboard-planner" class="fs-14 text-slate-200 hidden"></div>
+        </aside>
+      </section>
+
+    </main>
+  </div>
+
+  <!--
+    ES modules require an http(s) origin: browsers block type="module" from
+    file:// URLs (CORS). Serve this page over http(s), e.g. `jekyll serve`,
+    `python -m http.server 8000`, or GitHub Pages.
+  -->
+  <script type="module" src="assets/js/openskizze2/main.js"></script>
+</body>
+</html>
