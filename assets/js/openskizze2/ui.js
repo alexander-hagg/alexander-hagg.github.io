@@ -249,8 +249,9 @@ export function initUI(store, deps) {
   ];
 
   const AUDIENCE_DEFS = [
-    { key: 'layman', label: '👤 Layman Mode' },
-    { key: 'planner', label: '📐 Urban Planner Mode' },
+    { key: 'layman', label: '👤 Layman' },
+    { key: 'planner', label: '📐 Urban Planner' },
+    { key: 'department', label: '🏛️ Planning Dept' },
   ];
 
   /** Build the three layer-toggle buttons once. */
@@ -282,7 +283,7 @@ export function initUI(store, deps) {
     }
   }
 
-  /** Build the two audience-switch buttons once. */
+  /** Build the three audience-switch buttons once. */
   function buildAudienceToggle() {
     if (!audienceToggle) return;
     audienceToggle.innerHTML = '';

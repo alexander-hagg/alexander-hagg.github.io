@@ -37,7 +37,7 @@ import { createArchive, deriveArchetypes } from './simulation.js';
  * @property {number|null} selectedDesignId
  * @property {string|null} selectedArchetype
  * @property {{airflow:boolean, coldPool:boolean, legend:boolean}} layers
- * @property {'layman'|'planner'} audience
+ * @property {'layman'|'planner'|'department'} audience
  * @property {{gx:number,gy:number}|null} hoveredCell
  * @property {boolean} paused
  * @property {{t:number, running:boolean, startedAt:number}} animation
@@ -250,8 +250,13 @@ export function reducer(state, action) {
       return { ...state, layers: { ...state.layers, [key]: !state.layers[key] } };
     }
 
-    case 'SWITCH_AUDIENCE':
-      return { ...state, audience: action.audience || state.audience };
+    case 'SWITCH_AUDIENCE': {
+      const audience = action.audience;
+      if (audience !== 'layman' && audience !== 'planner' && audience !== 'department') {
+        return state;
+      }
+      return { ...state, audience };
+    }
 
     case 'HOVER_CELL':
       return { ...state, hoveredCell: action.cell ?? null };

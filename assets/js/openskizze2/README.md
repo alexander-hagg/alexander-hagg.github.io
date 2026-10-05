@@ -40,7 +40,7 @@ The user flow has three phases:
    elite heatmap.
 3. **Explore** — inspect the four archetypes (A–D) in a 2.5D isometric viewer
    with toggleable layers (airflow streamlines, cold-pool fog, KLAM legend) and a
-   dual-audience dashboard (Layman / Urban Planner).
+   three-audience dashboard (Layman / Urban Planner / Planning Dept).
 
 Everything is deterministic: all randomness flows through a seeded xorshift32
 PRNG, so a given seed always produces the same archive and archetypes.
@@ -112,6 +112,8 @@ config.js
 
 palette.js   (leaf: cached per-KLAM colour ramps; imported by iso.js)
 airflow.js   (imports config/prng/klam/iso; injected into iso.js + main.js)
+consensus.js (pure aggregate: archive + archetype → per-cell consensus +
+             requirements + brief; imported by dashboard.js)
 ```
 
 - [`palette.js`](palette.js:1) is a **leaf** module: it exports the per-KLAM
@@ -121,6 +123,11 @@ airflow.js   (imports config/prng/klam/iso; injected into iso.js + main.js)
   shared `projectCellInto` ground/solution-grid projection and re-exports
   `COLD_AIR_LAYER_ELEVATION`) but is **injected** into the viewer rather than
   imported by it, keeping `iso.js` free of a hard airflow dependency.
+- [`consensus.js`](consensus.js:1) is a **pure aggregate**: it depends only on
+  [`config.js`](config.js:1) and [`klam.js`](klam.js:1) and turns an archive +
+  archetype into a per-cell consensus, derived requirements and a brief. It is
+  imported by [`dashboard.js`](dashboard.js:1) (see *Planning Department view*
+  below).
 
 ### Single RAF loop
 
@@ -518,6 +525,99 @@ Handled actions: `SET_PRESET`, `SET_SELECTION_BOX`, `RUN_SEARCH`, `TICK`,
 
 ---
 
+## Planning Department view
+
+OpenSKIZZE 2.0 briefs three audiences from the same archive. The dashboard
+([`dashboard.js`](dashboard.js:1)) renders exactly one panel at a time, selected
+by `state.audience`:
+
+| Audience | `state.audience` | Panel | Content |
+|---|---|---|---|
+| Layman | `layman` | `#dashboard-layman` | Friendly KPI cards (homes, fresh-air gauge, green space, summary badge). |
+| Urban Planner | `planner` | `#dashboard-planner` | GRZ/GFZ bars, V_flux reference table, roughness, σ, 7-class KLAM donut, narrative. |
+| Planning Dept | `department` | `#dashboard-department` | Cluster consensus map, derived spatial requirements and a copy/download brief. |
+
+The three-way toggle lives in [`ui.js`](ui.js:1); the `SWITCH_AUDIENCE` reducer
+rejects any audience other than those three
+([`state.js`](state.js:253)). Unlike the Layman/Planner panels — which describe
+a single *selected design* — the Planning Department view describes **the whole
+selected archetype cluster**.
+
+### Consensus engine ([`consensus.js`](consensus.js:1))
+
+[`buildDesignIndex`](consensus.js:110) builds an id → design index from the
+archive, accepting both the store's wrapper bins (`{ design, fitness, bx, by }`)
+and raw designs; [`collectClusterDesigns`](consensus.js:129) resolves an
+archetype's `memberIds` against that index in deterministic ascending-id order.
+[`computeConsensus`](consensus.js:335) then aggregates the cluster into **one
+record per cell** (`N * N = 100` cells):
+
+| Field | Meaning |
+|---|---|
+| `classDist` | Mean frequency of each of the seven KLAM classes across the cluster (sums to 1). |
+| `dominant` | KLAM class with the highest mean frequency. |
+| `confidence` | `classDist[dominant]`, 0..1. |
+| `entropy` | Shannon entropy of `classDist`, normalised by `log(7)` → 0..1 (0 = unanimous, 1 = maximum uncertainty). |
+| `heightMean` / `heightStd` | Mean / population std-dev of building height (stories) over all designs. |
+| `footprintMean` / `footprintStd` | Mean / population std-dev of footprint fraction over all designs. |
+| `buildingFrac` | Fraction of designs in which the cell is a building (`height > 0`). |
+
+`stats` summarises the result: `designs`, `meanConfidence`, `meanEntropy` and a
+per-class `coverage` (the fraction of cells each class dominates). The engine is
+pure — no DOM, no state coupling, no `Math.random` — so it is fully testable
+headless and deterministic. In the Node harness a cluster consensus of 15–30
+designs computes in well under a few milliseconds.
+
+### Requirement extraction
+
+Requirements are derived from the consensus
+([`computeRequirements`](consensus.js:272)):
+
+- **Positive requirements** (`kind:'require'`) are emitted for any KLAM class
+  that is the *majority* use (`classDist >= MAJORITY = 0.5`) in at least
+  `MIN_CELLS = 2` cells. The region phrase comes from
+  [`describeRegion`](consensus.js:156), which maps the covered cells' bounding
+  box and centroid to a compass band (`north`/`south`/`centre` ×
+  `west`/`east`/`centre`) plus the covered `rows`/`cols` ranges, and returns
+  `"throughout the site"` for a full-grid band. Confidence is the mean
+  `classDist` over the covered cells.
+- **Avoidance requirements** (`kind:'avoid'`) are emitted for a class that is
+  *not* positively required and is absent (`classDist < ABSENT = 0.1`) across at
+  least `MIN_ABSENT_CELLS = 6` cells; confidence is the mean `1 - classDist`.
+- Positive requirements are listed first; within each group items are sorted by
+  confidence (descending) and then KLAM class order.
+
+**Variance-derived ± tolerance.** Each positive requirement carries an integer
+`tolerance`. For every design the class's cell **centroid** (mean gx, mean gy) is
+computed, and the tolerance is the **RMS radial deviation** of those per-design
+centroids from their cluster mean, in cell units — i.e. the standard deviation
+of the class's spatial position across the cluster. It is `Math.round`-ed and
+clamped to `[0, N]`; it is `0` when fewer than two designs contain the class. A
+class that sits in the same place in every design yields `±0`; a class whose
+location wanders yields a larger `±`. Avoidance requirements carry
+`tolerance: 0`.
+
+### The brief export
+
+[`formatBrief`](consensus.js:442) renders a consensus + archetype as a clean,
+copy-pasteable plain-text competition brief: a header with the archetype id,
+name and cluster size, the consensus confidence and mean uncertainty, and a
+numbered `REQUIREMENTS` list of each requirement's full sentence. In the
+department panel the **📋 Copy brief** button copies this string to the
+clipboard (async Clipboard API with a hidden-textarea `execCommand` fallback)
+and the **⬇ .txt** button downloads it as `openskizze-brief-<id>.txt`.
+
+### Caching
+
+`createDashboard` caches the consensus **per archetype id** (`consensusCache`).
+The cache is invalidated whenever the archive object identity changes — i.e. on
+`SEARCH_COMPLETE`, `RESTART` or a new search — so switching back and forth
+between archetypes within one search recomputes nothing. The department panel's
+render signature additionally tracks the selected archetype and cluster size so
+it only rebuilds when they change.
+
+---
+
 ## Rendering
 
 ### Isometric viewer ([`iso.js`](iso.js:1))
@@ -661,8 +761,8 @@ consistently.
   ([`dashboard.js`](dashboard.js:104)).
 - **Layer toggles** — animated airflow streamlines, cold-air layer depth
   (pooling fog) and the KLAM_21 legend.
-- **Audience switch** — Layman / Urban Planner panels, toggled by
-  `state.audience`.
+- **Audience switch** — Layman / Urban Planner / Planning Dept panels, toggled
+  by `state.audience` (see *Planning Department view*).
 - **Accessibility** — canvases are focusable (`tabindex="0"`) with
   `role`/`aria-label`s; the archive and city map support arrow-key navigation.
 
@@ -685,6 +785,9 @@ consistently.
   changes. The pooling fog blits a cached radial-gradient sprite; the particle
   hot path samples into a reused output object and reuses per-particle trail
   buffers (no per-frame allocation).
+- Dashboard — the Planning Department consensus is **cached per archetype id**
+  and invalidated when the archive object identity changes (`SEARCH_COMPLETE` /
+  `RESTART` / a new search), so re-visiting an archetype is free.
 
 ### Throttles & caps
 
@@ -784,13 +887,15 @@ how the numbers are produced.
 | [`palette.js`](palette.js:1) | 49 | Cached per-KLAM three-tone isometric colour ramps (`paletteFor`). |
 | [`design.js`](design.js:1) | 1120 | Block/Cell genome, `computeFreeRects`/`streetsFromStructure`/`cloneStructure`, `createDesign`/`cloneDesign`/`mutateDesign` (fixed `windDir`), structure-aware `rasterize`, footprint-aware metrics with directional upstream shelter, descriptor/fitness, adaptive `setDescriptorScale`/`getDescriptorScale`. |
 | [`simulation.js`](simulation.js:1) | 636 | `generateCandidates` (land-use maps × pattern schemes × height/density/profile sweep + adaptive scale; threads `city.coldAir.dir` into every design), `runMAPElites`, `deriveArchetypes` (k-means k=4, 9-dim features), `createArchive`. |
+| [`consensus.js`](consensus.js:1) | 464 | Pure consensus + requirement-extraction engine: `buildDesignIndex`, `collectClusterDesigns`, `computeConsensus` (per-cell `classDist`/`dominant`/`confidence`/normalized `entropy`, height/footprint mean+std, `buildingFrac`, variance-derived `tolerance`), `describeRegion`, `formatBrief`. |
 | [`state.js`](state.js:1) | 308 | Central store: `createStore`, pure `reducer`, `makeInitialState`, all actions. |
 | [`citymap.js`](citymap.js:1) | 1071 | Diagrammatic macro city schematic: renders the selected preset's `city.terrain` zones generically, a per-city legend, non-overlapping block grids, a design-accurate 10×10 site grid with retained-structure overlay, a draggable/resizable selection box and a city-direction cold-air arrow. |
 | [`iso.js`](iso.js:1) | 1468 | 2.5D isometric renderer: projection (`isoProject`/`isoProjectInto` plus the shared `projectCell`/`projectCellInto` ground/solution-grid transform), `orientationForDir` (so the cold-air flow reads downhill), geometry fitting, footprint prisms, roof types, cached ground layer with roads + rail ties, city-direction wind cue, layers, hover. |
 | [`airflow.js`](airflow.js:1) | 900 | 2 m obstacle-aware cold-air flow layer: `buildOccupancyGrid` (40×40 sub-cell grid, `SUB=4`), distance-field-deflected velocity field (Jacobi openness diffusion, obstacle pinning, obstacle-aware smoothing, upstream pooling), collision-safe bilinear particle advection (no penetration, street channeling), cached pooling-fog sprite, per-design field cache, reduced-motion static streamlines. Re-exports `COLD_AIR_LAYER_ELEVATION`; projects via the shared `projectCellInto` in cell-centre coordinates. |
 | [`archiveview.js`](archiveview.js:1) | 653 | 12×12 MAP-Elites heatmap with mini-thumbnails, flash-on-new-elite, Pareto frontier, archetype badges, keyboard nav. |
-| [`dashboard.js`](dashboard.js:1) | 335 | Dual-audience dashboard (Layman and Urban Planner panels, 7-class KLAM donut). |
+| [`dashboard.js`](dashboard.js:1) | 640 | Tri-audience dashboard (Layman and Urban Planner panels with a 7-class KLAM donut, plus the Planning Dept consensus map, requirement list and copy/download brief; consensus cached per archetype id). |
 | [`ui.js`](ui.js:1) | 541 | DOM wiring: presets, site readout (preset name + city name/tagline + rationale), CTAs, phase stepper, layer toggles, tooltips, audience switch, presentation mode, keyboard. |
 | [`main.js`](main.js:1) | 334 | Bootstrap and the single RAF loop; time-based Phase-2 ticker; resolves the selected city's `coldAir.dir` for airflow + iso orientation and the preset for candidate generation; resize/visibility/reduced-motion handling. |
 
-> Line counts are approximate and reflect the current implementation.
+> The app comprises **15** ES modules; line counts are approximate and reflect
+> the current implementation.
