@@ -26,7 +26,17 @@ Climate-adapted building requires knowledge that most planners don't have easy a
 
 **OpenSKIZZE** translates findings from climate models into concrete, usable design options — early in the planning process, before expensive expertise is typically called in.
 
-<p class="demo-jump"><a href="/openskizze-2.0.html" class="btn btn--primary">🚀 Launch OpenSKIZZE 2.0 — Interactive QD Explorer</a></p>
+## OpenSKIZZE 2.0 — Interactive QD Explorer
+
+Explore the generative quality-diversity design space directly in your browser — no installation required.
+
+<p class="demo-jump"><a href="/openskizze-2.0.html" target="_blank" rel="noopener" class="btn btn--primary">⛶ Open full window</a></p>
+
+<div class="openskizze-embed" style="margin:1rem 0;">
+  <iframe src="/openskizze-2.0.html" title="OpenSKIZZE 2.0 — Interactive QD Explorer" loading="lazy" style="width:100%; aspect-ratio:16/9; border:0; border-radius:12px; background:#0f172a;"></iframe>
+</div>
+
+The embedded view above is fully interactive. For presentations or a larger canvas, use the **⛶ Open full window** button to open the standalone version in a new tab.
 
 <div class="blend-visual">
   <img src="/images/openskizze-visual.svg" alt="OpenSKIZZE urban planning tool interface" loading="lazy" decoding="async" />

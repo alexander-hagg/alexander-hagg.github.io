@@ -1,34 +1,74 @@
 /**
- * OpenSKIZZE 2.0 — cold-air velocity field and streamline ribbon system (R4).
+ * OpenSKIZZE 2.0 — 2 m cold-air flow layer: obstacle-aware velocity field and
+ * streamline ribbon system (R5).
  *
- * Builds a smooth per-cell wind field from a design's KLAM classes and block
- * genome (aerodynamic roughness `z0`, building footprint, street channeling),
- * advects particles through it (bilinear sampling) and renders each particle as
- * a fading polyline (ribbon) backed by a reusable per-particle trail buffer.
- * Sheltered / pooled cells are rendered as soft radial-gradient fog blobs in a
- * single grey/blue visual language, shared with the `coldPool` iso layer.
+ * The cold-air layer is modelled at **~2 m above ground** (see
+ * {@link COLD_AIR_LAYER_ELEVATION}). At that height every building is an
+ * obstacle (buildings are ≥1 storey ≈ 3 m), while streets, courtyards, gardens,
+ * grass, forest and water are passable. The field is therefore built on a
+ * **sub-cell-resolution occupancy grid** derived from the design's `cells`
+ * (`height`, `footprint`, `street`): `SUB × SUB` samples per 10 m cell give a
+ * `FN × FN = 40 × 40` fine grid (1600 samples).
  *
- * Respects `prefers-reduced-motion` by drawing static streamlines instead of
- * animating particles.
+ * Field construction (documented choice — distance-field deflection):
+ *   1. Occupancy grid: a sample is solid when it lies inside a building
+ *      footprint sub-rectangle (`height > 0`, footprint fraction centred in the
+ *      cell). Streets and non-building cells are free.
+ *   2. Openness potential: 1 on free samples, 0 on obstacles, diffused with a
+ *      few Jacobi iterations so the flow sees a smooth corridor structure.
+ *   3. Velocity: the city's `coldAir.dir` base wind, accelerated where the
+ *      openness potential is high (streets / courtyards / green corridors) and
+ *      deflected **up the openness gradient** — i.e. away from buildings and
+ *      toward open space — so the flow goes around obstacles and channels
+ *      through streets. Obstacle samples are pinned to zero.
+ *   4. A couple of obstacle-aware Jacobi smoothing passes remove sample-scale
+ *      artefacts while preserving direction.
+ *   5. Coarse upstream pooling (faint fog) accumulates blockage along
+ *      `-coldAir.dir`, so tall/dense blocks stagnate the air in front of them.
+ *
+ * Particles are advected with bilinear sampling and a **collision step**: a
+ * move that would enter an obstacle sample is slid along the wall (x-only or
+ * y-only) or the particle respawns, so no particle ever penetrates a building.
+ * They spawn on the upstream boundary, weighted by the wind components, and
+ * respawn on exit or death.
+ *
+ * The fine field is **cached per design identity + wind direction** and rebuilt
+ * only when the selected design or preset changes. All buffers are reused across
+ * frames — the hot path performs no per-frame allocation.
  *
  * Pure ES module: no side effects on import, no `Math.random`. The renderer is
- * DOM-free (it only receives a 2D context and a geometry object). All buffers
- * are reused across frames — the hot path performs no per-frame allocation.
+ * DOM-free (it only receives a 2D context and a geometry object).
  */
 
 import { N } from './config.js';
 import { makePRNG } from './prng.js';
-import { KLAM } from './klam.js';
-import { isoProject, isoProjectInto } from './iso.js';
+import { projectCellInto, COLD_AIR_LAYER_ELEVATION } from './iso.js';
 
-/** Number of cells in the parcel grid. */
-const FIELD_LEN = N * N;
+/**
+ * Re-exported elevation of the cold-air streamline layer (storeys, ≈2 m).
+ * Defined in `iso.js` (the renderer's notion of the layer height) and applied
+ * here when projecting particles and static streamlines.
+ */
+export { COLD_AIR_LAYER_ELEVATION };
 
-/** Base wind speed (grid units/s) before per-cell modulation. */
+/** Sub-cell samples per cell edge (4×4 = 16 samples/cell → 40×40 fine grid). */
+export const SUB = 4;
+
+/** Fine grid side length (`N * SUB` = 40). */
+export const FN = N * SUB;
+
+/** Fine grid sample count (1600). */
+const FLEN = FN * FN;
+
+/** Base wind speed (fine-grid units/s) before per-sample modulation. */
 const BASE_SPEED = 1.0;
 
-/** Global advection multiplier (grid units/s). */
-const SPEED = 2.6;
+/** Global advection multiplier (fine-grid units/s); scaled by `SUB` so the
+ * physical crossing speed matches the previous per-cell field. */
+const SPEED = 2.6 * SUB;
+
+/** Maximum field magnitude after deflection (prevents runaway near walls). */
+const MAX_SPEED = 2.2;
 
 /** Particle lifetime range in seconds. */
 const LIFE_MIN = 3.5;
@@ -44,17 +84,14 @@ const COUNT_NARROW = 90;
 /** Number of historical positions retained per particle (ribbon length). */
 const TRAIL_LEN = 14;
 
-/** Roughness normaliser: z0 above this counts as a full obstruction. */
-const Z0_MAX = 2.5;
+/** Lateral deflection gain from the openness gradient. */
+const DEFLECT = 2.2;
 
-/** Lateral deflection gain from the smoothed roughness gradient. */
-const DEFLECT = 1.8;
+/** Jacobi iterations diffusing the openness potential. */
+const PERM_ITERS = 3;
 
-/** Jacobi smoothing iterations for the roughness / obstruction grids. */
-const SMOOTH_ITERS = 2;
-
-/** Jacobi relaxation iterations for the velocity field. */
-const RELAX_ITERS = 1;
+/** Obstacle-aware Jacobi smoothing iterations for the velocity field. */
+const FIELD_ITERS = 2;
 
 /** Upstream pooling accumulation constants. */
 const POOL_K = 0.9;
@@ -66,16 +103,6 @@ const POOL_STEPS = 4 * N;
 /** Soft depth-blend half-width for the back/front pass split (no popping). */
 const DEPTH_BLEND = 1.6;
 
-/** Whether a class is open terrain (concentrates flow). @param {string} klam @returns {boolean} */
-function isOpen(klam) {
-  return klam === 'KLAM_GRASS' || klam === 'KLAM_WATER';
-}
-
-/** Whether a class is a built structure. @param {string} klam @returns {boolean} */
-function isBuilt(klam) {
-  return klam === 'KLAM_RESIDENTIAL_LOW' || klam === 'KLAM_URBAN_HIGH' || klam === 'KLAM_COMMERCIAL';
-}
-
 /** Clamp to [0,1]. @param {number} x @returns {number} */
 function clamp01(x) {
   if (!Number.isFinite(x)) return 0;
@@ -83,7 +110,42 @@ function clamp01(x) {
 }
 
 /**
- * Rotated grid depth (`rx + ry`) for the iso orientation `o`, matching the
+ * Build the 2 m occupancy grid from a design's `cells`.
+ *
+ * A sample is an obstacle when its parent cell has `height > 0` and the sample
+ * lies inside the cell's footprint sub-rectangle (footprint fraction centred in
+ * the cell). Streets and non-building cells are free. Pure and deterministic.
+ *
+ * @param {object} design - A design with a `cells` array (row-major, `gy*N+gx`).
+ * @returns {Uint8Array} Length `FN*FN`; 1 = obstacle, 0 = free.
+ */
+export function buildOccupancyGrid(design) {
+  const grid = new Uint8Array(FLEN);
+  if (!design || !design.cells) return grid;
+  for (let gy = 0; gy < N; gy++) {
+    for (let gx = 0; gx < N; gx++) {
+      const cell = design.cells[gy * N + gx];
+      if (!cell || !(cell.height > 0)) continue;
+      const fp = Math.max(0.15, Math.min(1, cell.footprint || 0.6));
+      const inset = (1 - fp) / 2;
+      const lo = inset;
+      const hi = 1 - inset;
+      for (let sy = 0; sy < SUB; sy++) {
+        const ly = (sy + 0.5) / SUB;
+        if (ly < lo || ly > hi) continue;
+        for (let sx = 0; sx < SUB; sx++) {
+          const lx = (sx + 0.5) / SUB;
+          if (lx < lo || lx > hi) continue;
+          grid[(gy * SUB + sy) * FN + (gx * SUB + sx)] = 1;
+        }
+      }
+    }
+  }
+  return grid;
+}
+
+/**
+ * Rotated fine-grid depth (`rx + ry`) for the iso orientation `o`, matching the
  * painter's order used by `iso.js`. Used for the soft back/front pass split.
  * @param {number} x
  * @param {number} y
@@ -91,29 +153,30 @@ function clamp01(x) {
  * @returns {number}
  */
 function rotatedDepth(x, y, o) {
-  if (o === 1) return y + (N - 1 - x);
-  if (o === 2) return (N - 1 - x) + (N - 1 - y);
-  if (o === 3) return (N - 1 - y) + x;
+  if (o === 1) return y + (FN - 1 - x);
+  if (o === 2) return (FN - 1 - x) + (FN - 1 - y);
+  if (o === 3) return (FN - 1 - y) + x;
   return x + y;
 }
 
 /**
- * In-place 4-neighbour averaging (Jacobi smoothing) of a scalar grid.
+ * In-place 4-neighbour Jacobi smoothing of a scalar grid. Obstacle samples are
+ * expected to already be 0, so openness diffuses toward them.
  * @param {Float32Array} a - Grid to smooth (mutated).
  * @param {Float32Array} tmp - Scratch buffer of equal length.
  * @param {number} iters
  */
-function smoothGrid(a, tmp, iters) {
+function smoothScalar(a, tmp, iters) {
   for (let it = 0; it < iters; it++) {
-    for (let gy = 0; gy < N; gy++) {
-      for (let gx = 0; gx < N; gx++) {
-        const i = gy * N + gx;
+    for (let gy = 0; gy < FN; gy++) {
+      for (let gx = 0; gx < FN; gx++) {
+        const i = gy * FN + gx;
         let s = a[i] * 4;
         let w = 4;
         if (gx > 0) { s += a[i - 1]; w++; }
-        if (gx < N - 1) { s += a[i + 1]; w++; }
-        if (gy > 0) { s += a[i - N]; w++; }
-        if (gy < N - 1) { s += a[i + N]; w++; }
+        if (gx < FN - 1) { s += a[i + 1]; w++; }
+        if (gy > 0) { s += a[i - FN]; w++; }
+        if (gy < FN - 1) { s += a[i + FN]; w++; }
         tmp[i] = s / w;
       }
     }
@@ -122,25 +185,44 @@ function smoothGrid(a, tmp, iters) {
 }
 
 /**
- * In-place 4-neighbour relaxation of a 2-component vector field, preserving
- * overall direction while removing checkerboard artefacts.
- * @param {Float32Array} f - Field of length 2*N*N (vx,vy interleaved, mutated).
- * @param {Float32Array} tmp - Scratch buffer of equal length.
+ * Obstacle-aware 4-neighbour Jacobi smoothing of a 2-component vector field.
+ * Obstacle samples stay zero; obstacle neighbours contribute the centre value
+ * (a Neumann-like condition) so the flow is not pulled into walls.
+ * @param {Float32Array} f - Field of length `2*FLEN` (vx,vy interleaved, mutated).
+ * @param {Uint8Array} obst - Occupancy grid of length `FLEN`.
+ * @param {Float32Array} tmp - Scratch buffer of length `2*FLEN`.
  * @param {number} iters
  */
-function relaxField(f, tmp, iters) {
+function smoothField(f, obst, tmp, iters) {
   for (let it = 0; it < iters; it++) {
-    for (let gy = 0; gy < N; gy++) {
-      for (let gx = 0; gx < N; gx++) {
-        const i = gy * N + gx;
+    for (let gy = 0; gy < FN; gy++) {
+      for (let gx = 0; gx < FN; gx++) {
+        const i = gy * FN + gx;
         const c = i * 2;
+        if (obst[i]) { tmp[c] = 0; tmp[c + 1] = 0; continue; }
         let vx = f[c] * 4;
         let vy = f[c + 1] * 4;
         let w = 4;
-        if (gx > 0) { vx += f[c - 2]; vy += f[c - 1]; w++; }
-        if (gx < N - 1) { vx += f[c + 2]; vy += f[c + 3]; w++; }
-        if (gy > 0) { vx += f[c - N * 2]; vy += f[c - N * 2 + 1]; w++; }
-        if (gy < N - 1) { vx += f[c + N * 2]; vy += f[c + N * 2 + 1]; w++; }
+        if (gx > 0) {
+          const j = i - 1;
+          if (obst[j]) { vx += f[c]; vy += f[c + 1]; } else { vx += f[j * 2]; vy += f[j * 2 + 1]; }
+          w++;
+        }
+        if (gx < FN - 1) {
+          const j = i + 1;
+          if (obst[j]) { vx += f[c]; vy += f[c + 1]; } else { vx += f[j * 2]; vy += f[j * 2 + 1]; }
+          w++;
+        }
+        if (gy > 0) {
+          const j = i - FN;
+          if (obst[j]) { vx += f[c]; vy += f[c + 1]; } else { vx += f[j * 2]; vy += f[j * 2 + 1]; }
+          w++;
+        }
+        if (gy < FN - 1) {
+          const j = i + FN;
+          if (obst[j]) { vx += f[c]; vy += f[c + 1]; } else { vx += f[j * 2]; vy += f[j * 2 + 1]; }
+          w++;
+        }
         tmp[c] = vx / w;
         tmp[c + 1] = vy / w;
       }
@@ -150,30 +232,30 @@ function relaxField(f, tmp, iters) {
 }
 
 /**
- * Bilinearly sample a 2-component vector field at fractional grid coords,
- * writing into `out` so the hot path performs no per-frame allocation.
+ * Bilinearly sample a 2-component fine-grid vector field at fractional grid
+ * coords, writing into `out` so the hot path performs no per-frame allocation.
  * Clamps at the borders.
  *
- * @param {Float32Array} f - Field of length 2*N*N (vx,vy interleaved).
- * @param {number} x
- * @param {number} y
+ * @param {Float32Array} f - Field of length `2*FN*FN` (vx,vy interleaved).
+ * @param {number} x - Fine-grid x (0..FN-1).
+ * @param {number} y - Fine-grid y (0..FN-1).
  * @param {{vx:number,vy:number}} out - Reused output object.
  * @returns {{vx:number, vy:number}}
  */
 export function sampleFieldInto(f, x, y, out) {
-  const cx = Math.max(0, Math.min(N - 1, x));
-  const cy = Math.max(0, Math.min(N - 1, y));
+  const cx = Math.max(0, Math.min(FN - 1, x));
+  const cy = Math.max(0, Math.min(FN - 1, y));
   const x0 = Math.floor(cx);
   const y0 = Math.floor(cy);
-  const x1 = Math.min(N - 1, x0 + 1);
-  const y1 = Math.min(N - 1, y0 + 1);
+  const x1 = Math.min(FN - 1, x0 + 1);
+  const y1 = Math.min(FN - 1, y0 + 1);
   const fx = cx - x0;
   const fy = cy - y0;
 
-  const i00 = (y0 * N + x0) * 2;
-  const i10 = (y0 * N + x1) * 2;
-  const i01 = (y1 * N + x0) * 2;
-  const i11 = (y1 * N + x1) * 2;
+  const i00 = (y0 * FN + x0) * 2;
+  const i10 = (y0 * FN + x1) * 2;
+  const i01 = (y1 * FN + x0) * 2;
+  const i11 = (y1 * FN + x1) * 2;
 
   out.vx =
     (f[i00] * (1 - fx) + f[i10] * fx) * (1 - fy) +
@@ -211,7 +293,7 @@ function trailIndex(p, k) {
  *
  * @param {{reducedMotion?:boolean}} [opts]
  * @returns {{
- *   buildField:(design:object)=>void,
+ *   buildField:(design:object, dir?:{x:number,y:number})=>void,
  *   update:(dt:number, design:object)=>void,
  *   render:(ctx:CanvasRenderingContext2D, geom:object, state:object, pass?:string)=>void,
  *   renderPool:(ctx:CanvasRenderingContext2D, geom:object, state:object)=>void,
@@ -219,7 +301,10 @@ function trailIndex(p, k) {
  *   getCount:()=>number,
  *   setReducedMotion:(flag:boolean)=>void,
  *   setWindDir:(dir:{x:number,y:number})=>void,
- *   getWindDir:()=>({x:number,y:number})
+ *   getWindDir:()=>({x:number,y:number}),
+ *   getField:()=>Float32Array|null,
+ *   getOccupancy:()=>Uint8Array|null,
+ *   getParticles:()=>object[]
  * }}
  */
 export function createAirflow(opts = {}) {
@@ -237,17 +322,27 @@ export function createAirflow(opts = {}) {
   /** Current particle count (for viewport-driven resizing). */
   let particleCount = 0;
 
-  /** Velocity field (vx,vy interleaved). */
+  /** Fine velocity field (vx,vy interleaved, length 2*FLEN). */
   let field = null;
 
-  /** Per-cell pooling value 0..1 (smoothed upstream shelter). */
-  let pool = new Float32Array(FIELD_LEN);
+  /** Fine occupancy grid (1 = obstacle). */
+  let obst = null;
+
+  /** Coarse per-cell pooling value 0..1 (smoothed upstream shelter). */
+  let pool = new Float32Array(N * N);
+
+  /** Free boundary samples per upstream edge, for spawning. */
+  let spawnEdges = { x0: [], xN: [], y0: [], yN: [] };
 
   /** Cached radial-gradient sprite for pooling fog (avoids per-cell gradients). */
   let poolSprite = null;
 
-  /** Active particles in grid coordinates. */
+  /** Active particles in fine-grid coordinates. */
   let particles = [];
+
+  /** Field cache key: design identity + wind direction. */
+  let fieldDesignRef = null;
+  let fieldDir = { x: NaN, y: NaN };
 
   /** Reduced-motion flag (static streamlines, no advection). */
   let reducedMotion = !!opts.reducedMotion;
@@ -293,20 +388,52 @@ export function createAirflow(opts = {}) {
   }
 
   /**
+   * Whether a fine-grid point lies in an obstacle sample. Points outside the
+   * grid are treated as free (the caller respawns them).
+   * @param {number} x
+   * @param {number} y
+   * @returns {boolean}
+   */
+  function obstacleAt(x, y) {
+    if (!obst) return false;
+    const ix = Math.floor(x);
+    const iy = Math.floor(y);
+    if (ix < 0 || ix >= FN || iy < 0 || iy >= FN) return false;
+    return obst[iy * FN + ix] === 1;
+  }
+
+  /**
+   * Collect the free samples on each of the four grid edges, so spawning can
+   * always place a particle on passable ground.
+   * @returns {{x0:number[],xN:number[],y0:number[],yN:number[]}}
+   */
+  function buildSpawnEdges() {
+    const e = { x0: [], xN: [], y0: [], yN: [] };
+    for (let k = 0; k < FN; k++) {
+      if (!obst[k * FN]) e.x0.push(k);
+      if (!obst[k * FN + (FN - 1)]) e.xN.push(k);
+      if (!obst[k]) e.y0.push(k);
+      if (!obst[(FN - 1) * FN + k]) e.yN.push(k);
+    }
+    return e;
+  }
+
+  /**
    * Spawn a particle on the upstream boundary (the edge the wind comes from).
    * For a direction `(dx,dy)` the upstream edges are opposite the flow; one is
-   * chosen weighted by the magnitude of the corresponding component.
+   * chosen weighted by the magnitude of the corresponding component, and a free
+   * boundary sample is picked so the particle never starts inside a building.
    * @param {object} p
    */
   function spawn(p) {
     const dx = windDir.x;
     const dy = windDir.y;
     const edges = [];
-    if (dx > 0) edges.push({ axis: 'x', at: 0, w: Math.abs(dx) });
-    else if (dx < 0) edges.push({ axis: 'x', at: N, w: Math.abs(dx) });
-    if (dy > 0) edges.push({ axis: 'y', at: 0, w: Math.abs(dy) });
-    else if (dy < 0) edges.push({ axis: 'y', at: N, w: Math.abs(dy) });
-    if (edges.length === 0) edges.push({ axis: 'y', at: 0, w: 1 });
+    if (dx > 0) edges.push({ key: 'x0', w: Math.abs(dx) });
+    else if (dx < 0) edges.push({ key: 'xN', w: Math.abs(dx) });
+    if (dy > 0) edges.push({ key: 'y0', w: Math.abs(dy) });
+    else if (dy < 0) edges.push({ key: 'yN', w: Math.abs(dy) });
+    if (edges.length === 0) edges.push({ key: 'y0', w: 1 });
 
     let total = 0;
     for (const e of edges) total += e.w;
@@ -314,8 +441,19 @@ export function createAirflow(opts = {}) {
     let r = rng() * total;
     for (const e of edges) { r -= e.w; if (r <= 0) { edge = e; break; } }
 
-    if (edge.axis === 'x') { p.x = edge.at; p.y = rng() * N; }
-    else { p.y = edge.at; p.x = rng() * N; }
+    const list = spawnEdges[edge.key];
+    if (list && list.length) {
+      const k = list[Math.min(list.length - 1, Math.floor(rng() * list.length))] + 0.5;
+      if (edge.key === 'x0') { p.x = 0; p.y = k; }
+      else if (edge.key === 'xN') { p.x = FN - 1; p.y = k; }
+      else if (edge.key === 'y0') { p.y = 0; p.x = k; }
+      else { p.y = FN - 1; p.x = k; }
+    } else {
+      if (edge.key === 'x0') { p.x = 0; p.y = rng() * FN; }
+      else if (edge.key === 'xN') { p.x = FN - 1; p.y = rng() * FN; }
+      else if (edge.key === 'y0') { p.y = 0; p.x = rng() * FN; }
+      else { p.y = FN - 1; p.x = rng() * FN; }
+    }
 
     p.age = 0;
     p.life = LIFE_MIN + rng() * (LIFE_MAX - LIFE_MIN);
@@ -348,71 +486,95 @@ export function createAirflow(opts = {}) {
   setCount(defaultCount());
 
   /**
-   * Build the velocity field and pooled-fog grid for a design.
+   * Build the fine 2 m velocity field and coarse pooling grid for a design.
+   *
+   * Cached by design identity + wind direction: calling it again with the same
+   * design and direction is a no-op, so the field is rebuilt only when the
+   * selected design or preset changes.
+   *
    * @param {object} design
    * @param {{x:number,y:number}} [dir] - Cold-air direction; updates the stored wind.
    */
   function buildField(design, dir) {
     if (dir) setWindDir(dir);
-    field = new Float32Array(2 * FIELD_LEN);
-    pool = new Float32Array(FIELD_LEN);
+    if (design && design === fieldDesignRef &&
+        windDir.x === fieldDir.x && windDir.y === fieldDir.y) {
+      return;
+    }
+    fieldDesignRef = design;
+    fieldDir = { x: windDir.x, y: windDir.y };
+
+    obst = buildOccupancyGrid(design);
+    field = new Float32Array(2 * FLEN);
+    pool = new Float32Array(N * N);
+    spawnEdges = buildSpawnEdges();
     if (!design || !design.cells) return;
 
     const wx = windDir.x;
     const wy = windDir.y;
 
-    const z0 = new Float32Array(FIELD_LEN);
-    const obst = new Float32Array(FIELD_LEN);
-    const tmp = new Float32Array(FIELD_LEN);
+    // 1. Openness potential: 1 free, 0 obstacle, diffused a few samples.
+    const perm = new Float32Array(FLEN);
+    const tmp = new Float32Array(FLEN);
+    for (let i = 0; i < FLEN; i++) perm[i] = obst[i] ? 0 : 1;
+    smoothScalar(perm, tmp, PERM_ITERS);
 
-    // 1. Roughness + obstruction grids (roughness drives the deflection field).
+    // 2. Per-sample street flag (streets channel and accelerate the flow).
+    const street = new Uint8Array(FLEN);
     for (let gy = 0; gy < N; gy++) {
       for (let gx = 0; gx < N; gx++) {
-        const i = gy * N + gx;
-        const cell = design.cells[i];
-        const k = KLAM[cell.klam] || KLAM.KLAM_GRASS;
-        let o = k.z0 / Z0_MAX;
-        if (isBuilt(cell.klam) && cell.height > 0) {
-          o = o * 0.55 + (cell.height / 8) * 0.45;
+        const cell = design.cells[gy * N + gx];
+        if (!cell || !cell.street) continue;
+        for (let sy = 0; sy < SUB; sy++) {
+          for (let sx = 0; sx < SUB; sx++) {
+            street[(gy * SUB + sy) * FN + (gx * SUB + sx)] = 1;
+          }
         }
-        if (cell.street) o *= 0.35; // streets channel air
-        z0[i] = k.z0;
-        obst[i] = clamp01(o);
       }
     }
-    smoothGrid(z0, tmp, SMOOTH_ITERS);
-    smoothGrid(obst, tmp, SMOOTH_ITERS);
 
-    // 2. Velocity field: base flow along the city's cold-air direction, slowed
-    //    over rough/blocked cells, faster over open terrain and streets, and
-    //    deflected by the roughness gradient perpendicular to the wind.
+    // 3. Base wind + deflection up the openness gradient (away from buildings).
+    for (let i = 0; i < FLEN; i++) {
+      if (obst[i]) { field[i * 2] = 0; field[i * 2 + 1] = 0; continue; }
+      const gx = i % FN;
+      const gy = (i / FN) | 0;
+      let speed = BASE_SPEED * (0.35 + 0.95 * perm[i]);
+      if (street[i]) speed *= 1.25;
+
+      const xm = gx > 0 ? i - 1 : i;
+      const xp = gx < FN - 1 ? i + 1 : i;
+      const ym = gy > 0 ? i - FN : i;
+      const yp = gy < FN - 1 ? i + FN : i;
+      const dx = xp === xm ? 0 : (perm[xp] - perm[xm]) / (xp - xm);
+      const dy = yp === ym ? 0 : (perm[yp] - perm[ym]) / (yp - ym);
+
+      let vx = wx * speed + DEFLECT * dx;
+      let vy = wy * speed + DEFLECT * dy;
+      const mag = Math.hypot(vx, vy);
+      if (mag > MAX_SPEED) { const s = MAX_SPEED / mag; vx *= s; vy *= s; }
+      field[i * 2] = vx;
+      field[i * 2 + 1] = vy;
+    }
+
+    // 4. Obstacle-aware smoothing of the vector field.
+    const tmp2 = new Float32Array(2 * FLEN);
+    smoothField(field, obst, tmp2, FIELD_ITERS);
+
+    // 5. Coarse pooling: calm shelter accumulated upstream along -windDir.
+    const blockage = new Float32Array(N * N);
     for (let gy = 0; gy < N; gy++) {
       for (let gx = 0; gx < N; gx++) {
-        const i = gy * N + gx;
-        const cell = design.cells[i];
-        const xm = gx > 0 ? gx - 1 : gx;
-        const xp = gx < N - 1 ? gx + 1 : gx;
-        const ym = gy > 0 ? gy - 1 : gy;
-        const yp = gy < N - 1 ? gy + 1 : gy;
-        const dzdx = xp === xm ? 0 : (z0[gy * N + xp] - z0[gy * N + xm]) / (xp - xm);
-        const dzdy = yp === ym ? 0 : (z0[yp * N + gx] - z0[ym * N + gx]) / (yp - ym);
-
-        let speed = BASE_SPEED * (1 - 0.85 * obst[i]);
-        if (isOpen(cell.klam)) speed *= 1.25;
-        if (cell.street) speed *= 1.2;
-
-        // Perpendicular component of the roughness gradient (flow around obstacles).
-        const gdotw = dzdx * wx + dzdy * wy;
-        const gpx = dzdx - gdotw * wx;
-        const gpy = dzdy - gdotw * wy;
-
-        field[i * 2] = wx * speed - DEFLECT * gpx;
-        field[i * 2 + 1] = wy * speed - DEFLECT * gpy;
+        let cnt = 0;
+        for (let sy = 0; sy < SUB; sy++) {
+          for (let sx = 0; sx < SUB; sx++) {
+            if (obst[(gy * SUB + sy) * FN + (gx * SUB + sx)]) cnt++;
+          }
+        }
+        const cell = design.cells[gy * N + gx];
+        const h = cell && cell.height > 0 ? cell.height : 0;
+        blockage[gy * N + gx] = (cnt / (SUB * SUB)) * (1 + h / 8);
       }
     }
-    relaxField(field, tmp, RELAX_ITERS);
-
-    // 3. Pooling: calm shelter accumulated upstream along -windDir.
     for (let gy = 0; gy < N; gy++) {
       for (let gx = 0; gx < N; gx++) {
         const i = gy * N + gx;
@@ -431,7 +593,7 @@ export function createAirflow(opts = {}) {
           const j = cy * N + cx;
           if (j === last) continue;
           last = j;
-          acc += obst[j] * weight;
+          acc += blockage[j] * weight;
           weight *= POOL_DECAY;
         }
         pool[i] = 1 - Math.exp(-acc * POOL_K);
@@ -440,9 +602,9 @@ export function createAirflow(opts = {}) {
   }
 
   /**
-   * Bilinear pooling value at fractional coords.
-   * @param {number} x
-   * @param {number} y
+   * Bilinear pooling value at fractional coarse-grid coords.
+   * @param {number} x - Coarse-grid x (0..N-1).
+   * @param {number} y - Coarse-grid y (0..N-1).
    * @returns {number}
    */
   function poolAt(x, y) {
@@ -460,7 +622,9 @@ export function createAirflow(opts = {}) {
   }
 
   /**
-   * Advance particles by `dt` seconds.
+   * Advance particles by `dt` seconds. A step that would enter an obstacle
+   * sample is slid along the wall (x-only or y-only) or the particle respawns,
+   * so particles never penetrate a building.
    * @param {number} dt
    * @param {object} design
    */
@@ -469,10 +633,20 @@ export function createAirflow(opts = {}) {
     if (!field) buildField(design);
     if (!field) return;
 
+    const step = dt * SPEED;
     for (const p of particles) {
       const v = sampleFieldInto(field, p.x, p.y, samp);
-      p.x += v.vx * dt * SPEED;
-      p.y += v.vy * dt * SPEED;
+      let nx = p.x + v.vx * step;
+      let ny = p.y + v.vy * step;
+
+      if (obstacleAt(nx, ny)) {
+        if (!obstacleAt(nx, p.y)) ny = p.y;
+        else if (!obstacleAt(p.x, ny)) nx = p.x;
+        else { spawn(p); continue; }
+      }
+
+      p.x = nx;
+      p.y = ny;
       p.age += dt;
 
       // Push the new position into the reusable ring buffer.
@@ -482,17 +656,13 @@ export function createAirflow(opts = {}) {
       if (p.filled < TRAIL_LEN) p.filled++;
       p.dirty = true;
 
-      if (p.x < -0.5 || p.x > N - 0.5 || p.y < -0.5 || p.y > N - 0.5 || p.age > p.life) spawn(p);
+      if (p.x < -0.5 || p.x > FN - 0.5 || p.y < -0.5 || p.y > FN - 0.5 || p.age > p.life) spawn(p);
     }
   }
 
   /**
-   * Draw the static reduced-motion streamline set as fading ribbons.
-   * @param {CanvasRenderingContext2D} ctx
-   * @param {object} geom
-   */
-  /**
-   * Build `count` start points distributed along the upstream boundary edges.
+   * Build `count` start points distributed along the free upstream boundary
+   * samples.
    * @param {number} count
    * @returns {{x:number,y:number}[]}
    */
@@ -501,22 +671,33 @@ export function createAirflow(opts = {}) {
     const dy = windDir.y;
     const total = Math.abs(dx) + Math.abs(dy) || 1;
     const pts = [];
-    const addEdge = (axis, at, w) => {
+    const addEdge = (key, w) => {
+      const list = spawnEdges[key];
+      if (!list || !list.length) return;
       const n = Math.max(1, Math.round((w / total) * count));
       for (let k = 0; k < n; k++) {
-        const t = (k + 0.5) / n;
-        if (axis === 'x') pts.push({ x: at, y: t * N });
-        else pts.push({ x: t * N, y: at });
+        const idx = Math.min(list.length - 1, Math.floor(((k + 0.5) / n) * list.length));
+        const t = list[idx] + 0.5;
+        if (key === 'x0') pts.push({ x: 0, y: t });
+        else if (key === 'xN') pts.push({ x: FN - 1, y: t });
+        else if (key === 'y0') pts.push({ x: t, y: 0 });
+        else pts.push({ x: t, y: FN - 1 });
       }
     };
-    if (dx > 0) addEdge('x', 0, Math.abs(dx));
-    else if (dx < 0) addEdge('x', N, Math.abs(dx));
-    if (dy > 0) addEdge('y', 0, Math.abs(dy));
-    else if (dy < 0) addEdge('y', N, Math.abs(dy));
-    if (pts.length === 0) addEdge('y', 0, 1);
+    if (dx > 0) addEdge('x0', Math.abs(dx));
+    else if (dx < 0) addEdge('xN', Math.abs(dx));
+    if (dy > 0) addEdge('y0', Math.abs(dy));
+    else if (dy < 0) addEdge('yN', Math.abs(dy));
+    if (pts.length === 0) addEdge('y0', 1);
     return pts;
   }
 
+  /**
+   * Draw the static reduced-motion streamline set as fading ribbons at the
+   * ~2 m cold-air layer elevation. Streamlines stop at obstacles.
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {object} geom
+   */
   function drawStreamlines(ctx, geom) {
     if (!field) return;
     ctx.save();
@@ -529,14 +710,19 @@ export function createAirflow(opts = {}) {
       let y = st.y;
       const px = [];
       const py = [];
-      for (let step = 0; step < 140; step++) {
+      for (let step = 0; step < 220; step++) {
         const v = sampleFieldInto(field, x, y, samp);
-        isoProjectInto(x, y, 0, geom, proj);
+        // Particles live in fine-grid units; the shared projection consumes
+        // cell-centre grid units, so divide by SUB (= cell-centre alignment).
+        projectCellInto(x / SUB, y / SUB, COLD_AIR_LAYER_ELEVATION, geom, proj);
         px.push(proj.x);
         py.push(proj.y);
-        x += v.vx * 0.05 * SPEED;
-        y += v.vy * 0.05 * SPEED;
-        if (x < 0 || x > N || y < 0 || y > N) break;
+        const nx = x + v.vx * 0.05 * SPEED;
+        const ny = y + v.vy * 0.05 * SPEED;
+        if (obstacleAt(nx, ny)) break;
+        x = nx;
+        y = ny;
+        if (x < 0 || x > FN || y < 0 || y > FN) break;
       }
       const n = px.length;
       for (let s = 0; s < n - 1; s++) {
@@ -553,7 +739,7 @@ export function createAirflow(opts = {}) {
   }
 
   /**
-   * Render the airflow streamline layer.
+   * Render the airflow streamline layer at the ~2 m cold-air elevation.
    * @param {CanvasRenderingContext2D} ctx
    * @param {object} geom
    * @param {object} state
@@ -566,7 +752,7 @@ export function createAirflow(opts = {}) {
     }
     if (!field) return;
 
-    const mid = N - 1;
+    const mid = FN - 1;
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -584,7 +770,7 @@ export function createAirflow(opts = {}) {
       }
 
       const lifeFrac = Math.max(0, 1 - p.age / p.life);
-      const pooled = poolAt(p.x, p.y);
+      const pooled = poolAt(p.x / SUB, p.y / SUB);
       const baseA = lifeFrac * (pass === 'front' ? 0.85 : 0.72) * passAlpha * (1 - 0.35 * pooled);
       if (baseA <= 0.02) continue;
 
@@ -595,7 +781,9 @@ export function createAirflow(opts = {}) {
         const idx = trailIndex(p, k);
         const gx = p.trail[idx * 2];
         const gy = p.trail[idx * 2 + 1];
-        isoProjectInto(gx, gy, 0, geom, proj);
+        // Same shared ground/solution-grid transform as the iso tiles; the
+        // fine-grid trail coords are converted to cell-centre grid units.
+        projectCellInto(gx / SUB, gy / SUB, COLD_AIR_LAYER_ELEVATION, geom, proj);
         p.sx[k] = proj.x;
         p.sy[k] = proj.y;
       }
@@ -656,15 +844,15 @@ export function createAirflow(opts = {}) {
     if (!field) return;
     const sprite = getPoolSprite();
     const tw = geom.tileWidth;
-    const th = geom.tileHeight;
     ctx.save();
     for (let gy = 0; gy < N; gy++) {
       for (let gx = 0; gx < N; gx++) {
         const val = pool[gy * N + gx];
         if (val <= 0.06) continue;
-        const p = isoProject(gx, gy, 0, geom);
-        const cx = p.x;
-        const cy = p.y + th / 2;
+        // Cell-centre of tile (gx,gy) via the shared projection.
+        projectCellInto(gx + 0.5, gy + 0.5, 0, geom, proj);
+        const cx = proj.x;
+        const cy = proj.y;
         const r = tw * (0.55 + 0.6 * val);
         if (sprite) {
           ctx.globalAlpha = 0.34 * val;
@@ -688,5 +876,24 @@ export function createAirflow(opts = {}) {
     reducedMotion = !!flag;
   }
 
-  return { buildField, update, render, renderPool, setCount, getCount, setReducedMotion, setWindDir, getWindDir };
+  /** @returns {Float32Array|null} The fine velocity field (introspection/tests). */
+  function getField() {
+    return field;
+  }
+
+  /** @returns {Uint8Array|null} The fine occupancy grid (introspection/tests). */
+  function getOccupancy() {
+    return obst;
+  }
+
+  /** @returns {object[]} The live particle array (introspection/tests). */
+  function getParticles() {
+    return particles;
+  }
+
+  return {
+    buildField, update, render, renderPool, setCount, getCount,
+    setReducedMotion, setWindDir, getWindDir,
+    getField, getOccupancy, getParticles,
+  };
 }

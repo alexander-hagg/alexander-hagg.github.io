@@ -132,6 +132,10 @@
           class="fs-12 px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-slate-100 transition whitespace-nowrap">
           🖥️ Presentation
         </button>
+        <a id="btn-full-window" href="openskizze-2.0.html" target="_blank" rel="noopener"
+          class="fs-12 px-3 py-1.5 rounded-lg border border-cold/40 bg-cold/10 hover:bg-cold/20 text-cold transition whitespace-nowrap hidden">
+          ⛶ Full window
+        </a>
       </div>
     </header>
 
@@ -234,5 +238,14 @@
     `python -m http.server 8000`, or GitHub Pages.
   -->
   <script type="module" src="assets/js/openskizze2/main.js"></script>
+  <script>
+    // Show the "Full window" control only when the app is embedded in an iframe.
+    (function () {
+      if (window.self !== window.top) {
+        var btn = document.getElementById('btn-full-window');
+        if (btn) btn.classList.remove('hidden');
+      }
+    })();
+  </script>
 </body>
 </html>

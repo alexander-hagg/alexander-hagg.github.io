@@ -30,8 +30,8 @@ import { createDashboard } from './dashboard.js';
 /** Candidates for the current search (generated once on RUN_SEARCH). */
 let candidates = null;
 
-/** Design id whose airflow field is currently built. */
-let lastFieldDesignId = null;
+/** Design whose airflow field is currently built (identity-keyed cache). */
+let lastFieldDesign = null;
 
 /** Minimum ms between archive/preview redraws (~20 fps). */
 const DRAW_INTERVAL_MS = 50;
@@ -175,7 +175,7 @@ function boot() {
       const dir = resolveWindDir(state);
       if (airflow) airflow.setWindDir(dir);
       if (iso && iso.setWind) iso.setWind(dir, resolveWindLabel(state));
-      lastFieldDesignId = null; // force a field rebuild for the new city
+      lastFieldDesign = null; // force a field rebuild for the new city
     }
     if (action && action.type === 'RUN_SEARCH') {
       // `state.site` carries only {presetId, box}; resolve the full preset so
@@ -283,10 +283,12 @@ function boot() {
         preview.render(design, now, !reducedMotion);
       }
     } else if (state.phase === 'EXPLORE') {
-      // Rebuild the airflow field whenever the selected design changes.
+      // Rebuild the airflow field whenever the selected design changes. The
+      // field is keyed on the design identity + city direction, so this is a
+      // no-op while the same design stays selected.
       const design = selectedDesign(state);
-      if (design && design.id !== lastFieldDesignId) {
-        lastFieldDesignId = design.id;
+      if (design && design !== lastFieldDesign) {
+        lastFieldDesign = design;
         airflow.buildField(design, resolveWindDir(state));
       }
       if (archive2 && now - lastArchive2Draw >= DRAW_INTERVAL_MS) {

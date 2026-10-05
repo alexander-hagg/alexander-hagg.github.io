@@ -117,9 +117,10 @@ airflow.js   (imports config/prng/klam/iso; injected into iso.js + main.js)
 - [`palette.js`](palette.js:1) is a **leaf** module: it exports the per-KLAM
   three-tone ramps and a memoised `paletteFor(klam)` lookup, so the isometric
   renderer never mixes colours per building per frame.
-- [`airflow.js`](airflow.js:1) sits above [`iso.js`](iso.js:1) (it reuses
-  `isoProject`) but is **injected** into the viewer rather than imported by it,
-  keeping `iso.js` free of a hard airflow dependency.
+- [`airflow.js`](airflow.js:1) sits above [`iso.js`](iso.js:1) (it reuses the
+  shared `projectCellInto` ground/solution-grid projection and re-exports
+  `COLD_AIR_LAYER_ELEVATION`) but is **injected** into the viewer rather than
+  imported by it, keeping `iso.js` free of a hard airflow dependency.
 
 ### Single RAF loop
 
@@ -591,18 +592,60 @@ flash white/yellow. Phase 3 adds a stepped **Pareto frontier** polyline with
 endpoint dots and a label, plus coloured **archetype badges** and a selected-
 medoid outline. A cheap signature check skips redraws when nothing changed.
 
-### Airflow ([`airflow.js`](airflow.js:1))
+### Cold-air flow layer ([`airflow.js`](airflow.js:1))
 
-A smooth per-cell velocity field is built from KLAM roughness, building
-footprint and street channeling, then relaxed. The base flow follows the selected
-city's `coldAir.dir` (`setWindDir` / `getWindDir`), so particle spawning on the
-upstream edge, advection and the upstream pooling accumulation all run along the
-city direction. Particles are advected through it with bilinear sampling and
+The airflow is a **2 m-height, obstacle-aware flow layer** derived from the
+actual design, not a per-cell roughness blur. It is modelled at
+`COLD_AIR_LAYER_ELEVATION = 2/3` storeys ≈ **2.00 m** (exported from
+[`iso.js`](iso.js:44) and re-exported by [`airflow.js`](airflow.js:52)), so at
+that height **every building is an obstacle** (buildings are ≥1 storey ≈ 3 m)
+while streets, courtyards, gardens, grass, forest and water are passable.
+
+**Occupancy grid.** [`buildOccupancyGrid`](airflow.js:122) samples each 10 m cell
+with `SUB = 4` sub-cell samples per edge, giving a `FN × FN = 40 × 40` fine grid
+(1,600 samples). A sample is solid when its parent cell has `height > 0` and the
+sample lies inside the cell's footprint sub-rectangle (the footprint fraction is
+centred in the cell); streets and all non-building cells are free.
+
+**Obstacle-aware field construction.** The velocity field is seeded with the
+selected city's `coldAir.dir` (`setWindDir` / `getWindDir`) and then:
+
+1. an **openness potential** (1 free, 0 obstacle) is diffused with
+   `PERM_ITERS = 3` Jacobi iterations so the flow sees smooth corridors;
+2. the base wind is **accelerated** where openness is high (streets get an extra
+   `×1.25`) and **deflected up the openness gradient** (`DEFLECT = 2.2`) — i.e.
+   away from buildings and toward open space — so the flow goes around obstacles
+   and channels through streets;
+3. obstacle samples are **pinned to zero** and the vector field is relaxed with
+   `FIELD_ITERS = 2` obstacle-aware Jacobi smoothing passes (obstacle neighbours
+   contribute the centre value, a Neumann-like condition, so the flow is not
+   pulled into walls);
+4. a coarse **upstream pooling** value accumulates blockage along `-coldAir.dir`
+   (`POOL_STEPS = 4*N`), so tall/dense blocks stagnate the air in front of them.
+
+**Collision-safe advection.** Particles spawn on the free upstream boundary
+(weighted by the wind components) and are advected with bilinear sampling plus a
+**collision step**: a move that would enter an obstacle sample is slid along the
+wall (x-only or y-only) or the particle respawns, so **no particle ever
+penetrates a building**. They preferentially travel along streets and are
 rendered as fading **streamline ribbons** backed by a reusable per-particle trail
 ring buffer. Sheltered/pooled cells are drawn as soft radial-gradient **fog
 blobs** from a cached sprite, sharing one grey/blue visual language with the
 `coldPool` iso layer. Under reduced motion the system draws static streamlines
-instead of animating particles.
+(which stop at obstacles) instead of animating particles.
+
+**Shared solution-grid projection.** Streamlines, particle trails and pooling fog
+are all placed with the single shared projection
+[`projectCell`](iso.js:175) / [`projectCellInto`](iso.js:160) from
+[`iso.js`](iso.js:1) — the same transform the iso ground renderer uses for its
+tiles. The airflow works in **cell-centre coordinates** (the centre of cell
+`(gx,gy)` is `(gx+0.5, gy+0.5)`); its fine-grid particle coordinates are
+converted with `x/SUB`, `y/SUB`. Because `projectCellInto` reuses
+`isoProjectInto` (same `geom`, orientation and origin) and folds in the ground
+renderer's `-0.5` corner shift and `+tileHeight/2` diamond-centre shift, the
+streamlines align **exactly** with the solution grid in all four orientations
+(verified max error 0 px), with the `COLD_AIR_LAYER_ELEVATION` offset applied
+consistently.
 
 ---
 
@@ -636,7 +679,10 @@ instead of animating particles.
   (keyed by design identity).
 - Archive — thumbnails rendered once per design id into an offscreen cache
   (bounded, pruned to visible ids); heat colours memoised on a 64-level ramp.
-- Airflow — the pooling fog blits a cached radial-gradient sprite; the particle
+- Airflow — the fine 2 m velocity field is **cached per design identity + wind
+  direction** (`buildField` is a no-op when the same design and direction are
+  re-supplied), so it is rebuilt only when the selected design or preset
+  changes. The pooling fog blits a cached radial-gradient sprite; the particle
   hot path samples into a reused output object and reuses per-particle trail
   buffers (no per-frame allocation).
 
@@ -645,7 +691,9 @@ instead of animating particles.
 - Archive and preview redraws are limited to ~20 fps (`DRAW_INTERVAL_MS = 50`).
 - The Phase-2 DOM ticker updates at ~10 fps (`ui.js`).
 - Airflow particles are capped at **180** (desktop) / **90** (viewports
-  < 1280 px) and re-applied on resize.
+  < 1280 px) and re-applied on resize. The advection hot path performs **no
+  per-frame allocation** (reused sample/projection objects and per-particle
+  trail ring buffers).
 - `update`/`render` are skipped when `document.hidden` or `state.paused`.
 - `prefers-reduced-motion: reduce` disables particle motion (static streamlines)
   and phase transitions (`body.reduced-motion`).
@@ -656,6 +704,13 @@ The isometric render is expected to stay within **≤ ~8 ms** per frame on a
 mid-range device: the ground layer, geometry, palettes, AO and environment
 gradients are all cached, and the per-frame work is limited to depth-sorted
 prism drawing plus optional airflow passes.
+
+### Measured airflow timings
+
+In the Node verification harness the fine field builds in **≈1–3 ms** and
+advection costs **≈0.03–0.05 ms per step** (180 particles). Because the field is
+cached per design identity + wind direction, steady-state frames pay neither
+cost — only the per-particle bilinear sample, collision step and ribbon draw.
 
 ### Determinism
 
@@ -731,8 +786,8 @@ how the numbers are produced.
 | [`simulation.js`](simulation.js:1) | 636 | `generateCandidates` (land-use maps × pattern schemes × height/density/profile sweep + adaptive scale; threads `city.coldAir.dir` into every design), `runMAPElites`, `deriveArchetypes` (k-means k=4, 9-dim features), `createArchive`. |
 | [`state.js`](state.js:1) | 308 | Central store: `createStore`, pure `reducer`, `makeInitialState`, all actions. |
 | [`citymap.js`](citymap.js:1) | 1071 | Diagrammatic macro city schematic: renders the selected preset's `city.terrain` zones generically, a per-city legend, non-overlapping block grids, a design-accurate 10×10 site grid with retained-structure overlay, a draggable/resizable selection box and a city-direction cold-air arrow. |
-| [`iso.js`](iso.js:1) | 1406 | 2.5D isometric renderer: projection, `orientationForDir` (so the cold-air flow reads downhill), geometry fitting, footprint prisms, roof types, cached ground layer with roads + rail ties, city-direction wind cue, layers, hover. |
-| [`airflow.js`](airflow.js:1) | 692 | Directional velocity field (base wind = `city.coldAir.dir`), bilinear-sampled particle streamlines, cached pooling-fog sprite, reduced-motion mode. |
+| [`iso.js`](iso.js:1) | 1468 | 2.5D isometric renderer: projection (`isoProject`/`isoProjectInto` plus the shared `projectCell`/`projectCellInto` ground/solution-grid transform), `orientationForDir` (so the cold-air flow reads downhill), geometry fitting, footprint prisms, roof types, cached ground layer with roads + rail ties, city-direction wind cue, layers, hover. |
+| [`airflow.js`](airflow.js:1) | 900 | 2 m obstacle-aware cold-air flow layer: `buildOccupancyGrid` (40×40 sub-cell grid, `SUB=4`), distance-field-deflected velocity field (Jacobi openness diffusion, obstacle pinning, obstacle-aware smoothing, upstream pooling), collision-safe bilinear particle advection (no penetration, street channeling), cached pooling-fog sprite, per-design field cache, reduced-motion static streamlines. Re-exports `COLD_AIR_LAYER_ELEVATION`; projects via the shared `projectCellInto` in cell-centre coordinates. |
 | [`archiveview.js`](archiveview.js:1) | 653 | 12×12 MAP-Elites heatmap with mini-thumbnails, flash-on-new-elite, Pareto frontier, archetype badges, keyboard nav. |
 | [`dashboard.js`](dashboard.js:1) | 335 | Dual-audience dashboard (Layman and Urban Planner panels, 7-class KLAM donut). |
 | [`ui.js`](ui.js:1) | 541 | DOM wiring: presets, site readout (preset name + city name/tagline + rationale), CTAs, phase stepper, layer toggles, tooltips, audience switch, presentation mode, keyboard. |

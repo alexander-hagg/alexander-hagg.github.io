@@ -29,6 +29,20 @@ export const LIGHT = { top: 1.00, left: 0.78, right: 0.55, outline: 'rgba(15,23,
 /** Height scale as a fraction of tile height (taller, more believable city). */
 const HEIGHT_SCALE_FACTOR = 0.7;
 
+/**
+ * Elevation of the cold-air streamline layer, in storeys (≈2 m at 3 m/storey).
+ *
+ * Cold airflow happens in the lowest part of the atmosphere, close to the
+ * ground, so the airflow layer is drawn at this low height rather than at
+ * building height. It is consumed by `airflow.js` when projecting particles and
+ * static streamlines, so they read as flowing through the street canyons at
+ * pedestrian level. The value is deliberately small relative to any building
+ * (≥1 storey ≈ 3 m).
+ *
+ * @type {number}
+ */
+export const COLD_AIR_LAYER_ELEVATION = 2 / 3;
+
 /** Sky gradient stops (top → bottom). */
 const SKY_STOPS = ['#0b1220', '#1e293b', '#334155'];
 
@@ -113,6 +127,53 @@ export function isoProjectInto(gx, gy, elevation, geom, out) {
  */
 export function isoProject(gx, gy, elevation, geom) {
   return isoProjectInto(gx, gy, elevation, geom, { x: 0, y: 0 });
+}
+
+/**
+ * Project a grid position expressed in **cell-centre coordinates** (the centre
+ * of cell `(gx,gy)` is `(gx+0.5, gy+0.5)`) to the screen point at the centre of
+ * that ground tile, raised by `elevation`.
+ *
+ * This is the single source of truth for the ground / solution-grid transform
+ * shared by the iso ground renderer and the airflow layer. It reuses
+ * {@link isoProjectInto} — so it inherits the exact same `geom`, orientation and
+ * origin convention — and folds in the two conventions the ground renderer
+ * applies on top of the raw projection:
+ *   - the `-0.5` shift maps cell-centre coordinates to the cell's reference
+ *     corner, which is the coordinate {@link isoProjectInto} expects; and
+ *   - the `+tileHeight/2` shift moves the projected reference vertex down to the
+ *     diamond's centre (the ground renderer draws every tile centred at
+ *     `isoProject(gx,gy,...) + tileHeight/2`).
+ *
+ * Because both shifts are constant in the rotated frame, and the grid rotation
+ * in {@link isoProjectInto} is affine, `projectCell(gx+0.5, gy+0.5, e, geom)` is
+ * exactly the centre of ground tile `(gx,gy)` at elevation `e` for **all four
+ * orientations** — i.e. the streamline layer sits on the solution grid.
+ *
+ * @param {number} gx - Grid x in cell-centre units (0.5 .. N-0.5).
+ * @param {number} gy - Grid y in cell-centre units (0.5 .. N-0.5).
+ * @param {number} elevation - Elevation in storeys (scaled by `heightScale`).
+ * @param {{tileWidth:number,tileHeight:number,originX:number,originY:number,heightScale:number,orientation?:number}} geom
+ * @param {{x:number,y:number}} out - Reused output object (no allocation).
+ * @returns {{x:number,y:number}}
+ */
+export function projectCellInto(gx, gy, elevation, geom, out) {
+  isoProjectInto(gx - 0.5, gy - 0.5, elevation, geom, out);
+  out.y += geom.tileHeight / 2;
+  return out;
+}
+
+/**
+ * Allocating convenience wrapper around {@link projectCellInto}.
+ *
+ * @param {number} gx - Grid x in cell-centre units (0.5 .. N-0.5).
+ * @param {number} gy - Grid y in cell-centre units (0.5 .. N-0.5).
+ * @param {number} elevation - Elevation in storeys (scaled by `heightScale`).
+ * @param {{tileWidth:number,tileHeight:number,originX:number,originY:number,heightScale:number,orientation?:number}} geom
+ * @returns {{x:number,y:number}}
+ */
+export function projectCell(gx, gy, elevation, geom) {
+  return projectCellInto(gx, gy, elevation, geom, { x: 0, y: 0 });
 }
 
 /**
