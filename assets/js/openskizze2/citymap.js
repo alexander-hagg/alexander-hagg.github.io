@@ -32,6 +32,7 @@ import { PRESETS, N } from './config.js';
 import { KLAM } from './klam.js';
 import { makePRNG, weightedPick } from './prng.js';
 import { createDesign, rasterize } from './design.js';
+import { loc, t } from './i18n.js';
 
 /** Macro map grid dimensions (cells). */
 const MAP_COLS = 16;
@@ -454,7 +455,11 @@ export function createCityMap(canvas, store) {
     ctx.fillRect(0, 0, cssW, cssH);
 
     const terrain = (city && city.terrain) || [];
-    const rng = makePRNG((DECOR_SEED ^ hashString((city && city.name) || 'city')) >>> 0);
+    // Seed on the English city name so the backdrop decoration stays stable
+    // across language switches (localised names are display-only).
+    const seedName = (city && city.name && city.name.en)
+      || (city && typeof city.name === 'string' ? city.name : 'city');
+    const rng = makePRNG((DECOR_SEED ^ hashString(seedName)) >>> 0);
 
     for (const z of terrain) {
       switch (z.type) {
@@ -527,11 +532,12 @@ export function createCityMap(canvas, store) {
     const cw = cssW / MAP_COLS;
     const ch = cssH / MAP_ROWS;
     for (const z of terrain) {
-      if (!z.label) continue;
+      const text = loc(z.label);
+      if (!text) continue;
       if (z.w < 3 && z.h < 3) continue;
       const x = Math.min(cssW - 160, z.x * cw + 10);
       const y = z.y * ch + 10;
-      label(z.label, x, y, { size: 12, weight: 600 });
+      label(text, x, y, { size: 12, weight: 600 });
     }
   }
 
@@ -545,9 +551,10 @@ export function createCityMap(canvas, store) {
     const items = [];
     const seen = new Set();
     for (const z of terrain) {
-      if (!z.label || seen.has(z.label)) continue;
-      seen.add(z.label);
-      items.push([z.color || '#94a3b8', z.label]);
+      const text = loc(z.label);
+      if (!text || seen.has(text)) continue;
+      seen.add(text);
+      items.push([z.color || '#94a3b8', text]);
     }
     const pad = 8;
     const rowH = 18;
@@ -568,7 +575,8 @@ export function createCityMap(canvas, store) {
     ctx.font = '700 11px Inter, system-ui, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(city && city.name ? city.name.toUpperCase() : 'LEGEND', x + pad, y + pad);
+    const cityName = loc(city && city.name);
+    ctx.fillText(cityName ? cityName.toUpperCase() : t('city.legend'), x + pad, y + pad);
 
     for (let i = 0; i < items.length; i++) {
       const [color, text] = items[i];
@@ -829,7 +837,7 @@ export function createCityMap(canvas, store) {
     ctx.restore();
 
     // Prominent label near the upstream (tail) end, clamped on-screen.
-    const text = 'Incoming cold air: ' + ((city && city.coldAir && city.coldAir.label) || '');
+    const text = t('city.coldAir', { label: loc(city && city.coldAir && city.coldAir.label) });
     const lx = clamp(x0 + 12, 12, Math.max(12, cssW - 230));
     const ly = clamp(y0 + 12, 8, Math.max(8, cssH - 30));
     label(text, lx, ly, { size: 12, weight: 600 });

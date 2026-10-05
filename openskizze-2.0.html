@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenSKIZZE 2.0 — Generative Urban Climate Design</title>
+  <title data-i18n="app.title">OpenSKIZZE 2.0 — Generative Urban Climate Design</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -114,25 +114,29 @@
     <header class="glass m-2 px-4 py-3 flex items-center justify-between gap-4">
       <div class="flex items-center gap-3 min-w-0">
         <span class="fs-20 font-semibold whitespace-nowrap">OpenSKIZZE <span class="text-cold">2.0</span></span>
-        <span class="fs-12 text-slate-300 hidden md:inline truncate">Surrogate-assisted Quality-Diversity design for climate-adaptive urban planning</span>
+        <span class="fs-12 text-slate-300 hidden md:inline truncate" data-i18n="app.subtitle">Surrogate-assisted Quality-Diversity design for climate-adaptive urban planning</span>
       </div>
 
       <ol id="phase-stepper" class="flex items-center gap-2 fs-12">
-        <li data-phase="SELECT" class="px-2 py-1 rounded-md text-cold font-semibold">1 · Site</li>
-        <li data-phase="OPTIMIZING" class="px-2 py-1 rounded-md text-slate-300">2 · Search</li>
-        <li data-phase="EXPLORE" class="px-2 py-1 rounded-md text-slate-300">3 · Explore</li>
+        <li data-phase="SELECT" class="px-2 py-1 rounded-md text-cold font-semibold">1 · <span data-i18n="stepper.site">Site</span></li>
+        <li data-phase="OPTIMIZING" class="px-2 py-1 rounded-md text-slate-300">2 · <span data-i18n="stepper.search">Search</span></li>
+        <li data-phase="EXPLORE" class="px-2 py-1 rounded-md text-slate-300">3 · <span data-i18n="stepper.explore">Explore</span></li>
       </ol>
 
       <div class="flex items-center gap-2">
-        <button id="btn-instant-demo" type="button"
+        <div id="lang-toggle" role="group" data-i18n-aria="aria.langToggle" aria-label="Language" class="flex items-center gap-1 fs-12">
+          <button type="button" data-lang="en" class="px-2 py-1 rounded-md border border-cold/50 bg-cold/20 text-cold transition">EN</button>
+          <button type="button" data-lang="de" class="px-2 py-1 rounded-md border border-white/10 bg-white/5 text-slate-300 transition">DE</button>
+        </div>
+        <button id="btn-instant-demo" type="button" data-i18n="btn.instant"
           class="fs-12 px-3 py-1.5 rounded-lg border border-cold/40 bg-cold/10 hover:bg-cold/20 text-cold transition whitespace-nowrap">
           ⚡ Instant Demo Preset
         </button>
-        <button id="btn-present" type="button" aria-pressed="false"
+        <button id="btn-present" type="button" aria-pressed="false" data-i18n="btn.presentation"
           class="fs-12 px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-slate-100 transition whitespace-nowrap">
           🖥️ Presentation
         </button>
-        <a id="btn-full-window" href="openskizze-2.0.html" target="_blank" rel="noopener"
+        <a id="btn-full-window" href="openskizze-2.0.html" target="_blank" rel="noopener" data-i18n="btn.fullWindow"
           class="fs-12 px-3 py-1.5 rounded-lg border border-cold/40 bg-cold/10 hover:bg-cold/20 text-cold transition whitespace-nowrap hidden">
           ⛶ Full window
         </a>
@@ -146,22 +150,22 @@
       <section id="phase-select" class="phase-active grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4 p-4 h-auto xl:h-full min-h-0">
         <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0">
           <canvas id="CityMapCanvas" tabindex="0"
-            aria-label="Klimastadt site map. Use arrow keys to move the selection box."
+            data-i18n-aria="aria.cityMap" aria-label="Site map. Use arrow keys to move the selection box."
             class="w-full h-full block outline-none" style="touch-action:none"></canvas>
         </div>
 
         <aside class="glass p-4 flex flex-col gap-4 overflow-y-auto min-h-0">
           <div>
-            <h2 class="fs-12 uppercase tracking-wider text-slate-300 mb-2">Site Presets</h2>
+            <h2 class="fs-12 uppercase tracking-wider text-slate-300 mb-2" data-i18n="aside.sitePresets">Site Presets</h2>
             <div id="preset-list" class="flex flex-col gap-2"></div>
           </div>
 
           <div>
-            <h2 class="fs-12 uppercase tracking-wider text-slate-300 mb-2">Site Readout</h2>
+            <h2 class="fs-12 uppercase tracking-wider text-slate-300 mb-2" data-i18n="aside.siteReadout">Site Readout</h2>
             <div id="site-readout" class="fs-14 text-slate-200"></div>
           </div>
 
-          <button id="btn-run-search" type="button"
+          <button id="btn-run-search" type="button" data-i18n="btn.run"
             class="mt-auto w-full px-4 py-3 rounded-lg bg-cold text-slate-900 font-semibold hover:bg-sky-300 transition">
             Run Generative Search (MAP-Elites)
           </button>
@@ -172,7 +176,7 @@
       <section id="phase-optimizing" class="phase-enter hidden grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4 p-4 h-auto xl:h-full min-h-0">
         <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0">
           <canvas id="ArchiveCanvas" tabindex="0"
-            aria-label="MAP-Elites archive filling"
+            data-i18n-aria="aria.archive" aria-label="MAP-Elites archive filling"
             class="w-full h-full block outline-none"></canvas>
         </div>
 
@@ -184,7 +188,7 @@
           </div>
 
           <div id="qd-explainer" class="fs-14 text-slate-200 leading-relaxed space-y-3">
-            <p>
+            <p data-i18n-html="explainer.qdBody">
               <strong class="text-slate-100">What is a MAP-Elites archive?</strong>
               Instead of searching for one "best" city, we keep the best design for
               <em>every</em> combination of two goals: how many homes it creates
@@ -193,7 +197,7 @@
               This is <em>Quality Diversity</em>: many good, different answers
               instead of a single winner.
             </p>
-            <p>
+            <p data-i18n-html="explainer.archetypesBody">
               <strong class="text-slate-100">What are the archetypes?</strong>
               The archive is grouped into four recurring design families — a green
               cold-air finger, a porous courtyard carpet, a stepped windbreak, and a
@@ -208,7 +212,7 @@
         <div class="glass p-3 flex flex-col gap-3 overflow-hidden min-h-0 pres-hide">
           <div class="relative overflow-hidden min-h-[45vh] xl:min-h-0 flex-1">
             <canvas id="ArchiveCanvas2" tabindex="0"
-              aria-label="MAP-Elites archive with archetypes"
+              data-i18n-aria="aria.archiveArchetypes" aria-label="MAP-Elites archive with archetypes"
               class="w-full h-full block outline-none"></canvas>
           </div>
           <div id="archetype-legend" class="fs-12 text-slate-200"></div>
@@ -216,7 +220,7 @@
 
         <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0 pres-iso">
           <canvas id="IsoViewerCanvas" tabindex="0"
-            aria-label="Isometric parcel viewer"
+            data-i18n-aria="aria.iso" aria-label="Isometric parcel viewer"
             class="w-full h-full block outline-none"></canvas>
           <div id="layer-toggles" class="absolute top-2 right-2 flex flex-col gap-1"></div>
           <div id="cell-tooltip" class="tooltip hidden"></div>

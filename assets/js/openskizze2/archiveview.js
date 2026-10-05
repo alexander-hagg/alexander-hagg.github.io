@@ -19,6 +19,7 @@
 import { BINS, N } from './config.js';
 import { KLAM } from './klam.js';
 import { renderThumbnail, computeGeom } from './iso.js';
+import { t, getLang } from './i18n.js';
 
 /** Empty-niche fill. */
 const EMPTY_COLOR = '#1e293b';
@@ -246,7 +247,7 @@ export function createArchiveView(canvas, opts = {}) {
    */
   function render(state, now) {
     if (!hasSize) return;
-    const t = now != null ? now : performance.now();
+    const nowMs = now != null ? now : performance.now();
     const archive = state.archive || { bins: [], coverage: 0, best: null, pareto: [] };
     const bins = archive.bins || [];
     lastBins = bins;
@@ -277,7 +278,7 @@ export function createArchiveView(canvas, opts = {}) {
     // Drop expired flashes so the skip check stays accurate. Deleting during
     // Map iteration is safe and avoids an intermediate array allocation.
     for (const [idx, st] of flashStart) {
-      if (t - st >= FLASH_MS) flashStart.delete(idx);
+      if (nowMs - st >= FLASH_MS) flashStart.delete(idx);
     }
     const flashActive = flashStart.size > 0;
 
@@ -292,6 +293,7 @@ export function createArchiveView(canvas, opts = {}) {
       (archive.pareto || []).length,
       focusBin ? `${focusBin.bx}:${focusBin.by}` : '-',
       isFocused ? 1 : 0,
+      getLang(),
     ].join('|');
 
     // Nothing changed and no animation running → cheap early-out.
@@ -315,7 +317,7 @@ export function createArchiveView(canvas, opts = {}) {
     layout = { ox, oy, cell };
 
     // --- New-elite detection + thumbnail generation -------------------------
-    for (const i of current) if (!prevFilled.has(i)) flashStart.set(i, t);
+    for (const i of current) if (!prevFilled.has(i)) flashStart.set(i, nowMs);
     prevFilled.clear();
     for (const i of current) prevFilled.add(i);
 
@@ -359,7 +361,7 @@ export function createArchiveView(canvas, opts = {}) {
         }
 
         // Flash overlay on first appearance.
-        const age = t - (flashStart.has(idx) ? flashStart.get(idx) : -Infinity);
+        const age = nowMs - (flashStart.has(idx) ? flashStart.get(idx) : -Infinity);
         if (age >= 0 && age < FLASH_MS) {
           const k = 1 - age / FLASH_MS;
           ctx.save();
@@ -476,7 +478,7 @@ export function createArchiveView(canvas, opts = {}) {
         ctx.textAlign = lastP.x > ox + gridW * 0.6 ? 'right' : 'left';
         ctx.textBaseline = 'bottom';
         const lx = lastP.x > ox + gridW * 0.6 ? lastP.x - 8 : lastP.x + 8;
-        ctx.fillText('Pareto front', lx, Math.max(oy + 10, lastP.y - 6));
+        ctx.fillText(t('archive.pareto'), lx, Math.max(oy + 10, lastP.y - 6));
         ctx.restore();
       }
     }
@@ -559,11 +561,11 @@ export function createArchiveView(canvas, opts = {}) {
     ctx.font = '600 11px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText('Housing Capacity / Floor Area →', ox + gridW / 2, oy + gridH + 8);
+    ctx.fillText(t('archive.xAxis'), ox + gridW / 2, oy + gridH + 8);
     ctx.translate(14, oy + gridH / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.textBaseline = 'middle';
-    ctx.fillText('Cold Air Permeability / Cooling Flux →', 0, 0);
+    ctx.fillText(t('archive.yAxis'), 0, 0);
     ctx.restore();
 
     // --- Coverage readout ---------------------------------------------------
@@ -574,7 +576,7 @@ export function createArchiveView(canvas, opts = {}) {
     ctx.font = '600 12px Inter, system-ui, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(`Coverage: ${filled} / ${BINS * BINS} (${pct}%)`, padL, 2);
+    ctx.fillText(t('archive.coverage', { filled, total: BINS * BINS, pct }), padL, 2);
     ctx.restore();
   }
 

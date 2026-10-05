@@ -13,6 +13,7 @@
 import { PRESETS, N, BINS } from './config.js';
 import { KLAM, KLAM_IDS } from './klam.js';
 import { selectedDesign, describeCell } from './iso.js';
+import { loc, t, applyI18n, onChange, getLang, setLang } from './i18n.js';
 
 /**
  * Initialise all Phase-1 UI bindings.
@@ -54,7 +55,7 @@ export function initUI(store, deps) {
       btn.className =
         'preset-btn text-left px-3 py-2 rounded-lg border border-white/10 bg-white/5 ' +
         'hover:bg-white/10 transition text-sm';
-      btn.textContent = p.name;
+      btn.textContent = loc(p.name);
       btn.addEventListener('click', () => {
         store.dispatch({ type: 'SET_PRESET', presetId: p.id, box: { ...p.box } });
       });
@@ -82,20 +83,21 @@ export function initUI(store, deps) {
     const preset = PRESETS.find((p) => p.id === state.site.presetId) || PRESETS[0];
     const city = preset.city || { name: '', tagline: '' };
     const b = state.site.box;
+    const cityName = loc(city.name);
     siteReadout.innerHTML =
-      '<div class="fs-16 font-semibold text-slate-100">' + preset.name + '</div>' +
-      (city.name
-        ? '<div class="fs-13 font-semibold text-cold mt-0.5">' + city.name + '</div>' +
-          '<div class="fs-12 text-slate-400 italic">' + (city.tagline || '') + '</div>'
+      '<div class="fs-16 font-semibold text-slate-100">' + loc(preset.name) + '</div>' +
+      (cityName
+        ? '<div class="fs-13 font-semibold text-cold mt-0.5">' + cityName + '</div>' +
+          '<div class="fs-12 text-slate-400 italic">' + loc(city.tagline) + '</div>'
         : '') +
       '<div class="fs-12 text-slate-300 mt-1">' +
-      (preset.description || '') +
+      loc(preset.description) +
       '</div>' +
       '<div class="fs-12 text-slate-300 mt-1 leading-snug">' +
-      (preset.rationale || '') +
+      loc(preset.rationale) +
       '</div>' +
-      '<div class="mt-2 fs-12 font-mono text-cold">box: x=' + b.x +
-      ', y=' + b.y + ', w=' + b.w + ', h=' + b.h + '</div>';
+      '<div class="mt-2 fs-12 font-mono text-cold">' +
+      t('readout.box', { x: b.x, y: b.y, w: b.w, h: b.h }) + '</div>';
   }
 
   // ---------------------------------------------------------------------------
@@ -122,13 +124,13 @@ export function initUI(store, deps) {
 
     evalTicker.innerHTML =
       '<div class="flex items-center justify-between fs-12 text-slate-300">' +
-        '<span>Evaluating candidate</span>' +
+        '<span>' + t('ticker.evaluating') + '</span>' +
         '<span class="text-slate-100">' + n + ' / ' + total + '</span>' +
       '</div>' +
       '<div class="mt-1 h-2 rounded bg-white/10 overflow-hidden">' +
         '<div class="h-full bg-cold transition-all" style="width:' + pct + '%"></div>' +
       '</div>' +
-      '<div class="mt-2 fs-12 text-slate-300">Niche coverage: ' +
+      '<div class="mt-2 fs-12 text-slate-300">' + t('ticker.coverage') + ': ' +
         '<span class="text-cold font-semibold">' + filled + ' / ' + binTotal + '</span> (' + covPct + '%)' +
       '</div>';
   }
@@ -182,7 +184,7 @@ export function initUI(store, deps) {
       const on = !document.body.classList.contains('presentation');
       document.body.classList.toggle('presentation', on);
       btnPresent.setAttribute('aria-pressed', String(on));
-      btnPresent.textContent = on ? '✕ Exit Presentation' : '🖥️ Presentation';
+      btnPresent.textContent = on ? t('btn.exitPresentation') : t('btn.presentation');
       // Presentation mode changes the explore layout, so re-measure every
       // canvas (falls back to the two explore canvases when no orchestrator).
       requestAnimationFrame(() => {
@@ -243,15 +245,15 @@ export function initUI(store, deps) {
   const archive2Canvas = $('ArchiveCanvas2');
 
   const LAYER_DEFS = [
-    { key: 'airflow', label: 'Animated Airflow Streamlines' },
-    { key: 'coldPool', label: 'Cold Air Layer Depth' },
-    { key: 'legend', label: 'KLAM_21 Land Use Legend' },
+    { key: 'airflow', tKey: 'layer.airflow' },
+    { key: 'coldPool', tKey: 'layer.coldPool' },
+    { key: 'legend', tKey: 'layer.legend' },
   ];
 
   const AUDIENCE_DEFS = [
-    { key: 'layman', label: '👤 Layman' },
-    { key: 'planner', label: '📐 Urban Planner' },
-    { key: 'department', label: '🏛️ Planning Dept' },
+    { key: 'layman', tKey: 'audience.layman', emoji: '👤' },
+    { key: 'planner', tKey: 'audience.planner', emoji: '📐' },
+    { key: 'department', tKey: 'audience.department', emoji: '🏛️' },
   ];
 
   /** Build the three layer-toggle buttons once. */
@@ -263,7 +265,7 @@ export function initUI(store, deps) {
       btn.type = 'button';
       btn.dataset.layer = def.key;
       btn.className = 'fs-12 px-2.5 py-1.5 rounded-md border transition text-left';
-      btn.textContent = def.label;
+      btn.textContent = t(def.tKey);
       btn.addEventListener('click', () => store.dispatch({ type: 'TOGGLE_LAYER', layer: def.key }));
       layerToggles.appendChild(btn);
     }
@@ -292,7 +294,7 @@ export function initUI(store, deps) {
       btn.type = 'button';
       btn.dataset.audience = def.key;
       btn.className = 'flex-1 text-xs px-2 py-1.5 rounded-md border transition';
-      btn.textContent = def.label;
+      btn.textContent = (def.emoji ? def.emoji + ' ' : '') + t(def.tKey);
       btn.addEventListener('click', () => store.dispatch({ type: 'SWITCH_AUDIENCE', audience: def.key }));
       audienceToggle.appendChild(btn);
     }
@@ -325,7 +327,7 @@ export function initUI(store, deps) {
     lastLegendSig = sig;
 
     if (!archs.length) {
-      archetypeLegend.innerHTML = '<div class="text-slate-300 fs-14">No archetypes yet.</div>';
+      archetypeLegend.innerHTML = '<div class="text-slate-300 fs-14">' + t('ui.noArchetypes') + '</div>';
       return;
     }
     archetypeLegend.innerHTML = '';
@@ -339,34 +341,36 @@ export function initUI(store, deps) {
       btn.innerHTML =
         '<span class="w-5 h-5 rounded flex items-center justify-center fs-11 font-bold text-slate-900" style="background:' +
           a.color + '">' + a.badge + '</span>' +
-        '<span class="flex-1 truncate fs-12">' + a.name + '</span>' +
+        '<span class="flex-1 truncate fs-12">' + loc(a.name) + '</span>' +
         '<span class="text-slate-300 fs-12">' + (a.memberIds ? a.memberIds.length : 0) + '</span>';
       btn.addEventListener('click', () => store.dispatch({ type: 'SELECT_ARCHETYPE', archetypeId: a.id }));
       archetypeLegend.appendChild(btn);
     }
   }
 
-  /** Lazily create the KLAM_21 legend overlay inside the iso container. */
+  /** Lazily create (and re-fill on language change) the KLAM legend overlay. */
   let klamLegend = null;
   function ensureKlamLegend() {
-    if (klamLegend || !isoCanvas) return;
+    if (!isoCanvas) return;
     const parent = isoCanvas.parentElement;
     if (!parent) return;
-    klamLegend = document.createElement('div');
-    klamLegend.id = 'klam-legend';
-    klamLegend.className = 'absolute bottom-2 left-2 glass p-3 fs-11 text-slate-200 hidden';
-    let html = '<div class="font-semibold mb-1 text-slate-100">KLAM_21 Land Use</div>';
+    if (!klamLegend) {
+      klamLegend = document.createElement('div');
+      klamLegend.id = 'klam-legend';
+      klamLegend.className = 'absolute bottom-2 left-2 glass p-3 fs-11 text-slate-200 hidden';
+      parent.appendChild(klamLegend);
+    }
+    let html = '<div class="font-semibold mb-1 text-slate-100">' + t('ui.klamLegendTitle') + '</div>';
     for (const id of KLAM_IDS) {
       const k = KLAM[id];
       html +=
         '<div class="flex items-center gap-2">' +
           '<span class="w-3 h-3 rounded-sm shrink-0" style="background:' + k.color + '"></span>' +
-          '<span class="flex-1">' + k.label + '</span>' +
+          '<span class="flex-1">' + loc(k.label) + '</span>' +
           '<span class="font-mono text-slate-300">z0 ' + k.z0 + ' · pCold ' + k.pCold + '</span>' +
         '</div>';
     }
     klamLegend.innerHTML = html;
-    parent.appendChild(klamLegend);
   }
 
   /** Show/hide the KLAM legend by layer state. @param {object} state */
@@ -414,17 +418,17 @@ export function initUI(store, deps) {
     const fpPct = Math.round((raw.footprint || 0) * 100);
     const block = (raw.blockId >= 0 && design.blocks) ? design.blocks[raw.blockId] : null;
     const landUse = block
-      ? (KLAM[block.landUse] ? KLAM[block.landUse].label : block.landUse)
-      : 'Street / public realm';
+      ? (KLAM[block.landUse] ? loc(KLAM[block.landUse].label) : block.landUse)
+      : t('tip.street');
     cellTooltip.innerHTML =
-      '<div class="fs-14 font-semibold text-slate-100">' + info.label + '</div>' +
-      '<div class="fs-11 text-slate-300 mt-0.5 font-mono">' + raw.klam + '</div>' +
+      '<div class="fs-14 font-semibold text-slate-100">' + loc(info.label) + '</div>' +
+      '<div class="fs-11 text-slate-300 mt-0.5 font-mono">' + t('tip.class') + ': ' + raw.klam + '</div>' +
       '<div class="fs-12 mt-1 space-y-0.5 text-slate-300">' +
-        '<div>Height: <span class="text-slate-100">' + raw.height + ' ' + (raw.height === 1 ? 'storey' : 'storeys') + '</span></div>' +
-        '<div>Footprint: <span class="text-slate-100">' + fpPct + '%</span></div>' +
-        '<div>Roof: <span class="text-slate-100">' + raw.roofType + '</span></div>' +
-        '<div>z0: <span class="text-slate-100">' + info.z0 + ' m</span></div>' +
-        '<div>Block land use: <span class="text-slate-100">' + landUse + '</span></div>' +
+        '<div>' + t('tip.height') + ': <span class="text-slate-100">' + raw.height + ' ' + t(raw.height === 1 ? 'tip.storey' : 'tip.storeys') + '</span></div>' +
+        '<div>' + t('tip.footprint') + ': <span class="text-slate-100">' + fpPct + '%</span></div>' +
+        '<div>' + t('tip.roof') + ': <span class="text-slate-100">' + raw.roofType + '</span></div>' +
+        '<div>' + t('tip.z0') + ': <span class="text-slate-100">' + info.z0 + ' m</span></div>' +
+        '<div>' + t('tip.block') + ': <span class="text-slate-100">' + landUse + '</span></div>' +
       '</div>';
     cellTooltip.classList.remove('hidden');
     positionTooltip(clientX, clientY);
@@ -531,6 +535,64 @@ export function initUI(store, deps) {
     if (dashboard) dashboard.render(state);
   });
 
+  // ---------------------------------------------------------------------------
+  // Language toggle + change handling
+  // ---------------------------------------------------------------------------
+
+  const langToggle = $('lang-toggle');
+
+  /** Reflect the active language in the toggle buttons. */
+  function renderLangToggle() {
+    if (!langToggle) return;
+    for (const btn of langToggle.querySelectorAll('[data-lang]')) {
+      const on = btn.dataset.lang === getLang();
+      btn.classList.toggle('bg-cold/20', on);
+      btn.classList.toggle('border-cold/50', on);
+      btn.classList.toggle('text-cold', on);
+      btn.classList.toggle('bg-white/5', !on);
+      btn.classList.toggle('border-white/10', !on);
+      btn.classList.toggle('text-slate-300', !on);
+    }
+  }
+
+  if (langToggle) {
+    langToggle.addEventListener('click', (e) => {
+      const target = e.target && e.target.closest ? e.target.closest('[data-lang]') : null;
+      if (target && target.dataset.lang) setLang(target.dataset.lang);
+    });
+  }
+
+  /** Re-render every language-dependent dynamic element and canvas. */
+  function rerenderForLanguage() {
+    applyI18n(document);
+    renderLangToggle();
+    const state = store.getState();
+    renderPresets();
+    renderReadout(state);
+    markActivePreset(state);
+    renderTicker(state);
+    buildLayerToggles();
+    renderLayerToggles(state);
+    buildAudienceToggle();
+    renderAudienceToggle(state);
+    ensureKlamLegend();
+    renderKlamLegend(state);
+    lastLegendSig = null;
+    renderArchetypeLegend(state);
+    if (dashboard) dashboard.render(state);
+    // Canvases containing text (city-map labels/legend, iso wind cue, archive
+    // axes) redraw through the main RAF path; call the controllers directly so
+    // the change is reflected even while the RAF loop is otherwise idle.
+    if (citymap && typeof citymap.render === 'function') citymap.render(state);
+    if (iso && typeof iso.render === 'function') iso.render(state, performance.now());
+    if (archive && typeof archive.render === 'function') archive.render(state, performance.now());
+    if (archive2 && typeof archive2.render === 'function') archive2.render(state, performance.now());
+    // Re-fill the iso tooltip if a cell is currently hovered.
+    if (state.hoveredCell) showTooltipForCell(state.hoveredCell);
+  }
+
+  onChange(() => rerenderForLanguage());
+
   // Initial paint.
   renderPresets();
   const s = store.getState();
@@ -539,4 +601,6 @@ export function initUI(store, deps) {
   renderPhases(s);
   markActivePreset(s);
   renderTicker(s);
+  renderLangToggle();
+  applyI18n(document);
 }

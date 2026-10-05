@@ -6,6 +6,7 @@
  */
 
 /** @typedef {import('./design.js').Design} Design */
+/** @typedef {{ en: string, de: string }} Localized */
 
 /** Parcel grid side length (10x10 cells). */
 export const N = 10;
@@ -22,12 +23,12 @@ export const BINS = 12;
 /** Simulation-wide tunables. */
 export const SIM = {
   SEED: 20260101,
-  TOTAL_CANDIDATES: 1600,
+  TOTAL_CANDIDATES: 12800,
   DURATION_MS: 7000,          // 6–8s window
-  MUTATION_RATE: 0.06,        // per-cell probability
+  MUTATION_RATE: 0.16,        // per-cell probability
   BLOCK_MUTATION_RATE: 0.15,  // probability of a 2x2 block mutation
   GLOBAL_MUTATION_RATE: 0.10, // probability of a global (street/green-finger) mutation
-  KMEANS_SEED: 7,
+  KMEANS_SEED: 15,
   KMEANS_ITERS: 40,
   SHELTER_K: 0.15,
   GFZ_MAX: 6,                 // real floor-area ratio ceiling
@@ -83,13 +84,16 @@ export const V_FLUX_REF = (100 * 100 * 12) / 3600; // 33.33 m³/s
  * Site presets. `box` is the editable region within the parcel grid;
  * `bias` is a class-probability map used to seed base genomes.
  *
- * `description` is a one-line summary and `rationale` explains the planning
- * idea behind the preset (surfaced in the site readout).
+ * `name`, `description` and `rationale` are localised `{en,de}` values; the
+ * site readout resolves them with `loc()` (see `i18n.js`). `description` is a
+ * one-line summary and `rationale` explains the planning idea behind the preset.
+ *
+ * @type {Array<object>}
  */
 export const PRESETS = [
-  { id:'railyard',  name:'Central Railyard Brownfield', box:{x:3,y:3,w:10,h:10},
-    description:'Cold-air transport corridor in the transitional belt.',
-    rationale:'A large, underused, largely sealed former freight yard in the low-lying belt between the cool north and the hot south. The open rail corridor is a natural ventilation channel (Kaltluftleitbahn). The planning question: redevelop it for housing and mixed use without choking the cold-air drainage that flows through it.',
+  { id:'railyard',  name:{ en:'Central Railyard Brownfield', de:'Zentrales Bahnhofs-Brachgelände' }, box:{x:3,y:3,w:10,h:10},
+    description:{ en:'Cold-air transport corridor in the transitional belt.', de:'Kaltluftleitbahn im Übergangsgürtel.' },
+    rationale:{ en:'A large, underused, largely sealed former freight yard in the low-lying belt between the cool north and the hot south. The open rail corridor is a natural ventilation channel (Kaltluftleitbahn). The planning question: redevelop it for housing and mixed use without choking the cold-air drainage that flows through it.', de:'Eine große, untergenutzte, weitgehend versiegelte ehemalige Güterbahnhofsfläche im tiefliegenden Gürtel zwischen kühlem Norden und heißem Süden. Der offene Bahnkorridor ist eine natürliche Kaltluftleitbahn. Die Planungsfrage: für Wohnen und Mischnutzung entwickeln, ohne den Kaltluftabfluss zu ersticken, der hindurchströmt.' },
     bias:{ KLAM_COMMERCIAL:0.35, KLAM_GRASS:0.25, KLAM_RESIDENTIAL_LOW:0.25, KLAM_URBAN_HIGH:0.15 },
     // Two parallel E–W rail tracks become the primary E–W road/ventilation
     // corridor; one N–S connector road links the retained network.
@@ -101,20 +105,20 @@ export const PRESETS = [
     },
     // City context: a north–south rail valley. Cold air drains N → S.
     city:{
-      name:'Klimastadt',
-      tagline:'Valley city — cold air drains north to south along the rail valley',
+      name:{ en:'Klimastadt', de:'Klimastadt' },
+      tagline:{ en:'Valley city — cold air drains north to south along the rail valley', de:'Talstadt — Kaltluft fließt entlang des Bahntals von Nord nach Süd' },
       coldAir:{ dir:{ x:0, y:1 }, label:'N → S' },
       terrain:[
-        { type:'hills',    x:0, y:0,  w:16, h:5,  color:'#2f6b4f', label:'Cold Air Reservoir' },
-        { type:'meadow',   x:0, y:5,  w:16, h:2,  color:'#6fae6f', label:'North Meadows' },
-        { type:'railyard', x:0, y:7,  w:16, h:3,  color:'#6b7280', label:'Rail Valley' },
-        { type:'suburb',   x:0, y:10, w:16, h:2,  color:'#c98a4b', label:'Transition Belt' },
-        { type:'urban',    x:0, y:12, w:16, h:4,  color:'#b45309', label:'Urban Heat Island' },
+        { type:'hills',    x:0, y:0,  w:16, h:5,  color:'#2f6b4f', label:{ en:'Cold Air Reservoir', de:'Kaltluftreservoir' } },
+        { type:'meadow',   x:0, y:5,  w:16, h:2,  color:'#6fae6f', label:{ en:'North Meadows', de:'Nordwiesen' } },
+        { type:'railyard', x:0, y:7,  w:16, h:3,  color:'#6b7280', label:{ en:'Rail Valley', de:'Bahntal' } },
+        { type:'suburb',   x:0, y:10, w:16, h:2,  color:'#c98a4b', label:{ en:'Transition Belt', de:'Übergangsgürtel' } },
+        { type:'urban',    x:0, y:12, w:16, h:4,  color:'#b45309', label:{ en:'Urban Heat Island', de:'Städtische Wärmeinsel' } },
       ],
     } },
-  { id:'northgate', name:'North Cold-Air Gateway',      box:{x:3,y:0,w:10,h:10},
-    description:'Cold-air production and inflow zone.',
-    rationale:'The northern edge where cold air is generated over meadows and hills and enters the city (Kaltluftentstehungsgebiet). Development here must keep the gateway open so cold air can drain south. The planning question: add low-density housing while protecting the cold-air source.',
+  { id:'northgate', name:{ en:'North Cold-Air Gateway', de:'Nördliches Kaltlufttor' }, box:{x:3,y:0,w:10,h:10},
+    description:{ en:'Cold-air production and inflow zone.', de:'Kaltluftentstehungs- und Einströmzone.' },
+    rationale:{ en:'The northern edge where cold air is generated over meadows and hills and enters the city (Kaltluftentstehungsgebiet). Development here must keep the gateway open so cold air can drain south. The planning question: add low-density housing while protecting the cold-air source.', de:'Der nördliche Rand, an dem Kaltluft über Wiesen und Hügeln entsteht und in die Stadt einströmt (Kaltluftentstehungsgebiet). Eine Bebauung hier muss das Tor offen halten, damit Kaltluft nach Süden abfließen kann. Die Planungsfrage: Wohnbebauung geringer Dichte ergänzen und zugleich die Kaltluftquelle schützen.' },
     bias:{ KLAM_GRASS:0.4, KLAM_FOREST:0.25, KLAM_WATER:0.1, KLAM_RESIDENTIAL_LOW:0.25 },
     // A N–S green corridor (the cold-air gateway) plus two cross paths; minimal
     // hard infrastructure so the gateway stays open.
@@ -127,21 +131,21 @@ export const PRESETS = [
     // City context: alpine mountains to the NW, city to the SE. Cold air
     // descends the slope NW → SE toward the river at its foot.
     city:{
-      name:'Alpenvorstadt',
-      tagline:'Mountain-foot city — cold air flows NW to SE down the alpine slope',
+      name:{ en:'Alpenvorstadt', de:'Alpenvorstadt' },
+      tagline:{ en:'Mountain-foot city — cold air flows NW to SE down the alpine slope', de:'Stadt am Gebirgsfuß — Kaltluft fließt vom Nordwesten nach Südosten den Alpenhang hinab' },
       coldAir:{ dir:{ x:1, y:1 }, label:'NW → SE' },
       terrain:[
-        { type:'mountains', x:0, y:0, w:9, h:8, color:'#33556b', label:'Alpine Slopes' },
-        { type:'meadow',    x:9, y:0, w:7, h:8, color:'#6fae6f', label:'Foothill Meadow' },
-        { type:'river',     points:[ { x:0, y:8 }, { x:16, y:8 } ], color:'#3d8fbb', label:'River' },
-        { type:'hills',     x:0, y:8, w:5, h:8, color:'#2f6b4f', label:'Lower Slope Woods' },
-        { type:'suburb',    x:5, y:8, w:3, h:8, color:'#c98a4b', label:'Suburban Belt' },
-        { type:'urban',     x:8, y:8, w:8, h:8, color:'#b45309', label:'Urban Core (SE)' },
+        { type:'mountains', x:0, y:0, w:9, h:8, color:'#33556b', label:{ en:'Alpine Slopes', de:'Alpenhänge' } },
+        { type:'meadow',    x:9, y:0, w:7, h:8, color:'#6fae6f', label:{ en:'Foothill Meadow', de:'Vorbergwiese' } },
+        { type:'river',     points:[ { x:0, y:8 }, { x:16, y:8 } ], color:'#3d8fbb', label:{ en:'River', de:'Fluss' } },
+        { type:'hills',     x:0, y:8, w:5, h:8, color:'#2f6b4f', label:{ en:'Lower Slope Woods', de:'Wald am Unterhang' } },
+        { type:'suburb',    x:5, y:8, w:3, h:8, color:'#c98a4b', label:{ en:'Suburban Belt', de:'Vorstadtgürtel' } },
+        { type:'urban',     x:8, y:8, w:8, h:8, color:'#b45309', label:{ en:'Urban Core (SE)', de:'Stadtkern (SO)' } },
       ],
     } },
-  { id:'southcore', name:'South Heat-Island Core',      box:{x:3,y:6,w:10,h:10},
-    description:'Heat-accumulation zone (urban heat island).',
-    rationale:'The dense, sealed, heat-retaining city centre. Adding housing in an already hot, sealed area worsens the urban heat island. The planning question: densify while introducing green/water and ventilation corridors to cool the core.',
+  { id:'southcore', name:{ en:'South Heat-Island Core', de:'Südlicher Wärmeinselkern' }, box:{x:3,y:6,w:10,h:10},
+    description:{ en:'Heat-accumulation zone (urban heat island).', de:'Wärmespeicherzone (städtische Wärmeinsel).' },
+    rationale:{ en:'The dense, sealed, heat-retaining city centre. Adding housing in an already hot, sealed area worsens the urban heat island. The planning question: densify while introducing green/water and ventilation corridors to cool the core.', de:'Das dichte, versiegelte, wärmespeichernde Stadtzentrum. Wohnraum in einem bereits heißen, versiegelten Gebiet zu schaffen, verschärft die städtische Wärmeinsel. Die Planungsfrage: verdichten und zugleich Grün-/Wasserflächen und Lüftungskorridore einführen, um den Kern zu kühlen.' },
     bias:{ KLAM_URBAN_HIGH:0.4, KLAM_COMMERCIAL:0.3, KLAM_RESIDENTIAL_LOW:0.2, KLAM_GRASS:0.1 },
     // A retained 2×2 street grid (two N–S, two E–W streets) with two
     // pre-existing blocks kept verbatim.
@@ -160,24 +164,29 @@ export const PRESETS = [
     // City context: a basin ringed by green hills and a lake. Cold air sinks
     // from the NE rim SW into the dense central-south core.
     city:{
-      name:'Beckenstadt',
-      tagline:'Basin city — cold air sinks from the NE rim into the central-south core',
+      name:{ en:'Beckenstadt', de:'Beckenstadt' },
+      tagline:{ en:'Basin city — cold air sinks from the NE rim into the central-south core', de:'Beckenstadt — Kaltluft sinkt vom Nordostrand in den zentral-südlichen Kern' },
       coldAir:{ dir:{ x:-1, y:1 }, label:'NE → SW' },
       terrain:[
-        { type:'hills',  x:0,  y:0, w:16, h:4,  color:'#2f6b4f', label:'Basin Rim' },
+        { type:'hills',  x:0,  y:0, w:16, h:4,  color:'#2f6b4f', label:{ en:'Basin Rim', de:'Beckenrand' } },
         { type:'hills',  x:0,  y:4, w:3,  h:12, color:'#2f6b4f' },
-        { type:'meadow', x:3,  y:4, w:5,  h:5,  color:'#6fae6f', label:'Basin Meadow' },
-        { type:'lake',   x:8,  y:4, w:8,  h:5,  color:'#5bb8e8', label:'Cold-Air Lake' },
-        { type:'urban',  x:3,  y:9, w:10, h:7,  color:'#b45309', label:'Dense Core' },
-        { type:'suburb', x:13, y:9, w:3,  h:7,  color:'#c98a4b', label:'Eastern Suburbs' },
+        { type:'meadow', x:3,  y:4, w:5,  h:5,  color:'#6fae6f', label:{ en:'Basin Meadow', de:'Beckenwiese' } },
+        { type:'lake',   x:8,  y:4, w:8,  h:5,  color:'#5bb8e8', label:{ en:'Cold-Air Lake', de:'Kaltluftsee' } },
+        { type:'urban',  x:3,  y:9, w:10, h:7,  color:'#b45309', label:{ en:'Dense Core', de:'Dichter Kern' } },
+        { type:'suburb', x:13, y:9, w:3,  h:7,  color:'#c98a4b', label:{ en:'Eastern Suburbs', de:'Östliche Vororte' } },
       ],
     } },
 ];
 
-/** The four design archetypes surfaced to the user. */
+/**
+ * The four design archetypes surfaced to the user. `name` is a localised
+ * `{en,de}` value merged into each derived archetype by `deriveArchetypes`.
+ *
+ * @type {Array<{id:string, name:Localized, color:string, badge:string}>}
+ */
 export const ARCHETYPE_DEFS = [
-  { id:'A', name:'Green Cold-Air Finger',  color:'#3fa34d', badge:'A' },
-  { id:'B', name:'Porous Courtyard Carpet',color:'#38bdf8', badge:'B' },
-  { id:'C', name:'Stepped Windbreak',      color:'#a78bfa', badge:'C' },
-  { id:'D', name:'Maximum Housing Density',color:'#f97316', badge:'D' },
+  { id:'A', name:{ en:'Green Cold-Air Finger', de:'Grüner Kaltluftfinger' },   color:'#3fa34d', badge:'A' },
+  { id:'B', name:{ en:'Porous Courtyard Carpet', de:'Poröser Hofteppich' },    color:'#38bdf8', badge:'B' },
+  { id:'C', name:{ en:'Stepped Windbreak', de:'Gestaffelter Windschutz' },     color:'#a78bfa', badge:'C' },
+  { id:'D', name:{ en:'Maximum Housing Density', de:'Maximale Wohndichte' },   color:'#f97316', badge:'D' },
 ];

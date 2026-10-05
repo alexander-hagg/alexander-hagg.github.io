@@ -17,6 +17,7 @@
  */
 
 import { SIM, N, PRESETS } from './config.js';
+import { loc } from './i18n.js';
 import { createStore, reducer, initialState } from './state.js';
 import { createCityMap } from './citymap.js';
 import { initUI } from './ui.js';
@@ -109,7 +110,7 @@ function resolveWindDir(state) {
  */
 function resolveWindLabel(state) {
   const preset = PRESETS.find((p) => p.id === state.site.presetId) || PRESETS[0];
-  return (preset && preset.city && preset.city.coldAir && preset.city.coldAir.label) || '';
+  return loc(preset && preset.city && preset.city.coldAir && preset.city.coldAir.label);
 }
 
 /** Boot the application. */
@@ -307,8 +308,14 @@ function boot() {
 
     const state = store.getState();
     if (!state.paused && !document.hidden) {
-      update(dt);
-      renderActive();
+      // Defensive: a single-frame exception must not kill the RAF loop (which
+      // would look like the search freezing mid-iteration). Log and continue.
+      try {
+        update(dt);
+        renderActive();
+      } catch (err) {
+        console.error('[OpenSKIZZE] frame error', err);
+      }
     }
     requestAnimationFrame(frame);
   }

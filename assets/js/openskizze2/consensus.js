@@ -26,6 +26,7 @@
 
 import { N } from './config.js';
 import { KLAM, KLAM_IDS } from './klam.js';
+import { loc, t } from './i18n.js';
 
 /**
  * @typedef {import('./design.js').Design} Design
@@ -163,19 +164,6 @@ const CELL_COUNT = N * N;
  */
 export const ZONE_NAMES = ['NW', 'N', 'NE', 'W', 'C', 'E', 'SW', 'S', 'SE'];
 
-/** Human-readable phrases for each zone id. @type {Record<string,string>} */
-export const ZONE_PHRASES = {
-  NW: 'north-west',
-  N: 'north',
-  NE: 'north-east',
-  W: 'west',
-  C: 'centre',
-  E: 'east',
-  SW: 'south-west',
-  S: 'south',
-  SE: 'south-east',
-};
-
 /** Lower zone-row/column breakpoints (rows/cols 0..Z1-1 = first band, etc.). */
 const Z1 = Math.floor(N / 3);
 const Z2 = Math.floor((2 * N) / 3);
@@ -207,13 +195,13 @@ export function zoneOf(gx, gy) {
 }
 
 /**
- * Human-readable phrase for a zone id, for use inside a sentence.
+ * Human-readable, localised phrase for a zone id, for use inside a sentence.
  *
  * @param {string} zone - Zone id (`NW`..`SE`).
- * @returns {string} e.g. `"north"`, `"south-east"`.
+ * @returns {string} e.g. `"north"`, `"south-east"` (or the German equivalent).
  */
 export function zonePhrase(zone) {
-  return ZONE_PHRASES[zone] || zone;
+  return t('zone.' + zone);
 }
 
 /**
@@ -264,7 +252,7 @@ export function collectClusterDesigns(archive, archetype) {
  * @returns {string}
  */
 export function describeRegion(cells) {
-  if (!cells || cells.length === 0) return 'nowhere';
+  if (!cells || cells.length === 0) return t('region.nowhere');
 
   let minGx = Infinity;
   let maxGx = -Infinity;
@@ -285,21 +273,21 @@ export function describeRegion(cells) {
 
   const fullV = minGy === 0 && maxGy === N - 1;
   const fullH = minGx === 0 && maxGx === N - 1;
-  if (fullV && fullH) return 'throughout the site';
+  if (fullV && fullH) return t('region.throughout');
 
   const vert = fullV ? 'centre' : maxGy <= 2 ? 'north' : minGy >= 7 ? 'south' : cy < 4 ? 'north' : cy > 5 ? 'south' : 'centre';
   const horiz = fullH ? 'centre' : maxGx <= 2 ? 'west' : minGx >= 7 ? 'east' : cx < 4 ? 'west' : cx > 5 ? 'east' : 'centre';
 
   let phrase;
-  if (vert === 'centre' && horiz === 'centre') phrase = 'centre';
-  else if (vert === 'centre') phrase = horiz;
-  else if (horiz === 'centre') phrase = vert;
-  else phrase = `${vert}-${horiz}`;
+  if (vert === 'centre' && horiz === 'centre') phrase = t('region.centre');
+  else if (vert === 'centre') phrase = t('region.' + horiz);
+  else if (horiz === 'centre') phrase = t('region.' + vert);
+  else phrase = t('region.' + vert) + '-' + t('region.' + horiz);
 
   const parts = [];
-  if (vert !== 'centre') parts.push(`rows ${minGy}–${maxGy}`);
-  if (horiz !== 'centre') parts.push(`cols ${minGx}–${maxGx}`);
-  if (parts.length === 0) return 'centre';
+  if (vert !== 'centre') parts.push(t('region.rows', { from: minGy, to: maxGy }));
+  if (horiz !== 'centre') parts.push(t('region.cols', { from: minGx, to: maxGx }));
+  if (parts.length === 0) return t('region.centre');
   return `${phrase} (${parts.join(', ')})`;
 }
 
@@ -381,7 +369,7 @@ function computeProgramAndZones(designs) {
   const zones = [];
 
   for (const klam of KLAM_IDS) {
-    const label = KLAM[klam].label;
+    const label = loc(KLAM[klam].label);
     const shares = [];
     let present = 0;
     const zoneTotals = new Array(ZONE_NAMES.length).fill(0);
@@ -491,11 +479,11 @@ function computeRequirements(designs, program, zones) {
         meanShare: p.meanShare,
         stdShare: p.stdShare,
         expectedCells: p.expectedCells,
-        region: 'throughout the site',
+        region: t('region.throughout'),
         cells: [],
         confidence: p.presence,
         tolerance: tolPct,
-        text: `${p.label}: provide approximately ${pct}% of the site (±${tolPct}%).`,
+        text: t('req.quantity', { label: p.label, pct, tol: tolPct }),
         order,
         kindRank: 0,
         subRank: 0,
@@ -519,9 +507,13 @@ function computeRequirements(designs, program, zones) {
           cells: [],
           confidence: z.concentration,
           tolerance: tol,
-          text:
-            `${p.label}: concentrate in the ${zonePhrase(z.dominantZone)} ` +
-            `(≈${share}% of its area there); tolerance ±${tol} zone${tol === 1 ? '' : 's'}.`,
+          text: t('req.placementConcentrated', {
+            label: p.label,
+            zone: zonePhrase(z.dominantZone),
+            share,
+            tol,
+            unit: t(tol === 1 ? 'req.zoneUnit' : 'req.zoneUnits'),
+          }),
           order,
           kindRank: 1,
           subRank: 0,
@@ -533,13 +525,13 @@ function computeRequirements(designs, program, zones) {
           klam,
           label: p.label,
           zone: z.dominantZone,
-          region: 'throughout the site',
+          region: t('region.throughout'),
           concentration: z.concentration,
           flexible: true,
           cells: [],
           confidence: 1 - z.concentration,
           tolerance: 0,
-          text: `${p.label}: location unrestricted — distribute across the site.`,
+          text: t('req.placementFlexible', { label: p.label }),
           order,
           kindRank: 1,
           subRank: 1,
@@ -554,11 +546,11 @@ function computeRequirements(designs, program, zones) {
         kind: 'avoid',
         klam,
         label: p.label,
-        region: 'throughout the site',
+        region: t('region.throughout'),
         cells: [],
         confidence: Math.max(0, 1 - p.meanShare / AVOID_MAX),
         tolerance: 0,
-        text: `Avoid ${p.label}: not part of this design family.`,
+        text: t('req.avoid', { label: p.label }),
         order,
         kindRank: 2,
         subRank: 0,
@@ -699,30 +691,32 @@ export function formatBrief(consensus, archetype) {
   const requirements = (consensus && consensus.requirements) || [];
   const a = archetype || {};
   const id = a.id || '?';
-  const name = a.name || 'Unnamed archetype';
+  const name = loc(a.name) || t('dept.archetype');
 
   const quantity = requirements.filter((r) => r.kind === 'quantity');
   const placement = requirements.filter((r) => r.kind === 'placement');
   const avoid = requirements.filter((r) => r.kind === 'avoid');
 
   const lines = [];
-  lines.push('OpenSKIZZE 2.0 — Planning Brief');
-  lines.push(`Archetype: ${id} — ${name} (n = ${stats.designs} designs)`);
+  lines.push(t('brief.title'));
+  lines.push(t('brief.archetype', { id, name, n: stats.designs }));
   lines.push(
-    `Consensus confidence: ${Math.round(stats.meanConfidence * 100)}%   ` +
-      `Mean uncertainty: ${stats.meanEntropy.toFixed(2)}`
+    t('brief.confidence', {
+      pct: Math.round(stats.meanConfidence * 100),
+      sigma: stats.meanEntropy.toFixed(2),
+    })
   );
   lines.push('');
-  lines.push('PROGRAM (quantities)');
-  if (quantity.length === 0) lines.push('(none)');
+  lines.push(t('brief.program'));
+  if (quantity.length === 0) lines.push(t('brief.none'));
   else quantity.forEach((r, i) => lines.push(`${i + 1}. ${r.text}`));
   lines.push('');
-  lines.push('PLACEMENT (where)');
-  if (placement.length === 0) lines.push('(none)');
+  lines.push(t('brief.placement'));
+  if (placement.length === 0) lines.push(t('brief.none'));
   else placement.forEach((r, i) => lines.push(`${i + 1}. ${r.text}`));
   lines.push('');
-  lines.push('AVOID');
-  if (avoid.length === 0) lines.push('(none)');
+  lines.push(t('brief.avoid'));
+  if (avoid.length === 0) lines.push(t('brief.none'));
   else avoid.forEach((r, i) => lines.push(`${i + 1}. ${r.text}`));
   return lines.join('\n');
 }

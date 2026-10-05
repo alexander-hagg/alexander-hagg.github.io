@@ -80,6 +80,48 @@ https://alexander-hagg.github.io/openskizze-2.0.html
 
 ---
 
+## Languages (EN/DE)
+
+The app is fully bilingual (English / German) through a single dependency-free
+module, [`i18n.js`](i18n.js:1):
+
+- **`DICT`** holds every UI string keyed by a stable id, once per language
+  (`DICT.en`, `DICT.de`). The two key sets are identical — there are no missing
+  translations.
+- **`t(key, params)`** looks up the current language with `{param}`
+  interpolation, falling back to English and then to the key itself.
+- **`loc(value)`** resolves a localised data field (`{en, de}`) to the current
+  language (falling back to `en`), and passes a plain string through unchanged.
+- **`applyI18n(root)`** fills `[data-i18n]` (`textContent`), `[data-i18n-html]`
+  (`innerHTML`, for copy with inline markup), `[data-i18n-aria]` (`aria-label`)
+  and `[data-i18n-title]` (`title`).
+- **`getLang` / `setLang` / `toggleLang`** manage the active language and
+  **`onChange`** subscribes to changes. The choice is persisted in
+  `localStorage['openskizze.lang']`; the initial language is detected from
+  `navigator.language` (German → `de`, otherwise `en`).
+
+**All data is `{en, de}`.** Preset names, descriptions and rationales, city
+names/taglines/terrain labels, archetype names and the KLAM class labels are all
+localised objects, and every reader resolves them with `loc()`.
+
+**All dynamically generated strings go through `t()`** — the consensus
+requirement templates, `formatBrief`, compass zone names, the dashboard KPIs /
+narrative / Planning-Department view, the isometric tooltip and wind cue, the
+archive axis / coverage / Pareto labels, the city-map legend and cold-air arrow,
+and the explainer copy (via `data-i18n-html`).
+
+The header carries an **EN / DE toggle** (`#lang-toggle`). On a language change
+`onChange` fires `rerenderForLanguage()` in [`ui.js`](ui.js:1), which re-applies
+`applyI18n`, rebuilds the dynamic panels (presets, readout, ticker, layer and
+audience toggles, archetype legend, dashboard) and redraws the text-bearing
+canvases (city map, isometric wind cue, archive axes).
+
+Proper nouns and acronyms — city names such as *Klimastadt*, *KLAM_21*,
+*MAP-Elites*, *GRZ* / *GFZ*, *z0*, *V_flux* — are intentionally left
+untranslated.
+
+---
+
 ## Architecture
 
 The code is split into small, single-responsibility ES modules with a strict
@@ -113,7 +155,7 @@ config.js
 palette.js   (leaf: cached per-KLAM colour ramps; imported by iso.js)
 airflow.js   (imports config/prng/klam/iso; injected into iso.js + main.js)
 consensus.js (pure aggregate: archive + archetype → per-cell consensus +
-             requirements + brief; imported by dashboard.js)
+             program + zones + requirements + brief; imported by dashboard.js)
 ```
 
 - [`palette.js`](palette.js:1) is a **leaf** module: it exports the per-KLAM
@@ -125,9 +167,15 @@ consensus.js (pure aggregate: archive + archetype → per-cell consensus +
   imported by it, keeping `iso.js` free of a hard airflow dependency.
 - [`consensus.js`](consensus.js:1) is a **pure aggregate**: it depends only on
   [`config.js`](config.js:1) and [`klam.js`](klam.js:1) and turns an archive +
-  archetype into a per-cell consensus, derived requirements and a brief. It is
+  archetype into a per-cell consensus, a per-class **program** (quantity) and
+  **zone** (placement) aggregation, derived requirements and a brief. It is
   imported by [`dashboard.js`](dashboard.js:1) (see *Planning Department view*
   below).
+- [`i18n.js`](i18n.js:1) is a **leaf** module: the EN/DE dictionary, the
+  `t`/`loc` lookups, the language state with `localStorage` persistence and the
+  `applyI18n` DOM filler. It is imported by [`consensus.js`](consensus.js:1),
+  [`dashboard.js`](dashboard.js:1), [`ui.js`](ui.js:1) and
+  [`main.js`](main.js:1) (see *Languages (EN/DE)* above).
 
 ### Single RAF loop
 
@@ -535,7 +583,7 @@ by `state.audience`:
 |---|---|---|---|
 | Layman | `layman` | `#dashboard-layman` | Friendly KPI cards (homes, fresh-air gauge, green space, summary badge). |
 | Urban Planner | `planner` | `#dashboard-planner` | GRZ/GFZ bars, V_flux reference table, roughness, σ, 7-class KLAM donut, narrative. |
-| Planning Dept | `department` | `#dashboard-department` | Cluster consensus map, derived spatial requirements and a copy/download brief. |
+| Planning Dept | `department` | `#dashboard-department` | Cluster consensus map (confident-only dominant + mixed shade), program bar, per-class heat toggle, grouped requirements and a copy/download brief. |
 
 The three-way toggle lives in [`ui.js`](ui.js:1); the `SWITCH_AUDIENCE` reducer
 rejects any audience other than those three
@@ -545,12 +593,16 @@ selected archetype cluster**.
 
 ### Consensus engine ([`consensus.js`](consensus.js:1))
 
-[`buildDesignIndex`](consensus.js:110) builds an id → design index from the
+The engine separates **quantity** from **placement** and returns
+`{ cells, program, zones, requirements, stats }`.
+
+[`buildDesignIndex`](consensus.js:226) builds an id → design index from the
 archive, accepting both the store's wrapper bins (`{ design, fitness, bx, by }`)
-and raw designs; [`collectClusterDesigns`](consensus.js:129) resolves an
+and raw designs; [`collectClusterDesigns`](consensus.js:245) resolves an
 archetype's `memberIds` against that index in deterministic ascending-id order.
-[`computeConsensus`](consensus.js:335) then aggregates the cluster into **one
-record per cell** (`N * N = 100` cells):
+
+**Per-cell consensus.** [`computeConsensus`](consensus.js:587) aggregates the
+cluster into **one record per cell** (`N * N = 100` cells):
 
 | Field | Meaning |
 |---|---|
@@ -562,50 +614,99 @@ record per cell** (`N * N = 100` cells):
 | `footprintMean` / `footprintStd` | Mean / population std-dev of footprint fraction over all designs. |
 | `buildingFrac` | Fraction of designs in which the cell is a building (`height > 0`). |
 
+**Program (quantity).** `program` is one entry per KLAM class
+([`computeProgramAndZones`](consensus.js:374)):
+
+| Field | Meaning |
+|---|---|
+| `klam` / `label` | Class id / human-readable label. |
+| `meanShare` | Mean fraction of the 100 cells carrying the class across designs. |
+| `stdShare` | Population std-dev of the per-design area share. |
+| `expectedCells` | `meanShare * 100` (expected number of cells). |
+| `presence` | Fraction of designs in which the class occurs at least once. |
+
+This is the key robustness fix: a class that is abundant but placed differently
+in every design keeps a stable `meanShare`/`expectedCells`, because the program
+is computed from per-design **area counts**, not from any spatial agreement.
+
+**Zones (placement).** `zones` aggregates each class's expected area over a
+**3×3 compass partition** of the parcel ([`zoneOf`](consensus.js:205),
+`ZONE_NAMES = ['NW','N','NE','W','C','E','SW','S','SE']`, row-major with the
+north band first; [`zonePhrase`](consensus.js:215) gives the human phrase). Each
+entry carries `zoneDist` (expected cells per zone, summing to `expectedCells`),
+`dominantZone`, `concentration = max(zoneDist) / expectedCells` (≈0.11 when
+dispersed across all nine zones → 1.0 when confined to one) and `zoneEntropy`
+(normalized Shannon entropy of the zone shares, 0..1).
+
+**Requirements.** [`computeRequirements`](consensus.js:472) derives three kinds,
+ordered **quantity → placement → avoid**:
+
+- **quantity** — always emitted when `meanShare >= QUANTITY_MIN = 0.03`. A firm
+  area budget (`"provide approximately X% of the site (±Y%)"`), with
+  `tolerance` = `round(stdShare * 100)` percentage points. This is the
+  *presence* guarantee: the class must appear, wherever it goes.
+- **placement** — conditional, emitted when
+  `expectedCells >= PLACEMENT_AREA_MIN = 2`. If
+  `concentration >= PLACEMENT_MIN = 0.45` the class is **concentrated**: the
+  requirement names the `dominantZone` and a `tolerance` in zones (from the
+  per-design centroid spread, `classToleranceZones`). Otherwise it is
+  **flexible** (`flexible: true`, `"location unrestricted — distribute across
+  the site"`). This is the *co-location* guarantee, and it is only claimed when
+  the cluster actually agrees on a location.
+- **avoid** — program-based: emitted when `meanShare < AVOID_MAX = 0.005` and
+  the class has neither a quantity nor a placement requirement
+  (`"not part of this design family"`).
+
+**The scattered-water case.** A class that appears in every design (~10 cells)
+but in a different place each time has `meanShare ≈ 0.10` and a low
+`concentration` (≈0.16). The engine therefore emits a **quantity** requirement
+(it is part of the program) and a **flexible** placement — never an `avoid` and
+never a false "put it in the north-west". This is the regression the rework
+fixes.
+
 `stats` summarises the result: `designs`, `meanConfidence`, `meanEntropy` and a
 per-class `coverage` (the fraction of cells each class dominates). The engine is
 pure — no DOM, no state coupling, no `Math.random` — so it is fully testable
 headless and deterministic. In the Node harness a cluster consensus of 15–30
-designs computes in well under a few milliseconds.
-
-### Requirement extraction
-
-Requirements are derived from the consensus
-([`computeRequirements`](consensus.js:272)):
-
-- **Positive requirements** (`kind:'require'`) are emitted for any KLAM class
-  that is the *majority* use (`classDist >= MAJORITY = 0.5`) in at least
-  `MIN_CELLS = 2` cells. The region phrase comes from
-  [`describeRegion`](consensus.js:156), which maps the covered cells' bounding
-  box and centroid to a compass band (`north`/`south`/`centre` ×
-  `west`/`east`/`centre`) plus the covered `rows`/`cols` ranges, and returns
-  `"throughout the site"` for a full-grid band. Confidence is the mean
-  `classDist` over the covered cells.
-- **Avoidance requirements** (`kind:'avoid'`) are emitted for a class that is
-  *not* positively required and is absent (`classDist < ABSENT = 0.1`) across at
-  least `MIN_ABSENT_CELLS = 6` cells; confidence is the mean `1 - classDist`.
-- Positive requirements are listed first; within each group items are sorted by
-  confidence (descending) and then KLAM class order.
-
-**Variance-derived ± tolerance.** Each positive requirement carries an integer
-`tolerance`. For every design the class's cell **centroid** (mean gx, mean gy) is
-computed, and the tolerance is the **RMS radial deviation** of those per-design
-centroids from their cluster mean, in cell units — i.e. the standard deviation
-of the class's spatial position across the cluster. It is `Math.round`-ed and
-clamped to `[0, N]`; it is `0` when fewer than two designs contain the class. A
-class that sits in the same place in every design yields `±0`; a class whose
-location wanders yields a larger `±`. Avoidance requirements carry
-`tolerance: 0`.
+designs computes in well under a few milliseconds (measured ≈0.3–2.8 ms).
 
 ### The brief export
 
-[`formatBrief`](consensus.js:442) renders a consensus + archetype as a clean,
+[`formatBrief`](consensus.js:696) renders a consensus + archetype as a clean,
 copy-pasteable plain-text competition brief: a header with the archetype id,
-name and cluster size, the consensus confidence and mean uncertainty, and a
-numbered `REQUIREMENTS` list of each requirement's full sentence. In the
-department panel the **📋 Copy brief** button copies this string to the
-clipboard (async Clipboard API with a hidden-textarea `execCommand` fallback)
-and the **⬇ .txt** button downloads it as `openskizze-brief-<id>.txt`.
+name and cluster size, the consensus confidence and mean uncertainty, then three
+labelled sections — **PROGRAM (quantities)**, **PLACEMENT (where)** and
+**AVOID** — each a numbered list of requirement sentences. In the department
+panel the **📋 Copy brief** button copies this string to the clipboard (async
+Clipboard API with a hidden-textarea `execCommand` fallback) and the **⬇ .txt**
+button downloads it as `openskizze-brief-<id>.txt`.
+
+### The department panel ([`dashboard.js`](dashboard.js:1))
+
+The panel is built by [`departmentHTML`](dashboard.js:528) from the consensus:
+
+- **Revised consensus map** ([`consensusMap`](dashboard.js:269)) — in the
+  default *dominant* mode a cell shows its dominant class colour at
+  `opacity = confidence` **only when `confidence >= CONFIDENCE_THRESHOLD = 0.6`**;
+  below the threshold the cell is drawn as a neutral grey "mixed / flexible"
+  hatch instead of pretending a class dominates. Confident cells with high
+  normalized entropy keep a diagonal uncertainty hatch.
+- **Per-class probability heat toggle** ([`classSelector`](dashboard.js:412)) —
+  a "Dominant" button plus one heat button per class present in the program.
+  Selecting a class re-renders the map in *heat* mode, tinting each cell with
+  the class colour at `opacity = classDist[klam]`, so a scattered-but-abundant
+  class is visibly spread across the site rather than washed out.
+- **Program bar** ([`programBar`](dashboard.js:364)) — a stacked bar of each
+  class's `meanShare`, plus one row per class showing the mean as a solid fill
+  and the `stdShare` as a lighter ± band with the numeric `mean% ±std%`. This is
+  the quantity fix made visible: a scattered class keeps a solid share even when
+  its map location is flexible.
+- **Requirements** ([`requirementList`](dashboard.js:491)) — grouped into
+  PROGRAM (quantities), PLACEMENT (where) and AVOID. Quantity rows show
+  mean ± std; concentrated placement rows get a solid accent with zone +
+  tolerance; flexible placement rows get a dashed, muted accent and "location
+  unrestricted"; avoid rows get a red accent.
+- **Export** — the copy-brief and `.txt` download buttons.
 
 ### Caching
 
@@ -885,17 +986,18 @@ how the numbers are produced.
 | [`prng.js`](prng.js:1) | 151 | Seeded xorshift32 PRNG plus `randInt`, `pick`, `shuffle`, `weightedPick`, `valueNoise2D`. |
 | [`klam.js`](klam.js:1) | 89 | The seven KLAM_21 land-use classes, height ranges, transition kernel and accessors. |
 | [`palette.js`](palette.js:1) | 49 | Cached per-KLAM three-tone isometric colour ramps (`paletteFor`). |
+| [`i18n.js`](i18n.js:1) | 599 | Dependency-free EN/DE localisation core: `LANGS`, `DICT` (en/de), `t(key, params)` with `{param}` interpolation, `loc(value)` for `{en,de}` data, `getLang`/`setLang`/`toggleLang` + `onChange`, `localStorage['openskizze.lang']` persistence, and `applyI18n` for `data-i18n`/`data-i18n-html`/`data-i18n-aria`/`data-i18n-title`. |
 | [`design.js`](design.js:1) | 1120 | Block/Cell genome, `computeFreeRects`/`streetsFromStructure`/`cloneStructure`, `createDesign`/`cloneDesign`/`mutateDesign` (fixed `windDir`), structure-aware `rasterize`, footprint-aware metrics with directional upstream shelter, descriptor/fitness, adaptive `setDescriptorScale`/`getDescriptorScale`. |
 | [`simulation.js`](simulation.js:1) | 636 | `generateCandidates` (land-use maps × pattern schemes × height/density/profile sweep + adaptive scale; threads `city.coldAir.dir` into every design), `runMAPElites`, `deriveArchetypes` (k-means k=4, 9-dim features), `createArchive`. |
-| [`consensus.js`](consensus.js:1) | 464 | Pure consensus + requirement-extraction engine: `buildDesignIndex`, `collectClusterDesigns`, `computeConsensus` (per-cell `classDist`/`dominant`/`confidence`/normalized `entropy`, height/footprint mean+std, `buildingFrac`, variance-derived `tolerance`), `describeRegion`, `formatBrief`. |
-| [`state.js`](state.js:1) | 308 | Central store: `createStore`, pure `reducer`, `makeInitialState`, all actions. |
+| [`consensus.js`](consensus.js:1) | 728 | Pure consensus + requirement-extraction engine: `buildDesignIndex`, `collectClusterDesigns`, `computeConsensus` (per-cell `classDist`/`dominant`/`confidence`/normalized `entropy`, height/footprint mean+std, `buildingFrac`; plus per-class program `meanShare`/`stdShare`/`expectedCells`/`presence` and 3×3 `zones` with `concentration`/`zoneEntropy`), `zoneOf`/`zonePhrase`, `computeRequirements` (quantity/placement/avoid), `describeRegion`, `formatBrief`. |
+| [`state.js`](state.js:1) | 313 | Central store: `createStore`, pure `reducer`, `makeInitialState`, all actions. |
 | [`citymap.js`](citymap.js:1) | 1071 | Diagrammatic macro city schematic: renders the selected preset's `city.terrain` zones generically, a per-city legend, non-overlapping block grids, a design-accurate 10×10 site grid with retained-structure overlay, a draggable/resizable selection box and a city-direction cold-air arrow. |
-| [`iso.js`](iso.js:1) | 1468 | 2.5D isometric renderer: projection (`isoProject`/`isoProjectInto` plus the shared `projectCell`/`projectCellInto` ground/solution-grid transform), `orientationForDir` (so the cold-air flow reads downhill), geometry fitting, footprint prisms, roof types, cached ground layer with roads + rail ties, city-direction wind cue, layers, hover. |
-| [`airflow.js`](airflow.js:1) | 900 | 2 m obstacle-aware cold-air flow layer: `buildOccupancyGrid` (40×40 sub-cell grid, `SUB=4`), distance-field-deflected velocity field (Jacobi openness diffusion, obstacle pinning, obstacle-aware smoothing, upstream pooling), collision-safe bilinear particle advection (no penetration, street channeling), cached pooling-fog sprite, per-design field cache, reduced-motion static streamlines. Re-exports `COLD_AIR_LAYER_ELEVATION`; projects via the shared `projectCellInto` in cell-centre coordinates. |
+| [`iso.js`](iso.js:1) | 1467 | 2.5D isometric renderer: projection (`isoProject`/`isoProjectInto` plus the shared `projectCell`/`projectCellInto` ground/solution-grid transform), `orientationForDir` (so the cold-air flow reads downhill), geometry fitting, footprint prisms, roof types, cached ground layer with roads + rail ties, city-direction wind cue, layers, hover. |
+| [`airflow.js`](airflow.js:1) | 899 | 2 m obstacle-aware cold-air flow layer: `buildOccupancyGrid` (40×40 sub-cell grid, `SUB=4`), distance-field-deflected velocity field (Jacobi openness diffusion, obstacle pinning, obstacle-aware smoothing, upstream pooling), collision-safe bilinear particle advection (no penetration, street channeling), cached pooling-fog sprite, per-design field cache, reduced-motion static streamlines. Re-exports `COLD_AIR_LAYER_ELEVATION`; projects via the shared `projectCellInto` in cell-centre coordinates. |
 | [`archiveview.js`](archiveview.js:1) | 653 | 12×12 MAP-Elites heatmap with mini-thumbnails, flash-on-new-elite, Pareto frontier, archetype badges, keyboard nav. |
-| [`dashboard.js`](dashboard.js:1) | 640 | Tri-audience dashboard (Layman and Urban Planner panels with a 7-class KLAM donut, plus the Planning Dept consensus map, requirement list and copy/download brief; consensus cached per archetype id). |
-| [`ui.js`](ui.js:1) | 541 | DOM wiring: presets, site readout (preset name + city name/tagline + rationale), CTAs, phase stepper, layer toggles, tooltips, audience switch, presentation mode, keyboard. |
-| [`main.js`](main.js:1) | 334 | Bootstrap and the single RAF loop; time-based Phase-2 ticker; resolves the selected city's `coldAir.dir` for airflow + iso orientation and the preset for candidate generation; resize/visibility/reduced-motion handling. |
+| [`dashboard.js`](dashboard.js:1) | 862 | Tri-audience dashboard (Layman and Urban Planner panels with a 7-class KLAM donut, plus the Planning Dept panel: confident-only consensus map with a neutral mixed shade, per-class probability heat toggle, program bar with mean ± std, requirements grouped into PROGRAM/PLACEMENT/AVOID, and copy/download brief; consensus cached per archetype id). |
+| [`ui.js`](ui.js:1) | 542 | DOM wiring: presets, site readout (preset name + city name/tagline + rationale), CTAs, phase stepper, layer toggles, tooltips, audience switch, presentation mode, keyboard. |
+| [`main.js`](main.js:1) | 336 | Bootstrap and the single RAF loop; time-based Phase-2 ticker; resolves the selected city's `coldAir.dir` for airflow + iso orientation and the preset for candidate generation; resize/visibility/reduced-motion handling. |
 
-> The app comprises **15** ES modules; line counts are approximate and reflect
+> The app comprises **16** ES modules; line counts are approximate and reflect
 > the current implementation.

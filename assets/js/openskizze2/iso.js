@@ -18,6 +18,7 @@
 import { N } from './config.js';
 import { KLAM, isBuilding } from './klam.js';
 import { PALETTE, paletteFor } from './palette.js';
+import { loc, t } from './i18n.js';
 
 /**
  * Directional light model. The three face tones come from the per-KLAM palette
@@ -1058,7 +1059,7 @@ function drawWindCue(ctx, geom, isStatic, now, dir, label) {
     ctx.font = '9px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(label, cx, cy + radius + 3);
+    ctx.fillText(t('iso.windCue', { label }), cx, cy + radius + 3);
   }
   ctx.restore();
 }
@@ -1126,7 +1127,7 @@ export function describeCell(design, gx, gy) {
   if (!design || gx < 0 || gx >= N || gy < 0 || gy >= N) return null;
   const cell = design.cells[gy * N + gx];
   const klam = KLAM[cell.klam] || KLAM.KLAM_GRASS;
-  return { klam: cell.klam, label: klam.label, z0: klam.z0, height: cell.height };
+  return { klam: cell.klam, label: loc(klam.label), z0: klam.z0, height: cell.height };
 }
 
 /**

@@ -26,6 +26,7 @@ import { KLAM, KLAM_IDS } from './klam.js';
 import { selectedDesign } from './iso.js';
 import { SIM, V_FLUX_REF, N } from './config.js';
 import { collectClusterDesigns, computeConsensus, formatBrief } from './consensus.js';
+import { loc, t, getLang } from './i18n.js';
 
 /** Format a number with thousands separators. @param {number} n @returns {string} */
 function fmtInt(n) {
@@ -42,33 +43,33 @@ function clamp01(x) {
   return x < 0 ? 0 : x > 1 ? 1 : Number.isFinite(x) ? x : 0;
 }
 
-/** Friendly copy for the layman summary badge. @param {string} badge @returns {string} */
+/** Friendly, localised copy for the layman summary badge. @param {string} badge @returns {string} */
 function badgeCopy(badge) {
   switch (badge) {
     case 'Cool & Green':
-      return '🌿 Recommended: Balances housing demand with regional climate protection.';
+      return t('dash.badgeCoolGreen');
     case 'High Capacity':
-      return '🏗️ High Capacity: Delivers many homes — keep an eye on ventilation.';
+      return t('dash.badgeHighCapacity');
     case 'Dense & Warm':
-      return '🏙️ Dense & Warm: Maximises housing but traps heat — add green corridors.';
+      return t('dash.badgeDenseWarm');
     default:
-      return '⚖️ Balanced: A solid all-rounder for housing and cooling.';
+      return t('dash.badgeBalanced');
   }
 }
 
-/** Qualitative label for the fresh-air inflow percentage. @param {number} pct @returns {string} */
+/** Qualitative, localised label for the fresh-air inflow percentage. @param {number} pct @returns {string} */
 function airLabel(pct) {
-  if (pct >= 75) return 'Excellent downstream cooling';
-  if (pct >= 50) return 'Good ventilation';
-  if (pct >= 30) return 'Moderate airflow';
-  return 'Weak airflow — heat risk';
+  if (pct >= 75) return t('dash.airExcellent');
+  if (pct >= 50) return t('dash.airGood');
+  if (pct >= 30) return t('dash.airModerate');
+  return t('dash.airWeak');
 }
 
-/** Qualitative label for the surrogate uncertainty. @param {number} sigma @returns {string} */
+/** Qualitative, localised label for the surrogate uncertainty. @param {number} sigma @returns {string} */
 function sigmaLabel(sigma) {
-  if (sigma < 0.15) return 'Low';
-  if (sigma < 0.3) return 'Moderate';
-  return 'High';
+  if (sigma < 0.15) return t('dash.sigmaLow');
+  if (sigma < 0.3) return t('dash.sigmaModerate');
+  return t('dash.sigmaHigh');
 }
 
 /** Colour for a KLAM class swatch. @param {string} id @returns {string} */
@@ -78,7 +79,7 @@ function classColor(id) {
 
 /** Human label for a KLAM class. @param {string} id @returns {string} */
 function classLabel(id) {
-  return KLAM[id] ? KLAM[id].label : id;
+  return KLAM[id] ? loc(KLAM[id].label) : id;
 }
 
 /**
@@ -129,12 +130,12 @@ function klamDonut(classPct) {
   }
 
   const svg =
-    '<svg viewBox="0 0 120 120" class="w-28 h-28 shrink-0" role="img" aria-label="KLAM land-use distribution">' +
+    '<svg viewBox="0 0 120 120" class="w-28 h-28 shrink-0" role="img" aria-label="' + t('dash.klamAria') + '">' +
       '<circle cx="60" cy="60" r="' + R + '" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="13"></circle>' +
       arcs +
       '<circle cx="60" cy="60" r="30" fill="rgba(15,23,42,0.55)"></circle>' +
-      '<text x="60" y="58" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="system-ui">land</text>' +
-      '<text x="60" y="70" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="system-ui">use</text>' +
+      '<text x="60" y="58" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="system-ui">' + t('dash.donutTop') + '</text>' +
+      '<text x="60" y="70" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="system-ui">' + t('dash.donutBottom') + '</text>' +
     '</svg>';
 
   let legend = '<div class="grid grid-cols-1 gap-1 flex-1 min-w-0">';
@@ -161,23 +162,23 @@ function klamDonut(classPct) {
 function narrative(p, m) {
   const sentences = [];
 
-  if (p.grz >= 0.45) sentences.push('A dense building footprint maximises housing on the parcel.');
-  else if (p.grz <= 0.2) sentences.push('An open, low-coverage layout leaves generous ground space.');
-  else sentences.push('A moderately dense block structure balances built and open space.');
+  if (p.grz >= 0.45) sentences.push(t('dash.narrDense'));
+  else if (p.grz <= 0.2) sentences.push(t('dash.narrOpen'));
+  else sentences.push(t('dash.narrModerate'));
 
   if (p.vFlux >= V_FLUX_REF * 0.6) {
-    sentences.push('Cold night air penetrates deep into the parcel, keeping the area well ventilated.');
+    sentences.push(t('dash.narrVentDeep'));
   } else if (p.vFlux < V_FLUX_REF * 0.3) {
-    sentences.push('Ventilation is restricted by roughness and sheltering, so heat may accumulate.');
+    sentences.push(t('dash.narrVentRestricted'));
   } else {
-    sentences.push('Night-time ventilation is adequate but could be improved with green corridors.');
+    sentences.push(t('dash.narrVentAdequate'));
   }
 
   const green = m.layman.greenSpace;
-  if (green >= 40) sentences.push('Extensive green and blue surfaces further cool the microclimate.');
-  else if (green < 15) sentences.push('Green and water surfaces are scarce, limiting evaporative cooling.');
+  if (green >= 40) sentences.push(t('dash.narrGreenExtensive'));
+  else if (green < 15) sentences.push(t('dash.narrGreenScarce'));
 
-  if (p.sigma >= 0.3) sentences.push('The surrogate is less certain here, so treat the figures as indicative.');
+  if (p.sigma >= 0.3) sentences.push(t('dash.narrUncertain'));
 
   return sentences.join(' ');
 }
@@ -236,12 +237,12 @@ function departmentHeader(archetype, consensus) {
       '<div class="flex items-center gap-2">' +
         '<span class="w-6 h-6 rounded flex items-center justify-center fs-12 font-bold text-slate-900 shrink-0" ' +
           'style="background:' + (archetype.color || '#94a3b8') + '">' + (archetype.badge || '?') + '</span>' +
-        '<span class="fs-16 font-semibold text-slate-100 flex-1 truncate">' + (archetype.name || 'Archetype') + '</span>' +
+        '<span class="fs-16 font-semibold text-slate-100 flex-1 truncate">' + (loc(archetype.name) || t('dept.archetype')) + '</span>' +
       '</div>' +
-      '<div class="fs-12 text-slate-300 mt-1">' + stats.designs + ' design' + (stats.designs === 1 ? '' : 's') + ' in cluster</div>' +
-      '<div class="fs-12 text-slate-300 mt-1">Consensus confidence ' +
+      '<div class="fs-12 text-slate-300 mt-1">' + t('brief.designCount', { n: stats.designs }) + '</div>' +
+      '<div class="fs-12 text-slate-300 mt-1">' + t('dept.confidence') + ' ' +
         '<span class="text-cold font-semibold">' + Math.round(stats.meanConfidence * 100) + '%</span>' +
-        ' · mean uncertainty <span class="font-mono text-slate-100">' + fmt(stats.meanEntropy, 2) + '</span>' +
+        ' · ' + t('brief.uncertainty') + ' <span class="font-mono text-slate-100">' + fmt(stats.meanEntropy, 2) + '</span>' +
       '</div>' +
     '</div>'
   );
@@ -285,7 +286,7 @@ export function consensusMap(consensus, view) {
       grid +=
         '<div class="relative" data-heat="' + heatKlam + '" data-p="' + p.toFixed(3) + '" ' +
           'style="aspect-ratio:1;background:rgba(255,255,255,0.04)" ' +
-          'title="' + classLabel(heatKlam) + ' · probability ' + Math.round(p * 100) + '%">' +
+          'title="' + t('dash.heatTitle', { label: classLabel(heatKlam), pct: Math.round(p * 100) }) + '">' +
           '<div class="absolute inset-0" style="background:' + classColor(heatKlam) + ';opacity:' + p.toFixed(2) + '"></div>' +
         '</div>';
       continue;
@@ -299,7 +300,7 @@ export function consensusMap(consensus, view) {
       grid +=
         '<div class="relative" data-dominant="' + c.dominant + '" data-conf="' + conf.toFixed(3) + '" ' +
           'style="aspect-ratio:1;background:rgba(255,255,255,0.04)" ' +
-          'title="' + classLabel(c.dominant) + ' · confidence ' + Math.round(conf * 100) + '% · uncertainty ' + ent.toFixed(2) + '">' +
+          'title="' + t('dash.cellTitle', { label: classLabel(c.dominant), pct: Math.round(conf * 100), u: ent.toFixed(2) }) + '">' +
           '<div class="absolute inset-0" style="background:' + classColor(c.dominant) + ';opacity:' + conf.toFixed(2) + '"></div>' +
           (hatch ? '<div class="absolute inset-0" style="' + hatch + '"></div>' : '') +
         '</div>';
@@ -307,7 +308,7 @@ export function consensusMap(consensus, view) {
       grid +=
         '<div class="relative" data-mixed="1" data-conf="' + conf.toFixed(3) + '" ' +
           'style="aspect-ratio:1;background:rgba(255,255,255,0.04)" ' +
-          'title="Mixed / flexible · confidence ' + Math.round(conf * 100) + '%">' +
+          'title="' + t('dash.mixedTitle', { pct: Math.round(conf * 100) }) + '">' +
           '<div class="absolute inset-0" style="background-image:' + MIXED_SHADE + '"></div>' +
         '</div>';
     }
@@ -319,7 +320,7 @@ export function consensusMap(consensus, view) {
     legend +=
       '<span class="flex items-center gap-1 fs-11 text-slate-300">' +
         '<span class="w-3 h-3 rounded-sm shrink-0" style="background:' + classColor(heatKlam) + '"></span>' +
-        classLabel(heatKlam) + ' probability (0 → transparent)' +
+        t('dash.probabilityLegend', { label: classLabel(heatKlam) }) +
       '</span>';
   } else {
     for (const id of KLAM_IDS) {
@@ -333,18 +334,18 @@ export function consensusMap(consensus, view) {
     legend +=
       '<span class="flex items-center gap-1 fs-11 text-slate-300">' +
         '<span class="w-3 h-3 rounded-sm shrink-0" style="background-image:' + MIXED_SHADE + '"></span>' +
-        'Mixed / flexible' +
+        t('dash.mixed') +
       '</span>';
   }
   legend += '</div>';
 
-  const title = heatKlam ? classLabel(heatKlam) + ' Probability' : 'Consensus Land-Use Map';
+  const title = heatKlam ? t('dash.probability', { label: classLabel(heatKlam) }) : t('dash.consensusMap');
   return (
     '<div class="glass p-4" data-map="1">' +
       '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-2">' + title + '</div>' +
-      '<div class="fs-11 text-slate-400 text-center mb-1">N ↑</div>' +
+      '<div class="fs-11 text-slate-400 text-center mb-1">' + t('dash.north') + '</div>' +
       grid +
-      '<div class="fs-11 text-slate-400 text-center mt-1">S ↓</div>' +
+      '<div class="fs-11 text-slate-400 text-center mt-1">' + t('dash.south') + '</div>' +
       legend +
     '</div>'
   );
@@ -369,7 +370,7 @@ export function programBar(program) {
   for (const p of list) {
     stack +=
       '<div style="width:' + (p.meanShare * 100).toFixed(2) + '%;background:' + classColor(p.klam) + '" ' +
-        'title="' + p.label + ' ' + Math.round(p.meanShare * 100) + '%"></div>';
+        'title="' + loc(p.label) + ' ' + Math.round(p.meanShare * 100) + '%"></div>';
   }
   stack += '</div>';
 
@@ -382,7 +383,7 @@ export function programBar(program) {
     rows +=
       '<div class="flex items-center gap-2" data-program-class="' + p.klam + '">' +
         '<span class="w-3 h-3 rounded-sm shrink-0" style="background:' + classColor(p.klam) + '"></span>' +
-        '<span class="fs-11 text-slate-300 w-28 truncate">' + p.label + '</span>' +
+        '<span class="fs-11 text-slate-300 w-28 truncate">' + loc(p.label) + '</span>' +
         '<span class="relative flex-1 h-2 rounded-full bg-white/10 overflow-hidden">' +
           '<span class="absolute inset-y-0 bg-white/20" style="left:' + lo.toFixed(1) + '%;width:' + Math.max(0.5, hi - lo).toFixed(1) + '%"></span>' +
           '<span class="absolute inset-y-0 left-0 rounded-full" style="width:' + mean.toFixed(1) + '%;background:' + classColor(p.klam) + '"></span>' +
@@ -394,7 +395,7 @@ export function programBar(program) {
 
   return (
     '<div class="glass p-4" data-program-section="1">' +
-      '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-2">Program (share of site)</div>' +
+      '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-2">' + t('dash.programBar') + '</div>' +
       stack + rows +
     '</div>'
   );
@@ -420,11 +421,11 @@ export function classSelector(program, view) {
 
   let html =
     '<div class="glass p-3" id="dept-class-selector" data-dept-selector="1">' +
-      '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-2">Map layer</div>' +
+      '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-2">' + t('dash.mapLayer') + '</div>' +
       '<div class="flex flex-wrap gap-1">';
-  html += btn(mode === 'dominant', 'data-dept-mode="dominant"', 'Dominant');
+  html += btn(mode === 'dominant', 'data-dept-mode="dominant"', t('dash.dominant'));
   for (const p of list) {
-    html += btn(mode === 'heat' && klam === p.klam, 'data-dept-mode="heat" data-klam="' + p.klam + '"', p.label);
+    html += btn(mode === 'heat' && klam === p.klam, 'data-dept-mode="heat" data-klam="' + p.klam + '"', loc(p.label));
   }
   html += '</div></div>';
   return html;
@@ -440,7 +441,7 @@ export function classSelector(program, view) {
  */
 function requirementItem(r) {
   const swatch = '<span class="w-3 h-3 rounded-sm shrink-0" style="background:' + classColor(r.klam) + '"></span>';
-  const label = '<span class="fs-13 font-semibold text-slate-100 flex-1 truncate">' + r.label + '</span>';
+  const label = '<span class="fs-13 font-semibold text-slate-100 flex-1 truncate">' + loc(r.label) + '</span>';
   let accent;
   let badge;
   let badgeCls;
@@ -448,25 +449,32 @@ function requirementItem(r) {
 
   if (r.kind === 'quantity') {
     accent = 'border-emerald-400/60';
-    badge = 'Quantity';
+    badge = t('dash.quantity');
     badgeCls = 'bg-emerald-400/15 text-emerald-300';
-    meta = 'mean ' + Math.round((r.meanShare || 0) * 100) + '% ±' + Math.round((r.stdShare || 0) * 100) + '%';
+    meta = t('dash.mean', {
+      mean: Math.round((r.meanShare || 0) * 100),
+      std: Math.round((r.stdShare || 0) * 100),
+    });
   } else if (r.kind === 'placement' && r.flexible) {
     accent = 'border-dashed border-slate-400/50';
-    badge = 'Flexible';
+    badge = t('dash.flexible');
     badgeCls = 'bg-slate-400/15 text-slate-300';
-    meta = 'location unrestricted';
+    meta = t('dash.locationUnrestricted');
   } else if (r.kind === 'placement') {
     accent = 'border-emerald-400/60';
-    badge = 'Placement';
+    badge = t('dash.placement');
     badgeCls = 'bg-emerald-400/15 text-emerald-300';
     const tol = r.tolerance || 0;
-    meta = 'zone ' + (r.zone || '') + ' · ±' + tol + ' zone' + (tol === 1 ? '' : 's');
+    meta = t('dash.zoneMeta', {
+      zone: r.zone || '',
+      tol,
+      unit: t(tol === 1 ? 'req.zoneUnit' : 'req.zoneUnits'),
+    });
   } else {
     accent = 'border-rose-400/60';
-    badge = 'Avoid';
+    badge = t('dash.avoid');
     badgeCls = 'bg-rose-400/15 text-rose-300';
-    meta = 'not part of this design family';
+    meta = t('dash.notPart');
   }
 
   return (
@@ -491,12 +499,12 @@ function requirementItem(r) {
 export function requirementList(requirements) {
   const list = requirements || [];
   if (!list.length) {
-    return '<div class="glass p-4 fs-13 text-slate-300">No requirements derived from this cluster.</div>';
+    return '<div class="glass p-4 fs-13 text-slate-300">' + t('dash.noRequirements') + '</div>';
   }
   const sections = [
-    { kind: 'quantity', title: 'PROGRAM (quantities)' },
-    { kind: 'placement', title: 'PLACEMENT (where)' },
-    { kind: 'avoid', title: 'AVOID' },
+    { kind: 'quantity', title: t('brief.program') },
+    { kind: 'placement', title: t('brief.placement') },
+    { kind: 'avoid', title: t('brief.avoid') },
   ];
   let html = '<div class="glass p-4 space-y-4" data-requirements="1">';
   for (const sec of sections) {
@@ -505,7 +513,7 @@ export function requirementList(requirements) {
       '<div data-req-section="' + sec.kind + '">' +
         '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-2">' + sec.title + '</div>';
     if (!items.length) {
-      html += '<div class="fs-11 text-slate-400 italic">(none)</div>';
+      html += '<div class="fs-11 text-slate-400 italic">' + t('brief.none') + '</div>';
     } else {
       html += '<div class="space-y-2">';
       for (const r of items) html += requirementItem(r);
@@ -544,10 +552,10 @@ function exportSection() {
     '<div class="glass p-4 flex items-center gap-2">' +
       '<button type="button" id="dept-copy-brief" ' +
         'class="flex-1 fs-12 px-3 py-2 rounded-md border border-cold/50 bg-cold/20 text-cold hover:bg-cold/30 transition">' +
-        '📋 Copy brief</button>' +
+        t('dash.copyBrief') + '</button>' +
       '<button type="button" id="dept-download-brief" ' +
         'class="fs-12 px-3 py-2 rounded-md border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition">' +
-        '⬇ .txt</button>' +
+        t('dash.downloadBrief') + '</button>' +
     '</div>'
   );
 }
@@ -564,7 +572,7 @@ function copyToClipboard(text, btn) {
   const done = () => {
     if (!btn) return;
     const prev = btn.textContent;
-    btn.textContent = '✓ Copied!';
+    btn.textContent = t('dash.copied');
     setTimeout(() => { btn.textContent = prev; }, 1500);
   };
   const fallback = () => {
@@ -660,13 +668,13 @@ export function createDashboard(store, deps) {
     const archetype = resolveArchetype(state);
     if (!archetype) {
       departmentEl.innerHTML =
-        '<div class="glass p-4 fs-14 text-slate-300">Select an archetype to generate a planning brief.</div>';
+        '<div class="glass p-4 fs-14 text-slate-300">' + t('dash.selectArchetype') + '</div>';
       return;
     }
     const designs = collectClusterDesigns(state.archive, archetype);
     if (!designs.length) {
       departmentEl.innerHTML =
-        '<div class="glass p-4 fs-14 text-slate-300">This archetype has no designs yet — run a search to populate the cluster.</div>';
+        '<div class="glass p-4 fs-14 text-slate-300">' + t('dash.noDesigns') + '</div>';
       return;
     }
     const consensus = getConsensus(state, archetype, designs);
@@ -708,35 +716,35 @@ export function createDashboard(store, deps) {
     laymanEl.innerHTML =
       '<div class="space-y-4">' +
         '<div class="glass p-4">' +
-          '<div class="fs-12 uppercase tracking-wider text-slate-300">Homes Created</div>' +
+          '<div class="fs-12 uppercase tracking-wider text-slate-300">' + t('dash.homes') + '</div>' +
           '<div class="mt-1 flex items-baseline gap-2">' +
             '<span class="fs-28 font-bold text-cold leading-none">' + fmtInt(homes) + '</span>' +
-            '<span class="fs-14 text-slate-200">Residents</span>' +
+            '<span class="fs-14 text-slate-200">' + t('dash.residents') + '</span>' +
           '</div>' +
           '<div class="mt-2 fs-16 tracking-widest">🏠🏠🏠🏠🏠</div>' +
         '</div>' +
 
         '<div class="glass p-4">' +
           '<div class="flex items-center justify-between">' +
-            '<span class="fs-12 uppercase tracking-wider text-slate-300">Fresh Air Inflow</span>' +
+            '<span class="fs-12 uppercase tracking-wider text-slate-300">' + t('dash.freshAir') + '</span>' +
             '<span class="fs-16 font-semibold text-cold">' + airPct + '%</span>' +
           '</div>' +
           '<div class="mt-2 h-3 rounded-full bg-white/10 overflow-hidden">' +
             '<div class="h-full bg-gradient-to-r from-sky-400 to-cyan-300" style="width:' + airPct + '%"></div>' +
           '</div>' +
           '<div class="mt-1 fs-12 text-slate-300">' + airLabel(air) + '</div>' +
-          '<div class="mt-1 fs-11 text-slate-300">vs. all-grass reference: ' + refPct + '% of its cold-air flux</div>' +
+          '<div class="mt-1 fs-11 text-slate-300">' + t('dash.vsReference', { pct: refPct }) + '</div>' +
         '</div>' +
 
         '<div class="glass p-4">' +
           '<div class="flex items-center justify-between">' +
-            '<span class="fs-12 uppercase tracking-wider text-slate-300">Green & Recreational Space</span>' +
+            '<span class="fs-12 uppercase tracking-wider text-slate-300">' + t('dash.greenSpace') + '</span>' +
             '<span class="fs-16 font-semibold text-green">' + greenPct + '%</span>' +
           '</div>' +
           '<div class="mt-2 h-3 rounded-full bg-white/10 overflow-hidden">' +
             '<div class="h-full bg-gradient-to-r from-emerald-500 to-green-400" style="width:' + greenPct + '%"></div>' +
           '</div>' +
-          '<div class="mt-1 fs-12 text-slate-300">' + greenPct + '% Parks, meadows, forest & water</div>' +
+          '<div class="mt-1 fs-12 text-slate-300">' + t('dash.greenDetail', { pct: greenPct }) + '</div>' +
         '</div>' +
 
         '<div class="glass p-4 fs-14 leading-relaxed text-slate-100">' +
@@ -757,12 +765,12 @@ export function createDashboard(store, deps) {
         '<div class="glass p-3">' +
           '<div class="fs-11 uppercase tracking-wider text-slate-300">GRZ</div>' +
           '<div class="fs-20 font-bold text-slate-100 leading-tight">' + fmt(p.grz, 2) + '</div>' +
-          '<div class="fs-11 text-slate-300">ground area ratio</div>' +
+          '<div class="fs-11 text-slate-300">' + t('dash.grz') + '</div>' +
         '</div>' +
         '<div class="glass p-3">' +
           '<div class="fs-11 uppercase tracking-wider text-slate-300">GFZ</div>' +
           '<div class="fs-20 font-bold text-slate-100 leading-tight">' + fmt(p.gfz, 2) + '</div>' +
-          '<div class="fs-11 text-slate-300">floor space ratio</div>' +
+          '<div class="fs-11 text-slate-300">' + t('dash.gfz') + '</div>' +
         '</div>' +
       '</div>';
 
@@ -771,25 +779,25 @@ export function createDashboard(store, deps) {
       '<div class="glass p-4 space-y-3">' +
         '<div>' +
           '<div class="flex items-center justify-between fs-12 text-slate-300 mb-1">' +
-            '<span>GRZ</span><span class="font-mono text-slate-100">' + fmt(p.grz, 2) + ' / target 0.25–0.50</span></div>' +
+            '<span>GRZ</span><span class="font-mono text-slate-100">' + fmt(p.grz, 2) + ' / ' + t('dash.target', { lo: '0.25', hi: '0.50' }) + '</span></div>' +
           bandBar(p.grz, 1, 0.25, 0.5, '#38bdf8') +
         '</div>' +
         '<div>' +
           '<div class="flex items-center justify-between fs-12 text-slate-300 mb-1">' +
-            '<span>GFZ</span><span class="font-mono text-slate-100">' + fmt(p.gfz, 2) + ' / target 1.0–2.5</span></div>' +
+            '<span>GFZ</span><span class="font-mono text-slate-100">' + fmt(p.gfz, 2) + ' / ' + t('dash.target', { lo: '1.0', hi: '2.5' }) + '</span></div>' +
           bandBar(p.gfz, SIM.GFZ_MAX, 1.0, 2.5, '#a78bfa') +
         '</div>' +
       '</div>';
 
     // Reference comparison + technical table.
     const rows = [
-      ['Cold Air Volume Flux', fmt(p.vFlux, 1) + ' m³/s'],
-      ['All-grass reference', fmt(V_FLUX_REF, 1) + ' m³/s (' + refPct + '%)'],
-      ['Effective Roughness (z0 mean)', fmt(p.z0Mean, 2) + ' m'],
-      ['Surrogate Uncertainty (σ)', sigmaLabel(p.sigma) + ' (' + fmt(p.sigma, 2) + ')'],
+      [t('dash.vflux'), fmt(p.vFlux, 1) + ' m³/s'],
+      [t('dash.reference'), fmt(V_FLUX_REF, 1) + ' m³/s (' + refPct + '%)'],
+      [t('dash.z0'), fmt(p.z0Mean, 2) + ' m'],
+      [t('dash.sigma'), sigmaLabel(p.sigma) + ' (' + fmt(p.sigma, 2) + ')'],
     ];
     let table = '<div class="glass p-4 space-y-2">';
-    table += '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-1">vs. all-grass reference</div>';
+    table += '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-1">' + t('dash.reference') + '</div>';
     for (const [label, value] of rows) {
       table +=
         '<div class="flex items-center justify-between gap-2">' +
@@ -802,14 +810,14 @@ export function createDashboard(store, deps) {
     // KLAM donut + 7-class legend.
     const dist =
       '<div class="glass p-4">' +
-        '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-2">Statutory Land Use Distribution</div>' +
+        '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-2">' + t('dash.classDist') + '</div>' +
         klamDonut(p.classPct || {}) +
       '</div>';
 
     // Derived narrative.
     const why =
       '<div class="glass p-4 fs-14 leading-relaxed text-slate-100">' +
-        '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-1">Why this design</div>' +
+        '<div class="fs-12 uppercase tracking-wider text-slate-300 mb-1">' + t('dash.why') + '</div>' +
         narrative(p, m) +
       '</div>';
 
@@ -832,7 +840,7 @@ export function createDashboard(store, deps) {
     const archSig = state.audience === 'department'
       ? (state.selectedArchetype || 'auto') + ':' + archs.length
       : '';
-    const sig = (design ? design.id : 'none') + '#' + state.audience + '#' + archSig;
+    const sig = (design ? design.id : 'none') + '#' + state.audience + '#' + archSig + '#' + getLang();
     if (sig === lastSig) return;
     lastSig = sig;
 
@@ -848,7 +856,7 @@ export function createDashboard(store, deps) {
     }
 
     if (!m) {
-      const msg = '<div class="text-slate-300 fs-14">No design selected.</div>';
+      const msg = '<div class="text-slate-300 fs-14">' + t('dash.noDesignSelected') + '</div>';
       if (laymanEl) laymanEl.innerHTML = msg;
       if (plannerEl) plannerEl.innerHTML = msg;
       return;

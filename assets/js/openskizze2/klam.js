@@ -14,19 +14,19 @@
  * @property {number} sealed - Sealed fraction 0..1.
  * @property {number} dwellingsPerFloor - Dwellings per floor per cell.
  * @property {number} residentsPerDwelling - Residents per dwelling.
- * @property {string} label - Human-readable label.
+ * @property {{en:string, de:string}} label - Localised human-readable label.
  * @property {string} color - Display colour (hex).
  */
 
 /** @type {Record<string, KlamClass>} */
 export const KLAM = {
-  KLAM_GRASS:            { pCold:12,  z0:0.03,  sealed:0.0, dwellingsPerFloor:0, residentsPerDwelling:0,   label:'Grass / Meadow',    color:'#8fd694' },
-  KLAM_FOREST:           { pCold:8,   z0:1.0,   sealed:0.0, dwellingsPerFloor:0, residentsPerDwelling:0,   label:'Forest',            color:'#2f7d4f' },
-  KLAM_WATER:            { pCold:14,  z0:0.005, sealed:0.0, dwellingsPerFloor:0, residentsPerDwelling:0,   label:'Water',             color:'#5bb8e8' },
-  KLAM_RESIDENTIAL_LOW:  { pCold:4,   z0:0.4,   sealed:0.6, dwellingsPerFloor:4, residentsPerDwelling:2.2, label:'Residential (low)', color:'#e8b06a' },
-  KLAM_URBAN_HIGH:       { pCold:0.5, z0:2.5,   sealed:0.9, dwellingsPerFloor:6, residentsPerDwelling:2.0, label:'Urban high-rise',   color:'#9aa7b4' },
-  KLAM_COMMERCIAL:       { pCold:0,   z0:1.8,   sealed:1.0, dwellingsPerFloor:0, residentsPerDwelling:0,   label:'Commercial',        color:'#c9c2b6' },
-  KLAM_STREET:           { pCold:0,   z0:0.05,  sealed:0.9, dwellingsPerFloor:0, residentsPerDwelling:0,   label:'Street / Plaza',    color:'#6b7280' },
+  KLAM_GRASS:            { pCold:12,  z0:0.03,  sealed:0.0, dwellingsPerFloor:0, residentsPerDwelling:0,   label:{ en:'Grass / Meadow', de:'Grünland / Wiese' },    color:'#8fd694' },
+  KLAM_FOREST:           { pCold:8,   z0:1.0,   sealed:0.0, dwellingsPerFloor:0, residentsPerDwelling:0,   label:{ en:'Forest', de:'Wald' },                        color:'#2f7d4f' },
+  KLAM_WATER:            { pCold:14,  z0:0.005, sealed:0.0, dwellingsPerFloor:0, residentsPerDwelling:0,   label:{ en:'Water', de:'Gewässer' },                     color:'#5bb8e8' },
+  KLAM_RESIDENTIAL_LOW:  { pCold:4,   z0:0.4,   sealed:0.6, dwellingsPerFloor:4, residentsPerDwelling:2.2, label:{ en:'Residential (low)', de:'Lockere Bebauung' }, color:'#e8b06a' },
+  KLAM_URBAN_HIGH:       { pCold:0.5, z0:2.5,   sealed:0.9, dwellingsPerFloor:6, residentsPerDwelling:2.0, label:{ en:'Urban high-rise', de:'Dichte Bebauung' },    color:'#9aa7b4' },
+  KLAM_COMMERCIAL:       { pCold:0,   z0:1.8,   sealed:1.0, dwellingsPerFloor:0, residentsPerDwelling:0,   label:{ en:'Commercial', de:'Gewerbe' },                 color:'#c9c2b6' },
+  KLAM_STREET:           { pCold:0,   z0:0.05,  sealed:0.9, dwellingsPerFloor:0, residentsPerDwelling:0,   label:{ en:'Street / Plaza', de:'Straße / Platz' },      color:'#6b7280' },
 };
 
 /** Ordered list of all KLAM class ids. */
