@@ -488,6 +488,19 @@ export function createCityMap(canvas, store) {
     const l = ins(L);
     const e = h * G.heightScale;
 
+    // Contact shadow (ambient occlusion) on the ground.
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.moveTo(t.x + G.tileWidth * 0.12, t.y + G.tileHeight * 0.12);
+    ctx.lineTo(r.x + G.tileWidth * 0.12, r.y + G.tileHeight * 0.12);
+    ctx.lineTo(b.x + G.tileWidth * 0.12, b.y + G.tileHeight * 0.12);
+    ctx.lineTo(l.x + G.tileWidth * 0.12, l.y + G.tileHeight * 0.12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
     // Left face (mid-tone).
     ctx.beginPath();
     ctx.moveTo(l.x, l.y);

@@ -16,7 +16,7 @@
  * This is the only module with a side effect: it bootstraps on DOMContentLoaded.
  */
 
-import { SIM, N, PRESETS } from './config.js';
+import { SIM, PRESETS } from './config.js';
 import { loc } from './i18n.js';
 import { createStore, reducer, initialState } from './state.js';
 import { createCityMap } from './citymap.js';
@@ -24,12 +24,9 @@ import { initUI } from './ui.js';
 import { generateCandidates } from './simulation.js';
 import { computeMetrics, computeDescriptor, computeFitness } from './design.js';
 import { createArchiveView } from './archiveview.js';
-import { computeGeom, renderThumbnail, createIsoViewer, selectedDesign, CONTEXT_MARGIN } from './iso.js';
+import { computeCityGeom, renderThumbnail, createIsoViewer, selectedDesign, orientationForDir } from './iso.js';
 import { createAirflow } from './airflow.js';
 import { createDashboard } from './dashboard.js';
-
-/** Extended grid side: the parcel plus a surrounding city-context ring. */
-const EXT = N + 2 * CONTEXT_MARGIN;
 
 /** Candidates for the current search (generated once on RUN_SEARCH). */
 let candidates = null;
@@ -85,8 +82,10 @@ function createPreview(canvas) {
     if (!design) return;
     // Fixed max height keeps the geometry (and thus the scene scale) stable
     // across candidates, so the preview no longer hops up and down.
-    const geom = computeGeom(canvas, EXT, previewMaxHeight);
-    renderThumbnail(ctx, design, geom, { preset, box, size: EXT });
+    const dir = (preset && preset.city && preset.city.coldAir && preset.city.coldAir.dir) || { x: 0, y: 1 };
+    const orientation = orientationForDir(dir);
+    const geom = computeCityGeom(canvas, box, orientation, previewMaxHeight);
+    renderThumbnail(ctx, design, geom, { preset, box });
     if (flashing && Math.floor(now / 90) % 2 === 0) {
       ctx.save();
       ctx.globalAlpha = 0.1;

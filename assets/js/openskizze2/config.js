@@ -166,7 +166,7 @@ export const PRESETS = [
     city:{
       name:{ en:'Beckenstadt', de:'Beckenstadt' },
       tagline:{ en:'Basin city — cold air sinks from the NE rim into the central-south core', de:'Beckenstadt — Kaltluft sinkt vom Nordostrand in den zentral-südlichen Kern' },
-      coldAir:{ dir:{ x:-1, y:1 }, label:'NE → SW' },
+      coldAir:{ dir:{ x:1, y:1 }, label:'NW → SE' },
       terrain:[
         { type:'hills',  x:0,  y:0, w:16, h:4,  color:'#2f6b4f', label:{ en:'Basin Rim', de:'Beckenrand' } },
         { type:'hills',  x:0,  y:4, w:3,  h:12, color:'#2f6b4f' },

@@ -30,18 +30,11 @@ export const LIGHT = { top: 1.00, left: 0.78, right: 0.55, outline: 'rgba(15,23,
 /** Height scale as a fraction of tile height (taller, more believable city). */
 const HEIGHT_SCALE_FACTOR = 0.7;
 
-/**
- * Cells of surrounding city context drawn as a ring around the solution parcel
- * in the 3-D solution views. The macro city grid is 16×16 and the parcel is
- * 10×10, so a margin of 3 shows the whole surrounding site.
- */
-export const CONTEXT_MARGIN = 3;
-
-/** Extended grid side: the solution parcel plus a context ring on both sides. */
-export const EXT = N + 2 * CONTEXT_MARGIN;
-
 /** Side of the macro city grid the presets' terrain is defined on. */
 const CITY_SIZE = 16;
+
+/** Peak elevation (elevation units) of the surrounding context hills. */
+const MAX_CONTEXT_ELEV = 2.2;
 
 /**
  * Elevation of the cold-air streamline layer, in storeys (≈2 m at 3 m/storey).
@@ -265,6 +258,74 @@ export function computeGeom(canvas, n, maxHeight, orientation) {
   if (_geomCache.size > 64) _geomCache.clear();
   _geomCache.set(key, geom);
   return geom;
+}
+
+/**
+ * Fit an isometric geometry to a canvas so the *whole* macro city (16×16) fits,
+ * with the solution parcel at its true position inside it. Used by the solution
+ * views so the entire surrounding environment is rendered.
+ *
+ * @param {HTMLCanvasElement|{getBoundingClientRect?:Function,width?:number,height?:number}} canvas
+ * @param {{x:number,y:number,w:number,h:number}} box - Solution parcel in city coords.
+ * @param {number} orientation
+ * @param {number} [maxHeight] - Tallest solution building (stories), for headroom.
+ * @returns {{tileWidth:number,tileHeight:number,originX:number,originY:number,heightScale:number,width:number,height:number,orientation:number}}
+ */
+export function computeCityGeom(canvas, box, orientation, maxHeight) {
+  let W = 1;
+  let H = 1;
+  if (canvas && typeof canvas.getBoundingClientRect === 'function') {
+    const rect = canvas.getBoundingClientRect();
+    W = Math.max(1, rect.width);
+    H = Math.max(1, rect.height);
+  } else if (canvas) {
+    W = Math.max(1, canvas.width || 1);
+    H = Math.max(1, canvas.height || 1);
+  }
+  const o = orientation | 0;
+  const b = box || { x: 0, y: 0, w: N, h: N };
+  const x0 = -b.x;
+  const x1 = CITY_SIZE - b.x;
+  const y0 = -b.y;
+  const y1 = CITY_SIZE - b.y;
+  const corners = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  let minA = Infinity;
+  let maxA = -Infinity;
+  let minB = Infinity;
+  let maxB = -Infinity;
+  for (const [gx, gy] of corners) {
+    const r = rotateGrid(gx, gy, o);
+    const a = r.x - r.y;
+    const bb = r.x + r.y;
+    if (a < minA) minA = a;
+    if (a > maxA) maxA = a;
+    if (bb < minB) minB = bb;
+    if (bb > maxB) maxB = bb;
+  }
+  const A = Math.max(1, maxA - minA);
+  const B = Math.max(1, maxB - minB);
+
+  const padX = W * 0.06;
+  const padY = H * 0.06;
+  const availW = Math.max(1, W - padX * 2);
+  const availH = Math.max(1, H - padY * 2);
+
+  // width = A*tw/2; height = B*th/2 + mh*heightScale, th = tw/2, heightScale = th*F.
+  const mh = Math.max(MAX_CONTEXT_ELEV, maxHeight || 0);
+  const twByW = (availW * 2) / A;
+  const twByH = availH / (B / 4 + (mh * HEIGHT_SCALE_FACTOR) / 2);
+  const tileWidth = Math.max(1, Math.min(twByW, twByH));
+  const tileHeight = tileWidth / 2;
+  const heightScale = tileHeight * HEIGHT_SCALE_FACTOR;
+
+  const projMinX = minA * (tileWidth / 2);
+  const projMaxX = maxA * (tileWidth / 2);
+  const projMinY = minB * (tileHeight / 2);
+  const projMaxY = maxB * (tileHeight / 2);
+  const originX = W / 2 - (projMinX + projMaxX) / 2;
+  const originY = H / 2 - (projMinY + projMaxY) / 2;
+
+  return { tileWidth, tileHeight, originX, originY, heightScale, width: W, height: H, orientation: o };
 }
 
 // ===========================================================================
@@ -818,6 +879,43 @@ function drawGroundPlane(ctx, geom, env, size) {
   ctx.fill();
 }
 
+/**
+ * Draw the soft ground-plane diamond covering the whole macro city, with the
+ * solution parcel at its true position inside it.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} geom
+ * @param {object} env
+ * @param {{x:number,y:number,w:number,h:number}} box
+ */
+function drawCityGroundPlane(ctx, geom, env, box) {
+  const b = box || { x: 0, y: 0, w: N, h: N };
+  const corners = [
+    [-b.x, -b.y],
+    [CITY_SIZE - b.x, -b.y],
+    [CITY_SIZE - b.x, CITY_SIZE - b.y],
+    [-b.x, CITY_SIZE - b.y],
+  ];
+  const pts = corners.map(([gx, gy]) => isoProject(gx, gy, 0, geom));
+
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x + geom.tileWidth * 0.4, pts[0].y + geom.tileHeight * 0.4);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x + geom.tileWidth * 0.4, pts[i].y + geom.tileHeight * 0.4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.closePath();
+  ctx.fillStyle = env.ground;
+  ctx.fill();
+}
+
 // ===========================================================================
 // Ground layer
 // ===========================================================================
@@ -1137,6 +1235,19 @@ function drawContextPrism(ctx, gx, gy, h, color, geom) {
   const l = ins(L);
   const e = h * geom.heightScale;
 
+  // Contact shadow (ambient occlusion) on the ground.
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.moveTo(t.x + geom.tileWidth * 0.12, t.y + geom.tileHeight * 0.12);
+  ctx.lineTo(r.x + geom.tileWidth * 0.12, r.y + geom.tileHeight * 0.12);
+  ctx.lineTo(b.x + geom.tileWidth * 0.12, b.y + geom.tileHeight * 0.12);
+  ctx.lineTo(l.x + geom.tileWidth * 0.12, l.y + geom.tileHeight * 0.12);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
   ctx.beginPath();
   ctx.moveTo(l.x, l.y); ctx.lineTo(b.x, b.y); ctx.lineTo(b.x, b.y - e); ctx.lineTo(l.x, l.y - e); ctx.closePath();
   ctx.fillStyle = shade(color, 0.72); ctx.fill();
@@ -1195,32 +1306,29 @@ function drawContextTree(ctx, gx, gy, elev, geom, seed) {
  */
 export function drawContextRing(ctx, geom, preset, box) {
   if (!preset || !box) return;
-  const m = CONTEXT_MARGIN;
   const hw = geom.tileWidth / 2;
   const hh = geom.tileHeight / 2;
   const o = geom.orientation | 0;
   const city = preset.city || {};
   const boxes = [];
   const trees = [];
+  const cells = [];
 
-  for (let j = -m; j < N + m; j++) {
-    for (let i = -m; i < N + m; i++) {
+  // Iterate the WHOLE macro city, skipping the solution parcel, so the entire
+  // surrounding environment is rendered.
+  for (let cy = 0; cy < CITY_SIZE; cy++) {
+    for (let cx = 0; cx < CITY_SIZE; cx++) {
+      const i = cx - box.x;
+      const j = cy - box.y;
       if (i >= 0 && i < N && j >= 0 && j < N) continue; // solution parcel
-      const cx = box.x + i;
-      const cy = box.y + j;
-      if (cx < 0 || cx >= CITY_SIZE || cy < 0 || cy >= CITY_SIZE) continue;
       const z = terrainZoneAt(preset, cx, cy);
       if (!z) continue;
       const raised = z.type === 'hills' || z.type === 'mountains';
       const dir = raised ? slopeDirFor(city, z) : null;
-      const elev = raised ? contextElev(z, cx, cy, dir, 2.2) : 0;
-      const p = isoProject(i, j, elev, geom);
-      diamondAt(ctx, p.x, p.y + hh, hw, hh);
-      ctx.fillStyle = z.color || '#334155';
-      ctx.fill();
-
+      const elev = raised ? contextElev(z, cx, cy, dir, MAX_CONTEXT_ELEV) : 0;
       const r = rotateGrid(i, j, o);
       const depth = r.x + r.y;
+      cells.push({ i, j, elev, color: z.color || '#334155', depth, cx, cy });
       const bh = contextBoxHeight(z, cx, cy);
       if (bh > 0) boxes.push({ i, j, h: bh, color: z.color || '#b45309', depth });
       const ts = contextTreeAt(z, cx, cy);
@@ -1228,6 +1336,36 @@ export function drawContextRing(ctx, geom, preset, box) {
     }
   }
 
+  // Terrain tiles (depth-sorted).
+  cells.sort((a, b) => a.depth - b.depth);
+  for (const c of cells) {
+    const p = isoProject(c.i, c.j, c.elev, geom);
+    diamondAt(ctx, p.x, p.y + hh, hw, hh);
+    ctx.fillStyle = c.color;
+    ctx.fill();
+  }
+
+  // Ambient occlusion: darken cells adjacent to volumes / raised terrain.
+  for (const c of cells) {
+    let occ = 0;
+    for (let dj = -1; dj <= 1; dj++) {
+      for (let di = -1; di <= 1; di++) {
+        if (di === 0 && dj === 0) continue;
+        const nz = terrainZoneAt(preset, c.cx + di, c.cy + dj);
+        if (!nz) continue;
+        if (contextBoxHeight(nz, c.cx + di, c.cy + dj) > 0) occ += 1;
+        else if (nz.type === 'hills' || nz.type === 'mountains') occ += 0.5;
+      }
+    }
+    if (occ > 0) {
+      const p = isoProject(c.i, c.j, c.elev, geom);
+      diamondAt(ctx, p.x, p.y + hh, hw, hh);
+      ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.35, occ * 0.05).toFixed(3) + ')';
+      ctx.fill();
+    }
+  }
+
+  // Volumes and trees.
   boxes.sort((a, b) => a.depth - b.depth);
   for (const b of boxes) drawContextPrism(ctx, b.i, b.j, b.h, b.color, geom);
   trees.sort((a, b) => a.depth - b.depth);
@@ -1252,12 +1390,15 @@ export function drawContextRing(ctx, geom, preset, box) {
  */
 export function renderThumbnail(ctx, design, geom, opts) {
   const o = opts || {};
-  const size = o.size || N;
   ctx.clearRect(0, 0, geom.width, geom.height);
   const env = makeEnvGradients(ctx, geom);
   drawSky(ctx, geom, env);
-  drawGroundPlane(ctx, geom, env, size);
-  if (o.preset && o.box) drawContextRing(ctx, geom, o.preset, o.box);
+  if (o.preset && o.box) {
+    drawCityGroundPlane(ctx, geom, env, o.box);
+    drawContextRing(ctx, geom, o.preset, o.box);
+  } else {
+    drawGroundPlane(ctx, geom, env, o.size || N);
+  }
 
   const ao = computeAO(design);
   drawGroundLayer(ctx, design, geom, ao);
@@ -1566,7 +1707,9 @@ export function createIsoViewer(canvas, opts = {}) {
     if (!design) return;
 
     const orientation = orientationForDir(windDir);
-    const geom = computeGeom(canvas, EXT, maxHeightOf(design), orientation);
+    const preset = PRESETS.find((p) => p.id === (state.site && state.site.presetId)) || PRESETS[0];
+    const box = state.site && state.site.box;
+    const geom = computeCityGeom(canvas, box, orientation, maxHeightOf(design));
     lastGeom = geom;
     const layers = state.layers || {};
 
@@ -1577,12 +1720,12 @@ export function createIsoViewer(canvas, opts = {}) {
       envKey = key;
     }
     drawSky(ctx, geom, envCache);
-    drawGroundPlane(ctx, geom, envCache, EXT);
-
-    // --- Surrounding city context ring --------------------------------------
-    const preset = PRESETS.find((p) => p.id === (state.site && state.site.presetId)) || PRESETS[0];
-    const box = state.site && state.site.box;
-    if (preset && box) drawContextRing(ctx, geom, preset, box);
+    if (preset && box) {
+      drawCityGroundPlane(ctx, geom, envCache, box);
+      drawContextRing(ctx, geom, preset, box);
+    } else {
+      drawGroundPlane(ctx, geom, envCache, N);
+    }
 
     // --- Derived buffers (cached by design identity) ------------------------
     if (design !== aoCacheRef) {
