@@ -55,7 +55,7 @@ import { weightedPick, randInt, pick, valueNoise2D } from './prng.js';
  * @property {{cols:number[], rows:number[], width:number}} streets - Derived from `structure`.
  * @property {Cell[]} cells - 100 cells, row-major, index = gy*N + gx (gy=0 is North).
  * @property {Metrics|null} metrics
- * @property {{housing:number, permeability:number}|null} descriptor
+ * @property {{floorArea:number, buildingCount:number}|null} descriptor
  * @property {number|null} fitness
  * @property {string|null} archetype
  */
@@ -64,7 +64,7 @@ import { weightedPick, randInt, pick, valueNoise2D } from './prng.js';
  * Layman + planner metric bundle.
  * @typedef {Object} Metrics
  * @property {{homes:number, freshAirInflow:number, greenSpace:number, summaryBadge:string}} layman
- * @property {{grz:number, gfz:number, vFlux:number, z0Mean:number, sigma:number, classPct:Record<string,number>}} planner
+ * @property {{grz:number, gfz:number, vFlux:number, z0Mean:number, sigma:number, buildingCount:number, porosity:number, classPct:Record<string,number>}} planner
  */
 
 /** Classes considered permeable (green/blue infrastructure). */
@@ -889,6 +889,7 @@ export function computeMetrics(d) {
   let gfzSum = 0;
   let homes = 0;
   let greenCount = 0;
+  let buildingCount = 0;
   let z0Sum = 0;
   const classCount = {};
   for (const id of KLAM_IDS) classCount[id] = 0;
@@ -903,6 +904,7 @@ export function computeMetrics(d) {
     footprintSum += fp;
     gfzSum += c.height * fp;
     homes += c.height * fp * k.dwellingsPerFloor * k.residentsPerDwelling;
+    if (c.height > 0) buildingCount++;
     if (PERMEABLE.has(c.klam)) greenCount++;
     z0Sum += k.z0;
     if (classCount[c.klam] !== undefined) classCount[c.klam]++;
@@ -963,6 +965,8 @@ export function computeMetrics(d) {
   const greenSpace = 100 * greenNorm;
   const freshAirInflow = 100 * clamp01(vFlux / V_FLUX_REF);
   const z0Mean = z0Sum / count;
+  // Porosity is the QD objective: the fraction of the parcel left unbuilt.
+  const porosity = 1 - buildingCount / count;
 
   // Block-level base-height variance (coherent designs are not penalised).
   const blocks = d.blocks || [];
@@ -998,6 +1002,8 @@ export function computeMetrics(d) {
       vFlux,
       z0Mean,
       sigma,
+      buildingCount,
+      porosity,
       classPct,
     },
   };
@@ -1026,29 +1032,31 @@ function summaryBadge(freshAirInflow, homes) {
 }
 
 /**
- * Module-level adaptive descriptor scale.
+ * Module-level adaptive descriptor scale for the **floor-area** axis.
  *
- * R1 exposed that the *fixed* reference constants (`SIM.GFZ_MAX = 6`,
- * `V_FLUX_REF = 33.33`) do not match the value range actually reachable by the
- * block genome: real `gfz` only reaches ≈1.47 and real `vFlux` ≈24.6, so the
- * old normalization compressed every candidate into a narrow corner of the
- * descriptor plane (≈18/144 bins). When a scale is installed by
- * {@link module:simulation.generateCandidates}, the raw metrics are linearly
+ * The *fixed* reference constant (`SIM.GFZ_MAX = 6`) does not match the value
+ * range actually reachable by the block genome: real `gfz` only reaches ≈1.47,
+ * so the old normalization compressed every candidate into a narrow corner of
+ * the descriptor plane. When a scale is installed by
+ * {@link module:simulation.generateCandidates}, the raw `gfz` is linearly
  * mapped through the observed 2nd–98th percentile range of the candidate
- * population, so candidates spread across all `BINS` bins. Both mappings stay
- * strictly monotonic (higher `gfz` → higher `housing`; higher `vFlux` → higher
- * `permeability`). `null` restores the legacy fixed-reference behaviour.
+ * population, so candidates spread across all `BINS` bins. The mapping stays
+ * strictly monotonic (higher `gfz` → higher `floorArea`). `null` restores the
+ * legacy fixed-reference behaviour.
  *
- * @type {{gfzLo:number, gfzHi:number, fluxLo:number, fluxHi:number}|null}
+ * The second descriptor axis (`buildingCount`) is an integer count and needs no
+ * adaptive scale — it is binned directly by {@link binOfY}.
+ *
+ * @type {{floorLo:number, floorHi:number}|null}
  */
 let descriptorScale = null;
 
 /**
- * Install (or clear) the adaptive descriptor normalization scale. Called once,
+ * Install (or clear) the adaptive floor-area normalization scale. Called once,
  * deterministically, from `generateCandidates` after measuring the candidate
  * population. Passing `null` restores the legacy fixed-reference mapping.
  *
- * @param {{gfzLo:number, gfzHi:number, fluxLo:number, fluxHi:number}|null} scale
+ * @param {{floorLo:number, floorHi:number}|null} scale
  */
 export function setDescriptorScale(scale) {
   descriptorScale = scale || null;
@@ -1056,31 +1064,32 @@ export function setDescriptorScale(scale) {
 
 /**
  * Read the currently installed descriptor scale (mainly for tests).
- * @returns {{gfzLo:number, gfzHi:number, fluxLo:number, fluxHi:number}|null}
+ * @returns {{floorLo:number, floorHi:number}|null}
  */
 export function getDescriptorScale() {
   return descriptorScale;
 }
 
 /**
- * Compute and cache the 2-D descriptor {housing, permeability}, both 0..1.
+ * Compute and cache the 2-D QD descriptor `{floorArea, buildingCount}`.
  *
- * Uses the adaptive {@link setDescriptorScale|descriptorScale} when installed,
- * otherwise falls back to the legacy fixed `SIM.GFZ_MAX` / `V_FLUX_REF`.
+ * `floorArea` is the normalized floor-area ratio (`gfz`) in 0..1, using the
+ * adaptive {@link setDescriptorScale|descriptorScale} when installed and
+ * otherwise the fixed `SIM.GFZ_MAX` fallback. `buildingCount` is the raw
+ * integer number of built cells (0..N*N) — a genuine QD feature, not an
+ * optimization target.
  *
  * @param {Design} d
- * @returns {{housing:number, permeability:number}}
+ * @returns {{floorArea:number, buildingCount:number}}
  */
 export function computeDescriptor(d) {
   const m = d.metrics || computeMetrics(d);
   const s = descriptorScale;
-  const housing = s
-    ? clamp01((m.planner.gfz - s.gfzLo) / ((s.gfzHi - s.gfzLo) || 1))
+  const floorArea = s
+    ? clamp01((m.planner.gfz - s.floorLo) / ((s.floorHi - s.floorLo) || 1))
     : clamp01(m.planner.gfz / SIM.GFZ_MAX);
-  const permeability = s
-    ? clamp01((m.planner.vFlux - s.fluxLo) / ((s.fluxHi - s.fluxLo) || 1))
-    : clamp01(m.planner.vFlux / V_FLUX_REF);
-  const descriptor = { housing, permeability };
+  const buildingCount = m.planner.buildingCount;
+  const descriptor = { floorArea, buildingCount };
   d.descriptor = descriptor;
   return descriptor;
 }
@@ -1088,24 +1097,47 @@ export function computeDescriptor(d) {
 /**
  * Compute and cache the scalar fitness in [0, 1].
  *
- * fitness = clamp01(0.45*housingNorm + 0.45*permeabilityNorm
- *                   + 0.10*greenNorm - 0.15*sigma)
+ * The objective is **porosity** — the fraction of the parcel left unbuilt
+ * (`1 - buildingCount / (N*N)`). The two descriptor axes (floor area and
+ * building count) are QD *features*, not optimization targets, so fitness is
+ * deliberately a pure function of porosity (no housing/permeability blend and
+ * no uncertainty penalty, which would dilute the stated objective).
  *
  * @param {Design} d
  * @returns {number}
  */
 export function computeFitness(d) {
   const m = d.metrics || computeMetrics(d);
-  const desc = d.descriptor || computeDescriptor(d);
-  const greenNorm = m.layman.greenSpace / 100;
-  const fitness = clamp01(
-    0.45 * desc.housing +
-    0.45 * desc.permeability +
-    0.10 * greenNorm -
-    0.15 * m.planner.sigma
-  );
+  const fitness = clamp01(m.planner.porosity);
   d.fitness = fitness;
   return fitness;
+}
+
+/**
+ * Bin the floor-area descriptor axis into `[0, BINS-1]`.
+ *
+ * @param {number} floorArea - Normalized floor-area ratio 0..1.
+ * @returns {number}
+ */
+export function binOfX(floorArea) {
+  const b = Math.floor(clamp01(floorArea) * BINS);
+  return b < 0 ? 0 : b >= BINS ? BINS - 1 : b;
+}
+
+/**
+ * Bin the building-count descriptor axis into `[0, BINS-1]`.
+ *
+ * Maps `0 → 0` and `N*N → BINS-1`, monotonically and integer-safely, so the
+ * top bin always includes the maximum possible count.
+ *
+ * @param {number} buildingCount - Integer number of built cells (0..N*N).
+ * @returns {number}
+ */
+export function binOfY(buildingCount) {
+  const n = N * N;
+  const v = Number.isFinite(buildingCount) ? buildingCount : 0;
+  const b = Math.floor((v * BINS) / (n + 1));
+  return b < 0 ? 0 : b >= BINS ? BINS - 1 : b;
 }
 
 /**

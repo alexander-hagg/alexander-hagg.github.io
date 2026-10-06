@@ -187,6 +187,6 @@ export const PRESETS = [
 export const ARCHETYPE_DEFS = [
   { id:'A', name:{ en:'Green Cold-Air Finger', de:'Grüner Kaltluftfinger' },   color:'#3fa34d', badge:'A' },
   { id:'B', name:{ en:'Porous Courtyard Carpet', de:'Poröser Hofteppich' },    color:'#38bdf8', badge:'B' },
-  { id:'C', name:{ en:'Stepped Windbreak', de:'Gestaffelter Windschutz' },     color:'#a78bfa', badge:'C' },
+  { id:'C', name:{ en:'Fine-Grain Low-Rise', de:'Feinkörnige Bebauung' },      color:'#a78bfa', badge:'C' },
   { id:'D', name:{ en:'Maximum Housing Density', de:'Maximale Wohndichte' },   color:'#f97316', badge:'D' },
 ];

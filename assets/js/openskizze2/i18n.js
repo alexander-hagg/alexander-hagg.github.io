@@ -123,6 +123,9 @@ export const DICT = {
     'dash.summary': 'Summary',
     'dash.grz': 'ground area ratio',
     'dash.gfz': 'floor space ratio',
+    'dash.porosity': 'Porosity',
+    'dash.buildingCount': 'Buildings',
+    'dash.porosityDetail': 'share of the parcel left unbuilt',
     'dash.vflux': 'Cold Air Volume Flux',
     'dash.reference': 'All-grass reference',
     'dash.z0': 'Effective Roughness (z0 mean)',
@@ -177,6 +180,8 @@ export const DICT = {
     'dash.narrDense': 'A dense building footprint maximises housing on the parcel.',
     'dash.narrOpen': 'An open, low-coverage layout leaves generous ground space.',
     'dash.narrModerate': 'A moderately dense block structure balances built and open space.',
+    'dash.narrPorous': 'A high share of the parcel is left unbuilt, keeping the site open and porous.',
+    'dash.narrBuiltUp': 'Most of the parcel is built over, leaving little open ground.',
     'dash.narrVentDeep':
       'Cold night air penetrates deep into the parcel, keeping the area well ventilated.',
     'dash.narrVentRestricted':
@@ -217,7 +222,7 @@ export const DICT = {
 
     // --- Archive heatmap ----------------------------------------------------
     'archive.xAxis': 'Housing Capacity / Floor Area →',
-    'archive.yAxis': 'Cold Air Permeability / Cooling Flux →',
+    'archive.yAxis': 'Number of Buildings →',
     'archive.pareto': 'Pareto front',
     'archive.coverage': 'Coverage: {filled} / {total} ({pct}%)',
 
@@ -228,17 +233,18 @@ export const DICT = {
     // --- Explainer bodies ---------------------------------------------------
     'explainer.qdBody':
       '<strong class="text-slate-100">What is a MAP-Elites archive?</strong> ' +
-      'Instead of searching for one "best" city, we keep the best design for ' +
-      '<em>every</em> combination of two goals: how many homes it creates ' +
-      '(left→right) and how well it lets cool night air flow through ' +
-      '(bottom→top). Each cell is a niche; the colour shows overall quality. ' +
+      'Instead of searching for one "best" city, we keep the most porous design ' +
+      'for <em>every</em> combination of two features: how much floor area it ' +
+      'provides (left→right) and how many buildings it contains (bottom→top). ' +
+      'Each cell is a niche; the colour shows overall quality (porosity). ' +
       'This is <em>Quality Diversity</em>: many good, different answers ' +
       'instead of a single winner.',
     'explainer.archetypesBody':
       '<strong class="text-slate-100">What are the archetypes?</strong> ' +
       'The archive is grouped into four recurring design families — a green ' +
-      'cold-air finger, a porous courtyard carpet, a stepped windbreak, and a ' +
-      'maximum-density block. Click one to see its most representative design.',
+      'cold-air finger, a porous courtyard carpet, a fine-grain low-rise ' +
+      'fabric, and a maximum-density block. Click one to see its most ' +
+      'representative design.',
   },
   de: {
     'app.title': 'OpenSKIZZE 2.0 — Generative urbane Klimagestaltung',
@@ -332,6 +338,9 @@ export const DICT = {
     'dash.summary': 'Zusammenfassung',
     'dash.grz': 'Grundflächenzahl',
     'dash.gfz': 'Geschossflächenzahl',
+    'dash.porosity': 'Porosität',
+    'dash.buildingCount': 'Gebäude',
+    'dash.porosityDetail': 'Anteil der unbebauten Fläche',
     'dash.vflux': 'Kaltluftvolumenstrom',
     'dash.reference': 'Referenz (nur Gras)',
     'dash.z0': 'Effektive Rauigkeit (z0 Mittel)',
@@ -388,6 +397,10 @@ export const DICT = {
     'dash.narrOpen': 'Eine offene, gering überbaute Anordnung lässt großzügigen Freiraum.',
     'dash.narrModerate':
       'Eine mäßig dichte Blockstruktur balanciert bebaute und offene Flächen.',
+    'dash.narrPorous':
+      'Ein hoher Anteil der Fläche bleibt unbebaut und hält den Standort offen und porös.',
+    'dash.narrBuiltUp':
+      'Der Großteil der Fläche ist überbaut und lässt wenig Freiraum.',
     'dash.narrVentDeep':
       'Kalte Nachtluft dringt tief in die Fläche ein und hält das Gebiet gut durchlüftet.',
     'dash.narrVentRestricted':
@@ -428,7 +441,7 @@ export const DICT = {
 
     // --- Archiv-Heatmap -----------------------------------------------------
     'archive.xAxis': 'Wohnkapazität / Geschossfläche →',
-    'archive.yAxis': 'Kaltluftdurchlässigkeit / Kühlstrom →',
+    'archive.yAxis': 'Anzahl Gebäude →',
     'archive.pareto': 'Pareto-Front',
     'archive.coverage': 'Abdeckung: {filled} / {total} ({pct}%)',
 
@@ -440,17 +453,17 @@ export const DICT = {
     'explainer.qdBody':
       '<strong class="text-slate-100">Was ist ein MAP-Elites-Archiv?</strong> ' +
       'Statt nach einer einzigen „besten“ Stadt zu suchen, behalten wir den ' +
-      'besten Entwurf für <em>jede</em> Kombination zweier Ziele: wie viele ' +
-      'Wohnungen entstehen (links→rechts) und wie gut kühle Nachtluft ' +
-      'durchströmen kann (unten→oben). Jede Zelle ist eine Nische; die Farbe ' +
-      'zeigt die Gesamtqualität. Das ist <em>Quality Diversity</em>: viele ' +
-      'gute, unterschiedliche Antworten statt eines einzigen Siegers.',
+      'porösesten Entwurf für <em>jede</em> Kombination zweier Merkmale: wie ' +
+      'viel Geschossfläche entsteht (links→rechts) und wie viele Gebäude ' +
+      'enthalten sind (unten→oben). Jede Zelle ist eine Nische; die Farbe ' +
+      'zeigt die Gesamtqualität (Porosität). Das ist <em>Quality Diversity</em>: ' +
+      'viele gute, unterschiedliche Antworten statt eines einzigen Siegers.',
     'explainer.archetypesBody':
       '<strong class="text-slate-100">Was sind die Archetypen?</strong> ' +
       'Das Archiv wird in vier wiederkehrende Entwurfsfamilien gruppiert — ein ' +
-      'grüner Kaltluftfinger, ein poröser Hofteppich, ein gestaffelter ' +
-      'Windschutz und ein Block maximaler Dichte. Klicken Sie auf einen, um ' +
-      'seinen repräsentativsten Entwurf zu sehen.',
+      'grüner Kaltluftfinger, ein poröser Hofteppich, eine feinkörnige Bebauung ' +
+      'und ein Block maximaler Dichte. Klicken Sie auf einen, um seinen ' +
+      'repräsentativsten Entwurf zu sehen.',
   },
 };
 

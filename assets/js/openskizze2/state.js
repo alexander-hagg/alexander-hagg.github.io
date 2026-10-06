@@ -17,6 +17,8 @@ import {
   computeDescriptor,
   computeFitness,
   binIndex,
+  binOfX,
+  binOfY,
 } from './design.js';
 import { createArchive, deriveArchetypes } from './simulation.js';
 
@@ -58,7 +60,7 @@ export function makeInitialState() {
     site: { presetId: defaultPreset.id, box: { ...defaultPreset.box } },
     candidatesEvaluated: 0,
     totalCandidates: SIM.TOTAL_CANDIDATES,
-    archive: { bins: new Array(144).fill(null), coverage: 0, best: null, pareto: [] },
+    archive: { bins: new Array(BINS * BINS).fill(null), coverage: 0, best: null, pareto: [] },
     archetypes: [],
     selectedDesignId: null,
     selectedArchetype: null,
@@ -75,7 +77,7 @@ export const initialState = makeInitialState();
 
 /** Empty archive factory (kept local so state.js has no simulation dependency). */
 function emptyArchive() {
-  return { bins: new Array(144).fill(null), coverage: 0, best: null, pareto: [] };
+  return { bins: new Array(BINS * BINS).fill(null), coverage: 0, best: null, pareto: [] };
 }
 
 /**
@@ -137,10 +139,8 @@ export function reducer(state, action) {
       const desc = design.descriptor || computeDescriptor(design);
       const fitness = design.fitness != null ? design.fitness : computeFitness(design);
 
-      let bx = Math.floor(desc.housing * BINS);
-      let by = Math.floor(desc.permeability * BINS);
-      if (bx < 0) bx = 0; else if (bx >= BINS) bx = BINS - 1;
-      if (by < 0) by = 0; else if (by >= BINS) by = BINS - 1;
+      const bx = binOfX(desc.floorArea);
+      const by = binOfY(desc.buildingCount);
 
       const idx = binIndex(bx, by);
       const bins = state.archive.bins.slice();
@@ -174,17 +174,17 @@ export function reducer(state, action) {
       const archive = state.archive;
       const elites = archive.bins.filter(Boolean);
 
-      // Pareto set on raw (housingNorm, permeabilityNorm).
+      // Pareto set on the two QD features (floorArea, buildingCount).
       const pareto = [];
       for (const a of elites) {
-        const ah = a.design.descriptor.housing;
-        const ap = a.design.descriptor.permeability;
+        const af = a.design.descriptor.floorArea;
+        const ab = a.design.descriptor.buildingCount;
         let dominated = false;
         for (const b of elites) {
           if (a === b) continue;
-          const bh = b.design.descriptor.housing;
-          const bp = b.design.descriptor.permeability;
-          if (bh >= ah && bp >= ap && (bh > ah || bp > ap)) {
+          const bf = b.design.descriptor.floorArea;
+          const bb = b.design.descriptor.buildingCount;
+          if (bf >= af && bb >= ab && (bf > af || bb > ab)) {
             dominated = true;
             break;
           }

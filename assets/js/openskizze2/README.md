@@ -15,8 +15,9 @@ that loads Tailwind via the Play CDN and bootstraps the ES-module entry point
 
 OpenSKIZZE 2.0 turns a 10×10 parcel into a searchable design space. A
 deterministic, seeded MAP-Elites search fills a 12×12 archive whose axes are two
-competing objectives — **housing capacity** and **cold-air permeability** — and
-the resulting elites are clustered into four human-readable design archetypes.
+QD **features** — **floor area** and **number of buildings** — while the
+optimization objective is **porosity** (the share of the parcel left unbuilt).
+The resulting elites are clustered into four human-readable design archetypes.
 
 The genome is a **block/parcel morphology model**: nine rectangular blocks laid
 into the free regions between a site's retained infrastructure, each carrying a
@@ -370,54 +371,58 @@ The reference flux `V_FLUX_REF` is the flux of an all-grass parcel
 
 ### Descriptor axes, adaptive normalization and 12×12 binning
 
-The two MAP-Elites behaviour axes are both normalised to `[0, 1]`
-([`computeDescriptor`](design.js:815)):
+The two MAP-Elites behaviour axes are genuine QD **features** (not optimization
+targets), returned by [`computeDescriptor`](design.js:1074):
 
-- **housing** — from the floor-area ratio `gfz`
-- **permeability** — from the cold-air flux `vFlux`
+- **floorArea** — the normalized floor-area ratio `gfz` (0..1)
+- **buildingCount** — the raw integer number of built cells (0..N*N)
 
 **Adaptive descriptor scale (coverage fix).** The block genome only reaches
-`gfz ≈ 1.47` and `vFlux ≈ 24.6 m³/s`, far below the fixed ceilings
-(`SIM.GFZ_MAX = 6`, `V_FLUX_REF ≈ 33.33`). Normalising against those fixed
-references compressed every candidate into a narrow corner of descriptor space
-(≈18/144 bins occupied). [`generateCandidates`](simulation.js:237) therefore
-measures the whole enumeration pool once, deterministically, and installs a
-**2nd–98th percentile scale** of the candidate population via
-[`setDescriptorScale`](design.js:794) before any ticking:
+`gfz ≈ 1.47`, far below the fixed ceiling (`SIM.GFZ_MAX = 6`). Normalising
+against that fixed reference compressed every candidate into a narrow corner of
+descriptor space. [`generateCandidates`](simulation.js:237) therefore measures
+the whole enumeration pool once, deterministically, and installs a **2nd–98th
+percentile scale** of the candidate population via
+[`setDescriptorScale`](design.js:1053) before any ticking:
 
 ```text
-housing      = clamp01((gfz   - gfzLo)   / (gfzHi   - gfzLo))
-permeability = clamp01((vFlux - fluxLo)  / (fluxHi  - fluxLo))
+floorArea = clamp01((gfz - floorLo) / (floorHi - floorLo))
 # Lo/Hi are the 2nd/98th percentiles of the candidate pool
 ```
 
-Both mappings stay **strictly monotonic** — higher `gfz` always yields higher
-`housing`, and higher `vFlux` always yields higher `permeability` — so the
-search ordering is unchanged while candidates now spread across all bins. With
-the default seed this gives archive coverage of **88/144 (61.1%)** for the
-`railyard` preset, **77/144 (53.5%)** for `northgate` and **84/144 (58.3%)** for
-`southcore`.
-[`getDescriptorScale`](design.js:1061) exposes the installed scale for tests.
-When no scale is installed, `computeDescriptor` falls back to the legacy fixed
-`SIM.GFZ_MAX` / `V_FLUX_REF` references.
+The mapping stays **strictly monotonic** — higher `gfz` always yields higher
+`floorArea` — so the search ordering is unchanged while candidates now spread
+across all bins. The `buildingCount` axis is an integer count and needs no
+adaptive scale. [`getDescriptorScale`](design.js:1061) exposes the installed
+scale for tests. When no scale is installed, `computeDescriptor` falls back to
+the fixed `SIM.GFZ_MAX` reference.
 
 Each axis is split into `BINS = 12` bins, giving a 12×12 = 144-cell archive.
+Binning is centralized in [`design.js`](design.js:1) and used by **both**
+[`simulation.js`](simulation.js:1) and [`state.js`](state.js:1):
+
+```text
+binOfX(floorArea)     = min(BINS-1, floor(clamp01(floorArea) * BINS))
+binOfY(buildingCount) = min(BINS-1, floor(buildingCount * BINS / (N*N + 1)))
+# binOfY maps 0 → 0 and N*N → BINS-1, monotonically and integer-safely
+```
+
 A bin coordinate maps to a flat index via
-`binIndex(bx, by) = by * BINS + bx` ([`design.js`](design.js:859)).
+`binIndex(bx, by) = by * BINS + bx` ([`design.js`](design.js:1)).
 
 ### Fitness
 
-The scalar fitness in `[0, 1]` balances both objectives and penalises surrogate
-uncertainty ([`design.js`](design.js:838)):
+The scalar fitness in `[0, 1]` is the **porosity** objective — the fraction of
+the parcel left unbuilt ([`design.js`](design.js:1097)):
 
 ```text
-fitness = clamp01(
-    0.45 * housing
-  + 0.45 * permeability
-  + 0.10 * greenNorm
-  - 0.15 * sigma
-)
+porosity = 1 - buildingCount / (N*N)
+fitness  = clamp01(porosity)
 ```
+
+The two descriptor axes are QD features, not optimization targets, so fitness is
+deliberately a pure function of porosity (no housing/permeability blend and no
+uncertainty penalty, which would dilute the stated objective).
 
 `sigma` is a surrogate-uncertainty proxy in `[0, 1]` that uses **block-level**
 base-height variance, so coherent designs are not penalised
@@ -432,19 +437,19 @@ sigma = clamp01(0.08 + 0.35*heightVarNorm + 0.25*grz + 0.20*(1 - greenNorm))
 ### Archetype derivation
 
 After the search completes, the archive elites are clustered into **four**
-archetypes with deterministic k-means (k-means++ init, `KMEANS_SEED = 7`,
+archetypes with deterministic k-means (k-means++ init, `KMEANS_SEED = 15`,
 `KMEANS_ITERS = 40`) over a **9-dimensional** normalised feature vector
-([`simulation.js`](simulation.js:386)):
+([`simulation.js`](simulation.js:373)):
 
 ```text
-[housingNorm, permeabilityNorm, greenNorm, meanHeightNorm,
+[floorArea, buildingCountNorm, greenNorm, meanHeightNorm,
  waterFrac, forestFrac, sealedFrac, meanFootprint, streetFraction]
 ```
 
-Labels are assigned deterministically ([`simulation.js`](simulation.js:591)):
+Labels are assigned deterministically ([`simulation.js`](simulation.js:527)):
 
-- **D** — cluster with the highest mean housing
-- **A** — among the rest, highest mean permeability (preferring green ≥ 0.4)
+- **D** — cluster with the highest mean floor area
+- **A** — among the rest, highest mean porosity (preferring green ≥ 0.4)
 - **C** — among the rest, highest mean height
 - **B** — the last remaining cluster
 
@@ -455,7 +460,7 @@ distance to its cluster-mates), used as the representative design.
 |---|---|---|
 | A | Green Cold-Air Finger | `#3fa34d` |
 | B | Porous Courtyard Carpet | `#38bdf8` |
-| C | Stepped Windbreak | `#a78bfa` |
+| C | Fine-Grain Low-Rise | `#a78bfa` |
 | D | Maximum Housing Density | `#f97316` |
 
 ---
@@ -507,7 +512,7 @@ Concise shapes (see the JSDoc in each module for the full definitions).
   streets: { cols: number[], rows: number[], width: number },  // derived from structure
   cells: Cell[],         // 100 cells, row-major: index = gy*N + gx (gy=0 is North)
   metrics: Metrics | null,
-  descriptor: { housing: number, permeability: number } | null,
+  descriptor: { floorArea: number, buildingCount: number } | null,
   fitness: number | null,
   archetype: string | null
 }
@@ -529,6 +534,8 @@ Concise shapes (see the JSDoc in each module for the full definitions).
     vFlux: number,            // m³/s
     z0Mean: number,           // mean roughness length (m)
     sigma: number,            // surrogate uncertainty 0..1
+    buildingCount: number,    // integer count of built cells (0..N*N)
+    porosity: number,         // 1 - buildingCount/(N*N), the QD objective
     classPct: Record<string, number>   // per-KLAM percentage (7 classes)
   }
 }
@@ -541,7 +548,7 @@ Concise shapes (see the JSDoc in each module for the full definitions).
   bins: (Design | null)[],   // 144 bins (12×12), null when empty
   coverage: number,          // fraction of non-empty bins 0..1
   best: Design | null,       // highest-fitness elite
-  pareto: number[]           // ids of elites non-dominated on (housing, permeability)
+  pareto: number[]           // ids of elites non-dominated on (floorArea, buildingCount)
 }
 ```
 

@@ -162,6 +162,10 @@ function klamDonut(classPct) {
 function narrative(p, m) {
   const sentences = [];
 
+  // Porosity is the QD objective, so lead with it.
+  if (p.porosity >= 0.6) sentences.push(t('dash.narrPorous'));
+  else if (p.porosity <= 0.3) sentences.push(t('dash.narrBuiltUp'));
+
   if (p.grz >= 0.45) sentences.push(t('dash.narrDense'));
   else if (p.grz <= 0.2) sentences.push(t('dash.narrOpen'));
   else sentences.push(t('dash.narrModerate'));
@@ -759,7 +763,8 @@ export function createDashboard(store, deps) {
     const p = m.planner;
     const refPct = Math.round((p.vFlux / V_FLUX_REF) * 100);
 
-    // Big KPI row.
+    // Big KPI row. Porosity (the QD objective) and building count (a QD
+    // feature) are foregrounded alongside the statutory GRZ/GFZ ratios.
     const kpis =
       '<div class="grid grid-cols-2 gap-3">' +
         '<div class="glass p-3">' +
@@ -771,6 +776,16 @@ export function createDashboard(store, deps) {
           '<div class="fs-11 uppercase tracking-wider text-slate-300">GFZ</div>' +
           '<div class="fs-20 font-bold text-slate-100 leading-tight">' + fmt(p.gfz, 2) + '</div>' +
           '<div class="fs-11 text-slate-300">' + t('dash.gfz') + '</div>' +
+        '</div>' +
+        '<div class="glass p-3">' +
+          '<div class="fs-11 uppercase tracking-wider text-slate-300">' + t('dash.porosity') + '</div>' +
+          '<div class="fs-20 font-bold text-cold leading-tight">' + fmt(p.porosity, 2) + '</div>' +
+          '<div class="fs-11 text-slate-300">' + t('dash.porosityDetail') + '</div>' +
+        '</div>' +
+        '<div class="glass p-3">' +
+          '<div class="fs-11 uppercase tracking-wider text-slate-300">' + t('dash.buildingCount') + '</div>' +
+          '<div class="fs-20 font-bold text-slate-100 leading-tight">' + fmtInt(p.buildingCount) + '</div>' +
+          '<div class="fs-11 text-slate-300">' + t('dash.buildingCount') + '</div>' +
         '</div>' +
       '</div>';
 

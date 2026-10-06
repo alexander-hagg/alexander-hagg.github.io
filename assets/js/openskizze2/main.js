@@ -24,12 +24,22 @@ import { initUI } from './ui.js';
 import { generateCandidates } from './simulation.js';
 import { computeMetrics, computeDescriptor, computeFitness } from './design.js';
 import { createArchiveView } from './archiveview.js';
-import { computeGeom, renderThumbnail, createIsoViewer, selectedDesign } from './iso.js';
+import { computeGeom, renderThumbnail, createIsoViewer, selectedDesign, CONTEXT_MARGIN } from './iso.js';
 import { createAirflow } from './airflow.js';
 import { createDashboard } from './dashboard.js';
 
+/** Extended grid side: the parcel plus a surrounding city-context ring. */
+const EXT = N + 2 * CONTEXT_MARGIN;
+
 /** Candidates for the current search (generated once on RUN_SEARCH). */
 let candidates = null;
+
+/**
+ * Fixed max building height used to fit the Phase-2 preview geometry. Using a
+ * constant (the tallest building across all candidates) keeps the scene scale
+ * stable while candidates stream past, so the preview no longer hops up/down.
+ */
+let previewMaxHeight = 6;
 
 /** Design whose airflow field is currently built (identity-keyed cache). */
 let lastFieldDesign = null;
@@ -42,7 +52,7 @@ const DRAW_INTERVAL_MS = 50;
  * Owned by main.js so it can use the RAF clock for the rapid flash.
  *
  * @param {HTMLCanvasElement} canvas
- * @returns {{resize:()=>void, render:(design:object|null, now:number, flashing:boolean)=>void}}
+ * @returns {{resize:()=>void, render:(design:object|null, now:number, flashing:boolean, preset?:object, box?:object)=>void}}
  */
 function createPreview(canvas) {
   const ctx = canvas.getContext('2d');
@@ -62,24 +72,21 @@ function createPreview(canvas) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  /** Tallest building in the design (stories). @param {object} design */
-  function maxHeightOf(design) {
-    let m = 1;
-    for (const c of design.cells) if (c.height > m) m = c.height;
-    return m;
-  }
-
   /**
    * @param {object|null} design
    * @param {number} now
    * @param {boolean} flashing
+   * @param {object} [preset]
+   * @param {object} [box]
    */
-  function render(design, now, flashing) {
+  function render(design, now, flashing, preset, box) {
     if (!hasSize) return;
     ctx.clearRect(0, 0, cssW, cssH);
     if (!design) return;
-    const geom = computeGeom(canvas, N, maxHeightOf(design));
-    renderThumbnail(ctx, design, geom);
+    // Fixed max height keeps the geometry (and thus the scene scale) stable
+    // across candidates, so the preview no longer hops up and down.
+    const geom = computeGeom(canvas, EXT, previewMaxHeight);
+    renderThumbnail(ctx, design, geom, { preset, box, size: EXT });
     if (flashing && Math.floor(now / 90) % 2 === 0) {
       ctx.save();
       ctx.globalAlpha = 0.1;
@@ -192,6 +199,12 @@ function boot() {
         computeDescriptor(d);
         computeFitness(d);
       }
+      // Fixed preview scale: the tallest building across all candidates.
+      let mh = 1;
+      for (const d of candidates) {
+        for (const c of d.cells) if (c.height > mh) mh = c.height;
+      }
+      previewMaxHeight = mh;
     }
   });
 
@@ -223,9 +236,11 @@ function boot() {
     if (action && action.type === 'SEARCH_COMPLETE' && preview) {
       const best = state.archive && state.archive.best ? state.archive.best.design : null;
       if (best) {
+        const preset = PRESETS.find((p) => p.id === state.site.presetId) || PRESETS[0];
+        const box = state.site.box;
         requestAnimationFrame(() => {
           preview.resize();
-          preview.render(best, performance.now(), false);
+          preview.render(best, performance.now(), false, preset, box);
         });
       }
     }
@@ -283,7 +298,8 @@ function boot() {
         lastPreviewDraw = now;
         const idx = Math.max(0, state.candidatesEvaluated - 1);
         const design = candidates ? candidates[Math.min(idx, candidates.length - 1)] : null;
-        preview.render(design, now, !reducedMotion);
+        const preset = PRESETS.find((p) => p.id === state.site.presetId) || PRESETS[0];
+        preview.render(design, now, !reducedMotion, preset, state.site.box);
       }
     } else if (state.phase === 'EXPLORE') {
       // Rebuild the airflow field whenever the selected design changes. The

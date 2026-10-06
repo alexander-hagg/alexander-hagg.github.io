@@ -18,6 +18,8 @@ import {
   computeDescriptor,
   computeFitness,
   binIndex,
+  binOfX,
+  binOfY,
   setDescriptorScale,
   computeFreeRects,
 } from './design.js';
@@ -34,7 +36,7 @@ import {
  * @property {(Design|null)[]} bins - 144 bins (12x12), null when empty.
  * @property {number} coverage - Fraction of non-empty bins 0..1.
  * @property {Design|null} best - Highest-fitness elite.
- * @property {number[]} pareto - Ids of elites non-dominated on (housing, permeability).
+ * @property {number[]} pareto - Ids of elites non-dominated on (floorArea, buildingCount).
  */
 
 /**
@@ -73,12 +75,6 @@ const DENSITY_LEVELS = [0.4, 0.6, 0.8];
 function clamp01(x) {
   if (!Number.isFinite(x)) return 0;
   return x < 0 ? 0 : x > 1 ? 1 : x;
-}
-
-/** Bin coordinate for a descriptor value. @param {number} v @returns {number} */
-function binOf(v) {
-  const b = Math.floor(clamp01(v) * BINS);
-  return b < 0 ? 0 : b >= BINS ? BINS - 1 : b;
 }
 
 /**
@@ -140,8 +136,8 @@ function landUseMaps(bias, seed, rects) {
  *
  * The mixed schemes are chosen to spread candidates across the *2-D* descriptor
  * plane: north green/blue strips (upstream cold-air sources) are combined with
- * dense building patterns downstream so that high `housing` co-occurs with high
- * `permeability` (upper-right region), while forest-heavy and water-heavy
+ * dense building patterns downstream so that high `floorArea` co-occurs with a
+ * high `buildingCount` (upper-right region), while forest-heavy and water-heavy
  * schemes reach the low/low and low/high corners. Schemes are indexed row-major
  * (block b is at grid column `b % 3`, row `floor(b / 3)`; row 0 is North).
  *
@@ -154,14 +150,14 @@ function patternSchemes() {
   schemes.push(['towerPark', 'green', 'towerPark', 'green', 'towerPark', 'green', 'towerPark', 'green', 'towerPark']);
   schemes.push(['row', 'row', 'detached', 'row', 'row', 'detached', 'row', 'row', 'detached']);
   schemes.push(['green', 'detached', 'row', 'green', 'detached', 'row', 'green', 'detached', 'row']);
-  // North water/green strip + dense downstream blocks → high housing AND flux.
+  // North water/green strip + dense downstream blocks → high floor area AND building count.
   schemes.push(['water', 'water', 'water', 'perimeter', 'row', 'courtyard', 'perimeter', 'row', 'courtyard']);
   schemes.push(['water', 'green', 'water', 'towerPark', 'row', 'perimeter', 'towerPark', 'row', 'perimeter']);
   schemes.push(['green', 'green', 'green', 'towerPark', 'perimeter', 'courtyard', 'towerPark', 'perimeter', 'courtyard']);
   // Green/blue N–S fingers interlaced with buildings → porous mid-range cover.
   schemes.push(['water', 'perimeter', 'green', 'green', 'perimeter', 'water', 'water', 'perimeter', 'green']);
   schemes.push(['water', 'row', 'water', 'perimeter', 'water', 'perimeter', 'water', 'row', 'water']);
-  // Forest-heavy (high z0 shelters flux) → low housing / low permeability corner.
+  // Forest-heavy (high z0 shelters flux) → low floor area / low building count corner.
   schemes.push(['green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green']);
   return schemes;
 }
@@ -242,22 +238,20 @@ export function generateCandidates(site, count, seed) {
   }
 
   // --- 2. Measure the population and install adaptive normalization ---------
-  // R1 coverage collapsed because fixed GFZ_MAX / V_FLUX_REF did not match the
-  // achievable metric range, packing all candidates into a few bins. Measure
-  // the raw population once (deterministically) and map the observed 2nd–98th
-  // percentile range onto [0,1], so the axes stay monotonic but fill all bins.
+  // The fixed GFZ_MAX does not match the achievable floor-area range, packing
+  // all candidates into a few bins. Measure the raw population once
+  // (deterministically) and map the observed 2nd–98th percentile range onto
+  // [0,1], so the floor-area axis stays monotonic but fills all bins. The
+  // building-count axis is an integer count and needs no adaptive scale.
   const probes = pool.map((blocks) => {
     const probe = createDesign(0, blocks, structure, windDir);
     computeMetrics(probe);
     return probe;
   });
   const gfzVals = probes.map((d) => d.metrics.planner.gfz).sort((a, b) => a - b);
-  const fluxVals = probes.map((d) => d.metrics.planner.vFlux).sort((a, b) => a - b);
   setDescriptorScale({
-    gfzLo: percentile(gfzVals, 0.02),
-    gfzHi: percentile(gfzVals, 0.98),
-    fluxLo: percentile(fluxVals, 0.02),
-    fluxHi: percentile(fluxVals, 0.98),
+    floorLo: percentile(gfzVals, 0.02),
+    floorHi: percentile(gfzVals, 0.98),
   });
 
   // --- 3. Greedy selection of a bin-covering subset -------------------------
@@ -265,7 +259,7 @@ export function generateCandidates(site, count, seed) {
   const seen = new Set();
   for (const probe of probes) {
     const desc = computeDescriptor(probe);
-    const key = binOf(desc.permeability) * BINS + binOf(desc.housing);
+    const key = binOfY(desc.buildingCount) * BINS + binOfX(desc.floorArea);
     if (!seen.has(key)) {
       seen.add(key);
       selected.push(probe.blocks);
@@ -323,10 +317,8 @@ export function runMAPElites(candidates, archive) {
     const desc = computeDescriptor(d);
     const fit = computeFitness(d);
 
-    let bx = Math.floor(desc.housing * BINS);
-    let by = Math.floor(desc.permeability * BINS);
-    if (bx < 0) bx = 0; else if (bx >= BINS) bx = BINS - 1;
-    if (by < 0) by = 0; else if (by >= BINS) by = BINS - 1;
+    const bx = binOfX(desc.floorArea);
+    const by = binOfY(desc.buildingCount);
 
     const idx = binIndex(bx, by);
     const cur = archive.bins[idx];
@@ -342,15 +334,15 @@ export function runMAPElites(candidates, archive) {
   }
   archive.best = best;
 
-  // Pareto set on raw (housingNorm, permeabilityNorm).
+  // Pareto set on the two QD features (floorArea, buildingCount).
   const pareto = [];
   for (const a of elites) {
     let dominated = false;
     for (const b of elites) {
       if (a === b) continue;
-      const ah = a.descriptor.housing, ap = a.descriptor.permeability;
-      const bh = b.descriptor.housing, bp = b.descriptor.permeability;
-      if (bh >= ah && bp >= ap && (bh > ah || bp > ap)) {
+      const af = a.descriptor.floorArea, ab = a.descriptor.buildingCount;
+      const bf = b.descriptor.floorArea, bb = b.descriptor.buildingCount;
+      if (bf >= af && bb >= ab && (bf > af || bb > ab)) {
         dominated = true;
         break;
       }
@@ -364,7 +356,7 @@ export function runMAPElites(candidates, archive) {
 
 /**
  * Build the 9-dim normalized feature vector for an elite design.
- * [housingNorm, permeabilityNorm, greenNorm, meanHeightNorm,
+ * [floorArea, buildingCountNorm, greenNorm, meanHeightNorm,
  *  waterFrac, forestFrac, sealedFrac, meanFootprint, streetFraction]
  *
  * @param {Design} d
@@ -389,8 +381,8 @@ function featureVector(d) {
   const streetFraction = d.cells.length > 0 ? streetCount / d.cells.length : 0;
 
   return [
-    clamp01(desc.housing),
-    clamp01(desc.permeability),
+    clamp01(desc.floorArea),
+    clamp01(desc.buildingCount / (N * N)),
     clamp01(m.layman.greenSpace / 100),
     clamp01(m.planner.gfz / SIM.GFZ_MAX),
     clamp01((pct.KLAM_WATER || 0) / 100),
@@ -516,8 +508,8 @@ function kmeans(points, k, seed, iters) {
  * Derive four labelled archetypes from the archive elites via k-means.
  *
  * Labels are assigned deterministically:
- *  - D = cluster with max mean housingNorm
- *  - A = among remaining, max mean permeabilityNorm (preferring greenNorm ≥ 0.4)
+ *  - D = cluster with max mean floorArea
+ *  - A = among remaining, max mean porosity (preferring greenNorm ≥ 0.4)
  *  - C = among remaining, max mean meanHeightNorm
  *  - B = last remaining
  *
@@ -551,14 +543,15 @@ export function deriveArchetypes(archive) {
   const stats = centroids.map((cent, c) => {
     const idxs = members[c];
     if (idxs.length === 0) {
-      return { housing: -Infinity, permeability: -Infinity, green: -Infinity, meanHeight: -Infinity };
+      return { floorArea: -Infinity, buildingCount: -Infinity, porosity: -Infinity, green: -Infinity, meanHeight: -Infinity };
     }
-    let h = 0, p = 0, g = 0, mh = 0;
+    let fa = 0, bc = 0, g = 0, mh = 0;
     for (const i of idxs) {
-      h += points[i][0]; p += points[i][1]; g += points[i][2]; mh += points[i][3];
+      fa += points[i][0]; bc += points[i][1]; g += points[i][2]; mh += points[i][3];
     }
     const n = idxs.length;
-    return { housing: h / n, permeability: p / n, green: g / n, meanHeight: mh / n };
+    const buildingCount = bc / n;
+    return { floorArea: fa / n, buildingCount, porosity: 1 - buildingCount, green: g / n, meanHeight: mh / n };
   });
 
   // Deterministic label assignment.
@@ -575,13 +568,13 @@ export function deriveArchetypes(archive) {
     if (i >= 0) remaining.splice(i, 1);
   };
 
-  const dIdx = argmax(remaining, 'housing');
+  const dIdx = argmax(remaining, 'floorArea');
   labelOf[dIdx] = 'D';
   remove(dIdx);
 
   let aCands = remaining.filter((c) => stats[c].green >= 0.4);
   if (aCands.length === 0) aCands = remaining.slice();
-  const aIdx = argmax(aCands, 'permeability');
+  const aIdx = argmax(aCands, 'porosity');
   labelOf[aIdx] = 'A';
   remove(aIdx);
 

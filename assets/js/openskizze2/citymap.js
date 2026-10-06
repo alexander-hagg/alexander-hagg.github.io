@@ -1,36 +1,35 @@
 /**
- * OpenSKIZZE 2.0 — macro 2D city-context planning schematic with site selection.
+ * OpenSKIZZE 2.0 — 3D isometric city-context preview with site selection.
  *
- * The map is a deliberately *diagrammatic* municipal planning map, not an
- * illustration. Each site preset owns a distinct imaginary city, described
+ * The large Phase-1 window (`#CityMapCanvas`) shows a self-contained 3D
+ * isometric preview of the selected preset's surrounding city, described
  * data-drivenly by `preset.city` in `config.js`:
  *
  *   - `city.terrain` is an ordered list of zones (hills, mountains, meadow,
- *     river, lake, railyard, suburb, urban) that the map draws generically.
+ *     river, lake, railyard, suburb, urban) that the preview draws generically
+ *     as projected ground quads. `hills`/`mountains` are raised into a simple
+ *     hillside whose upstream edge (opposite `city.coldAir.dir`) is highest.
  *   - `city.coldAir.dir` is a grid vector (x = east, y = south) giving the
  *     downhill cold-air drainage direction from the green source into the city;
- *     `city.coldAir.label` is its compass shorthand (e.g. "N → S").
+ *     `city.coldAir.label` is its compass shorthand (e.g. "N → S"). The vector
+ *     also selects the iso view orientation so the flow reads downhill.
  *
- * Switching preset therefore changes the whole surrounding city: its terrain,
- * its legend and the direction of the animated cold-air vector arrow.
+ * This module deliberately does NOT reuse `iso.js`'s N=10 machinery: it
+ * implements its own local projection for the 16×16 macro grid (only the
+ * grid-size-independent `orientationForDir` is imported). The projection is
+ * invertible at elevation 0, so the draggable/resizable selection box keeps
+ * working in grid coordinates.
  *
- * Zones are flat-filled with thin strokes and never overlap. City blocks sit on
- * strict, non-overlapping grids inside their zone, so street gaps stay visible.
- *
- * On top sits the 10×10 site grid, drawn as a neutral planning grid inside the
- * selection box. The Phase-1 selection screen intentionally shows no generated
- * design — only the underlying terrain and the dashed selection box.
- *
- * A legend, north arrow, scale bar, an animated cold-air vector arrow and a
- * draggable/resizable selection box complete the map. All decoration uses a
- * seeded PRNG — never `Math.random`.
+ * A legend, north arrow, scale bar, an animated cold-air vector arrow and the
+ * dashed selection box (drawn on the 3D ground) complete the scene. All
+ * decoration uses a seeded PRNG — never `Math.random`.
  *
  * Pure ES module: no side effects on import.
  */
 
 import { PRESETS } from './config.js';
-import { makePRNG } from './prng.js';
 import { loc, t } from './i18n.js';
+import { orientationForDir, contextBoxHeight, contextTreeAt } from './iso.js';
 
 /** Macro map grid dimensions (cells). */
 const MAP_COLS = 16;
@@ -39,34 +38,43 @@ const MAP_ROWS = 16;
 /** Minimum site-box size (cells) — matches the parcel grid. */
 const MIN_SITE = 10;
 
-/** Fixed seed for map decoration so the backdrop is stable across reloads. */
-const DECOR_SEED = 0xc17a5;
-
 /** Neutral base fill drawn beneath the terrain zones. */
 const BASE_COLOR = '#0b1220';
 
-/** Restrained warm palette for urban heat-island blocks. */
-const URBAN_PALETTE = ['#c2410c', '#ea580c', '#b91c1c', '#d97706', '#9a3412'];
+/** Soft ground-plane fill for the whole 16×16 diamond. */
+const GROUND_COLOR = '#1e293b';
 
-/**
- * FNV-1a string hash → unsigned 32-bit int. Used to seed the map decoration
- * PRNG so the backdrop is deterministic per city.
- *
- * @param {string} s
- * @returns {number}
- */
-function hashString(s) {
-  let h = 2166136261 >>> 0;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
+/** Sky gradient stops (top → bottom), consistent with the app aesthetic. */
+const SKY_STOPS = ['#0b1220', '#1e293b', '#334155'];
+
+/** Peak hillside elevation, in elevation units (scaled by `heightScale`). */
+const MAX_ELEV_UNITS = 3;
+
+/** Height scale as a fraction of tile height (matches the iso aesthetic). */
+const HEIGHT_SCALE_FACTOR = 0.7;
 
 /** Clamp a number to [lo, hi]. @param {number} v @param {number} lo @param {number} hi @returns {number} */
 function clamp(v, lo, hi) {
   return v < lo ? lo : v > hi ? hi : v;
+}
+
+/**
+ * Multiply a hex colour's RGB channels by `f` (clamped), returning an `rgb()`
+ * string. Used to flat-shade the three faces of a projected prism.
+ *
+ * @param {string} hex
+ * @param {number} f
+ * @returns {string}
+ */
+function shade(hex, f) {
+  let h = String(hex || '#334155').replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const n = parseInt(h, 16);
+  if (!Number.isFinite(n)) return hex;
+  const r = clamp(Math.round(((n >> 16) & 255) * f), 0, 255);
+  const g = clamp(Math.round(((n >> 8) & 255) * f), 0, 255);
+  const b = clamp(Math.round((n & 255) * f), 0, 255);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
 /**
@@ -143,10 +151,11 @@ export function createCityMap(canvas, store) {
   let time = 0;
   let lastNow = 0;
 
-  /** Current cell size in CSS pixels. @returns {{cw:number, ch:number}} */
-  function cellSize() {
-    return { cw: cssW / MAP_COLS, ch: cssH / MAP_ROWS };
-  }
+  /** Current iso geometry (recomputed when the canvas size or city changes). */
+  let G = null;
+  let geomW = -1;
+  let geomH = -1;
+  let geomOrientation = -1;
 
   /**
    * DPR-aware resize: cap DPR at 2, size the backing store to CSS × DPR and
@@ -161,115 +170,292 @@ export function createCityMap(canvas, store) {
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    G = null;
   }
 
   // ---------------------------------------------------------------------------
-  // Backdrop: macro zoning
+  // Local 16×16 isometric projection
   // ---------------------------------------------------------------------------
 
   /**
-   * Convert a terrain zone's grid rect (x,y,w,h in cells) to CSS pixels using
-   * the macro map cell size.
+   * Rotate grid coordinates by `o` quarter-turns clockwise about the grid
+   * centre, using the macro grid dimensions (not `iso.js`'s N).
    *
-   * @param {{x:number,y:number,w:number,h:number}} z
-   * @returns {{x:number,y:number,w:number,h:number}}
+   * @param {number} gx
+   * @param {number} gy
+   * @param {number} o
+   * @returns {{x:number,y:number}}
    */
-  function zoneRect(z) {
-    const cw = cssW / MAP_COLS;
-    const ch = cssH / MAP_ROWS;
-    return { x: z.x * cw, y: z.y * ch, w: z.w * cw, h: z.h * ch };
-  }
-
-  /** Flat fill for a zone; keeps the diagrammatic look. @param {object} z */
-  function fillZone(z) {
-    const r = zoneRect(z);
-    ctx.fillStyle = z.color || '#334155';
-    ctx.fillRect(r.x, r.y, r.w, r.h);
+  function rotate(gx, gy, o) {
+    if (o === 1) return { x: gy, y: MAP_ROWS - 1 - gx };
+    if (o === 2) return { x: MAP_COLS - 1 - gx, y: MAP_ROWS - 1 - gy };
+    if (o === 3) return { x: MAP_COLS - 1 - gy, y: gx };
+    return { x: gx, y: gy };
   }
 
   /**
-   * High ground (hills / alpine slopes): flat fill, a darker rim band and a few
-   * deterministic triangular peaks confined to the zone.
+   * Fit an iso geometry to the canvas with headroom for the raised hillside.
+   *
+   * @param {{coldAir?:{dir?:{x:number,y:number}}}} city
+   * @returns {{tileWidth:number,tileHeight:number,heightScale:number,originX:number,originY:number,orientation:number}}
+   */
+  function computeGeom(city) {
+    const dir = (city && city.coldAir && city.coldAir.dir) || { x: 0, y: 1 };
+    const orientation = orientationForDir(dir);
+
+    const padX = cssW * 0.06;
+    const padY = cssH * 0.06;
+    const availW = Math.max(1, cssW - padX * 2);
+    const availH = Math.max(1, cssH - padY * 2);
+
+    // th = tw/2; usedH = n*th + MAX_ELEV_UNITS*HEIGHT_SCALE_FACTOR*th
+    const twByW = availW / MAP_COLS;
+    const twByH = (availH * 2) / (MAP_ROWS + MAX_ELEV_UNITS * HEIGHT_SCALE_FACTOR);
+    const tileWidth = Math.max(1, Math.min(twByW, twByH));
+    const tileHeight = tileWidth / 2;
+    const heightScale = tileHeight * HEIGHT_SCALE_FACTOR;
+
+    const usedH = MAP_ROWS * tileHeight + MAX_ELEV_UNITS * heightScale;
+    const originX = cssW / 2;
+    const originY = (cssH - usedH) / 2 + MAX_ELEV_UNITS * heightScale;
+
+    return { tileWidth, tileHeight, heightScale, originX, originY, orientation };
+  }
+
+  /**
+   * Ensure the geometry matches the current canvas size and city orientation.
+   * @param {object} city
+   */
+  function ensureGeom(city) {
+    const dir = (city && city.coldAir && city.coldAir.dir) || { x: 0, y: 1 };
+    const o = orientationForDir(dir);
+    if (!G || geomW !== cssW || geomH !== cssH || geomOrientation !== o) {
+      G = computeGeom(city);
+      geomW = cssW;
+      geomH = cssH;
+      geomOrientation = o;
+    }
+  }
+
+  /**
+   * Project a grid point + elevation to screen coordinates, applying the iso
+   * orientation rotation and the iso basis.
+   *
+   * @param {number} gx
+   * @param {number} gy
+   * @param {number} [elev]
+   * @returns {{x:number,y:number}}
+   */
+  function project(gx, gy, elev) {
+    const { tileWidth: tw, tileHeight: th, originX, originY, heightScale: hs, orientation: o } = G;
+    const r = rotate(gx, gy, o);
+    return {
+      x: (r.x - r.y) * (tw / 2) + originX,
+      y: (r.x + r.y) * (th / 2) + originY - (elev || 0) * hs,
+    };
+  }
+
+  /**
+   * Inverse-project a CSS-pixel point to grid coordinates at elevation 0.
+   *
+   * @param {number} sx
+   * @param {number} sy
+   * @returns {{x:number,y:number}}
+   */
+  function unproject(sx, sy) {
+    const { tileWidth: tw, tileHeight: th, originX, originY, orientation: o } = G;
+    const dx = sx - originX;
+    const dy = sy - originY;
+    const rx = dx / tw + dy / th;
+    const ry = dy / th - dx / tw;
+    let gx;
+    let gy;
+    if (o === 1) { gx = MAP_ROWS - 1 - ry; gy = rx; }
+    else if (o === 2) { gx = MAP_COLS - 1 - rx; gy = MAP_ROWS - 1 - ry; }
+    else if (o === 3) { gx = ry; gy = MAP_COLS - 1 - rx; }
+    else { gx = rx; gy = ry; }
+    return { x: gx, y: gy };
+  }
+
+  /**
+   * Elevation of a point on a hillside measured against the *zone's own* extent
+   * along `dir`, so the zone's downstream edge sits exactly at z = 0 and meets
+   * the surrounding flat land, while its upstream edge reaches `maxElev`.
+   *
+   * @param {object} z - Terrain zone (grid rect).
+   * @param {number} gx
+   * @param {number} gy
+   * @param {{x:number,y:number}} dir
+   * @param {number} maxElev
+   * @returns {number}
+   */
+  function zoneElev(z, gx, gy, dir, maxElev) {
+    let dx = dir && Number.isFinite(dir.x) ? dir.x : 0;
+    let dy = dir && Number.isFinite(dir.y) ? dir.y : 1;
+    const len = Math.hypot(dx, dy) || 1;
+    dx /= len;
+    dy /= len;
+    const zcx = z.x + z.w / 2;
+    const zcy = z.y + z.h / 2;
+    const proj = (gx - zcx) * dx + (gy - zcy) * dy;
+    const half = (Math.abs(dx) * z.w + Math.abs(dy) * z.h) / 2 || 1;
+    const tt = proj / half; // -1 upstream .. 1 downstream
+    return maxElev * (1 - (tt + 1) / 2);
+  }
+
+  /**
+   * Centre of the city's urban core (fallback: grid centre).
+   * @param {object} city
+   * @returns {{x:number,y:number}}
+   */
+  function cityCenter(city) {
+    const urban = ((city && city.terrain) || []).find((z) => z.type === 'urban');
+    if (urban) return { x: urban.x + urban.w / 2, y: urban.y + urban.h / 2 };
+    return { x: MAP_COLS / 2, y: MAP_ROWS / 2 };
+  }
+
+  /**
+   * Downhill direction for a hills zone: from the zone centre toward the city
+   * core, so hills always slope down toward the city.
+   * @param {object} city
+   * @param {object} z
+   * @returns {{x:number,y:number}}
+   */
+  function slopeDirFor(city, z) {
+    const c = cityCenter(city);
+    const zcx = z.x + z.w / 2;
+    const zcy = z.y + z.h / 2;
+    let dx = c.x - zcx;
+    let dy = c.y - zcy;
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: dx / len, y: dy / len };
+  }
+
+  /** Rotated depth key (rx + ry) for painter's-order sorting. @param {number} gx @param {number} gy @returns {number} */
+  function depthOf(gx, gy) {
+    const r = rotate(gx, gy, G.orientation);
+    return r.x + r.y;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Scene: sky, ground, terrain zones, volumes
+  // ---------------------------------------------------------------------------
+
+  /** Fill the sky gradient background. */
+  function drawSky() {
+    const g = ctx.createLinearGradient(0, 0, 0, cssH);
+    g.addColorStop(0, SKY_STOPS[0]);
+    g.addColorStop(0.55, SKY_STOPS[1]);
+    g.addColorStop(1, SKY_STOPS[2]);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, cssW, cssH);
+  }
+
+  /** Draw the soft ground-plane diamond for the whole 16×16 grid. */
+  function drawGroundPlane() {
+    const corners = [[0, 0], [MAP_COLS, 0], [MAP_COLS, MAP_ROWS], [0, MAP_ROWS]];
+    const pts = corners.map(([gx, gy]) => project(gx, gy, 0));
+
+    // Whole-parcel drop shadow.
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x + G.tileWidth * 0.4, pts[0].y + G.tileHeight * 0.4);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x + G.tileWidth * 0.4, pts[i].y + G.tileHeight * 0.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    const cx = (pts[0].x + pts[2].x) / 2;
+    const cy = (pts[0].y + pts[2].y) / 2;
+    const rad = Math.max(cssW, cssH) * 0.6;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+    grad.addColorStop(0, GROUND_COLOR);
+    grad.addColorStop(1, BASE_COLOR);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /**
+   * Draw a terrain zone. Flat zones are a single projected quad; `hills`/
+   * `mountains` are drawn as a grid of tiles whose corners sit at their own
+   * elevations, so the slope reads smoothly and meets the surrounding flat land
+   * at z = 0 on the downstream (city-facing) edge.
    *
    * @param {object} z
-   * @param {() => number} rng
+   * @param {object} city
    */
-  function drawHills(z, rng) {
-    const r = zoneRect(z);
-    fillZone(z);
-    ctx.fillStyle = 'rgba(15,23,42,0.20)';
-    ctx.fillRect(r.x, r.y, r.w, Math.max(2, r.h * 0.12));
-    const cols = Math.max(2, Math.round(z.w));
-    const cw = r.w / cols;
-    ctx.fillStyle = 'rgba(241,245,249,0.20)';
-    for (let i = 0; i < cols; i++) {
-      if (rng() < 0.3) continue;
-      const px = r.x + i * cw + cw * 0.5;
-      const py = r.y + r.h * (0.45 + rng() * 0.3);
-      const pw = cw * 0.34;
-      const ph = r.h * (0.22 + rng() * 0.18);
+  function drawZoneQuad(z, city) {
+    const raised = z.type === 'hills' || z.type === 'mountains';
+    if (!raised) {
+      const corners = [
+        [z.x, z.y],
+        [z.x + z.w, z.y],
+        [z.x + z.w, z.y + z.h],
+        [z.x, z.y + z.h],
+      ];
+      const pts = corners.map(([gx, gy]) => project(gx, gy, 0));
       ctx.beginPath();
-      ctx.moveTo(px, py - ph);
-      ctx.lineTo(px - pw, py);
-      ctx.lineTo(px + pw, py);
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
       ctx.closePath();
+      ctx.fillStyle = z.color || '#334155';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(15,23,42,0.35)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      return;
+    }
+
+    const dir = slopeDirFor(city, z);
+    const cells = [];
+    for (let gy = z.y; gy < z.y + z.h; gy++) {
+      for (let gx = z.x; gx < z.x + z.w; gx++) {
+        cells.push({ gx, gy, depth: depthOf(gx + 0.5, gy + 0.5) });
+      }
+    }
+    cells.sort((a, b) => a.depth - b.depth);
+    for (const c of cells) {
+      const e00 = zoneElev(z, c.gx, c.gy, dir, MAX_ELEV_UNITS);
+      const e10 = zoneElev(z, c.gx + 1, c.gy, dir, MAX_ELEV_UNITS);
+      const e11 = zoneElev(z, c.gx + 1, c.gy + 1, dir, MAX_ELEV_UNITS);
+      const e01 = zoneElev(z, c.gx, c.gy + 1, dir, MAX_ELEV_UNITS);
+      const p00 = project(c.gx, c.gy, e00);
+      const p10 = project(c.gx + 1, c.gy, e10);
+      const p11 = project(c.gx + 1, c.gy + 1, e11);
+      const p01 = project(c.gx, c.gy + 1, e01);
+      ctx.beginPath();
+      ctx.moveTo(p00.x, p00.y);
+      ctx.lineTo(p10.x, p10.y);
+      ctx.lineTo(p11.x, p11.y);
+      ctx.lineTo(p01.x, p01.y);
+      ctx.closePath();
+      ctx.fillStyle = z.color || '#334155';
       ctx.fill();
     }
   }
 
   /**
-   * Meadow / green source: flat fill with sparse deterministic vegetation.
-   *
+   * Draw a river zone as a projected polyline.
    * @param {object} z
-   * @param {() => number} rng
    */
-  function drawMeadow(z, rng) {
-    const r = zoneRect(z);
-    fillZone(z);
-    const cols = Math.max(3, Math.round(z.w * 1.5));
-    const rows = Math.max(2, Math.round(z.h * 1.5));
-    const cw = r.w / cols;
-    const ch = r.h / rows;
-    ctx.fillStyle = 'rgba(20,83,45,0.45)';
-    for (let yy = 0; yy < rows; yy++) {
-      for (let xx = 0; xx < cols; xx++) {
-        if (rng() < 0.5) continue;
-        ctx.beginPath();
-        ctx.arc(r.x + xx * cw + cw * 0.5, r.y + yy * ch + ch * 0.5, Math.min(cw, ch) * 0.12, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }
-
-  /** Lake: a flat, inset rounded rectangle with a thin rim. @param {object} z */
-  function drawLake(z) {
-    const r = zoneRect(z);
-    const inset = Math.min(r.w, r.h) * 0.12;
-    ctx.fillStyle = z.color || '#5bb8e8';
-    roundRectPath(ctx, r.x + inset, r.y + inset, r.w - inset * 2, r.h - inset * 2, Math.min(r.w, r.h) * 0.3);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(226,232,240,0.45)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
-
-  /** River: a straight polyline (no curves) with a thin highlight. @param {object} z */
   function drawRiver(z) {
-    const cw = cssW / MAP_COLS;
-    const ch = cssH / MAP_ROWS;
     const pts = z.points || [];
     if (pts.length < 2) return;
+    const proj = pts.map((p) => project(p.x, p.y, 0));
     ctx.save();
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.strokeStyle = z.color || '#3d8fbb';
-    ctx.lineWidth = Math.max(3, ch * 0.4);
+    ctx.lineWidth = Math.max(3, G.tileHeight * 0.5);
     ctx.beginPath();
-    for (let i = 0; i < pts.length; i++) {
-      const x = pts[i].x * cw;
-      const y = pts[i].y * ch;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
+    ctx.moveTo(proj[0].x, proj[0].y);
+    for (let i = 1; i < proj.length; i++) ctx.lineTo(proj[i].x, proj[i].y);
     ctx.stroke();
     ctx.strokeStyle = 'rgba(226,232,240,0.35)';
     ctx.lineWidth = 1;
@@ -277,143 +463,155 @@ export function createCityMap(canvas, store) {
     ctx.restore();
   }
 
-  /** Railyard / brownfield: flat grey band with simple parallel rail lines. @param {object} z */
-  function drawRailyard(z) {
-    const r = zoneRect(z);
-    fillZone(z);
-    ctx.strokeStyle = 'rgba(226,232,240,0.55)';
-    ctx.lineWidth = 1.5;
-    const lines = 3;
-    for (let i = 1; i <= lines; i++) {
-      const y = r.y + (r.h * i) / (lines + 1);
-      ctx.beginPath();
-      ctx.moveTo(r.x, y);
-      ctx.lineTo(r.x + r.w, y);
-      ctx.stroke();
-    }
-  }
-
   /**
-   * Suburb: flat tinted band with small, non-overlapping house squares.
+   * Draw a simple flat-shaded prism on a cell (used for urban/suburb volume).
    *
-   * @param {object} z
-   * @param {() => number} rng
+   * @param {number} gx
+   * @param {number} gy
+   * @param {number} elev - Base elevation (elevation units).
+   * @param {number} h - Height (elevation units).
+   * @param {string} color
+   * @param {number} fp - Footprint fraction 0..1.
    */
-  function drawSuburb(z, rng) {
-    const r = zoneRect(z);
-    fillZone(z);
-    const cols = Math.max(3, Math.round(z.w * 1.4));
-    const rows = Math.max(2, Math.round(z.h * 1.4));
-    const cw = r.w / cols;
-    const ch = r.h / rows;
-    ctx.fillStyle = 'rgba(120,53,15,0.55)';
-    for (let yy = 0; yy < rows; yy++) {
-      for (let xx = 0; xx < cols; xx++) {
-        if (rng() < 0.25) continue;
-        const bw = cw * 0.56;
-        const bh = ch * 0.5;
-        ctx.fillRect(r.x + xx * cw + (cw - bw) / 2, r.y + yy * ch + (ch - bh) / 2, bw, bh);
-      }
-    }
-  }
+  function drawPrism(gx, gy, elev, h, color, fp) {
+    const T = project(gx, gy, elev);
+    const R = project(gx + 1, gy, elev);
+    const B = project(gx + 1, gy + 1, elev);
+    const L = project(gx, gy + 1, elev);
+    const cx = (T.x + R.x + B.x + L.x) / 4;
+    const cy = (T.y + R.y + B.y + L.y) / 4;
+    const f = clamp(fp == null ? 0.7 : fp, 0.15, 1);
+    const ins = (p) => ({ x: cx + (p.x - cx) * f, y: cy + (p.y - cy) * f });
+    const t = ins(T);
+    const r = ins(R);
+    const b = ins(B);
+    const l = ins(L);
+    const e = h * G.heightScale;
 
-  /**
-   * Dense urban core: a warm base with a strict, non-overlapping block grid and
-   * thin street lines. Only colour and a height hint vary — never geometry.
-   *
-   * @param {object} z
-   * @param {() => number} rng
-   */
-  function drawUrban(z, rng) {
-    const r = zoneRect(z);
-    fillZone(z);
-    const cols = Math.max(2, Math.round(z.w * 0.7));
-    const rows = Math.max(2, Math.round(z.h * 0.7));
-    const cw = r.w / cols;
-    const ch = r.h / rows;
-    const margin = Math.min(cw, ch) * 0.18;
+    // Left face (mid-tone).
+    ctx.beginPath();
+    ctx.moveTo(l.x, l.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.lineTo(b.x, b.y - e);
+    ctx.lineTo(l.x, l.y - e);
+    ctx.closePath();
+    ctx.fillStyle = shade(color, 0.72);
+    ctx.fill();
 
-    ctx.strokeStyle = 'rgba(15,23,42,0.30)';
+    // Right face (darkest).
+    ctx.beginPath();
+    ctx.moveTo(b.x, b.y);
+    ctx.lineTo(r.x, r.y);
+    ctx.lineTo(r.x, r.y - e);
+    ctx.lineTo(b.x, b.y - e);
+    ctx.closePath();
+    ctx.fillStyle = shade(color, 0.55);
+    ctx.fill();
+
+    // Top face (lightest).
+    ctx.beginPath();
+    ctx.moveTo(t.x, t.y - e);
+    ctx.lineTo(r.x, r.y - e);
+    ctx.lineTo(b.x, b.y - e);
+    ctx.lineTo(l.x, l.y - e);
+    ctx.closePath();
+    ctx.fillStyle = shade(color, 1.15);
+    ctx.fill();
+
+    // Silhouette outline.
+    ctx.beginPath();
+    ctx.moveTo(l.x, l.y);
+    ctx.lineTo(l.x, l.y - e);
+    ctx.lineTo(t.x, t.y - e);
+    ctx.lineTo(r.x, r.y - e);
+    ctx.lineTo(r.x, r.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(15,23,42,0.35)';
     ctx.lineWidth = 1;
-    for (let c = 0; c <= cols; c++) {
-      ctx.beginPath();
-      ctx.moveTo(r.x + c * cw, r.y);
-      ctx.lineTo(r.x + c * cw, r.y + r.h);
-      ctx.stroke();
-    }
-    for (let rr = 0; rr <= rows; rr++) {
-      ctx.beginPath();
-      ctx.moveTo(r.x, r.y + rr * ch);
-      ctx.lineTo(r.x + r.w, r.y + rr * ch);
-      ctx.stroke();
-    }
-
-    for (let rr = 0; rr < rows; rr++) {
-      for (let cc = 0; cc < cols; cc++) {
-        const bx = r.x + cc * cw + margin;
-        const by = r.y + rr * ch + margin;
-        const bw = cw - margin * 2;
-        const bh = ch - margin * 2;
-        if (bw <= 1 || bh <= 1) continue;
-        const color = URBAN_PALETTE[Math.floor(rng() * URBAN_PALETTE.length)];
-        const height = 1 + Math.floor(rng() * 4);
-        ctx.globalAlpha = 0.9;
-        ctx.fillStyle = color;
-        ctx.fillRect(bx, by, bw, bh);
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = 'rgba(15,23,42,' + (0.06 + height * 0.05).toFixed(2) + ')';
-        ctx.fillRect(bx, by, bw, Math.max(1, bh * 0.14));
-      }
-    }
+    ctx.stroke();
   }
 
   /**
-   * Draw the whole city context: a neutral base plus every terrain zone drawn
-   * generically from `city.terrain`. Decoration is seeded by the city name so
-   * each city is deterministic yet visually distinct.
+   * Simple tree (trunk + two canopy blobs) on a hillside cell.
+   * @param {number} gx
+   * @param {number} gy
+   * @param {number} elev
+   * @param {number} seed
+   */
+  function drawTree(gx, gy, elev, seed) {
+    const p = project(gx, gy, elev);
+    const tw = G.tileWidth;
+    const th = G.tileHeight;
+    const cx = p.x;
+    const cy = p.y + th / 2;
+    const r = tw * (0.10 + (seed % 3) * 0.012);
+    ctx.fillStyle = '#5b4636';
+    ctx.fillRect(cx - tw * 0.02, cy - th * 0.22, tw * 0.04, th * 0.22);
+    ctx.beginPath();
+    ctx.arc(cx + r * 0.12, cy - th * 0.26 + r * 0.12, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#1c4f31';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx - r * 0.1, cy - th * 0.30 - r * 0.1, r * 0.82, 0, Math.PI * 2);
+    ctx.fillStyle = '#4fa06b';
+    ctx.fill();
+  }
+
+  /**
+   * Draw the whole 3D city context: sky, ground plane, terrain zones (depth
+   * sorted), simple urban/suburb volumes and trees on hills. Volumes and trees
+   * use the same deterministic helpers as the solution views, so the surrounding
+   * environment looks identical in every phase.
    *
-   * @param {{name?:string, terrain?:Array<object>}} city
+   * @param {{name?:object, terrain?:Array<object>, coldAir?:{dir?:{x:number,y:number}}}} city
    */
   function drawTerrain(city) {
-    ctx.fillStyle = BASE_COLOR;
-    ctx.fillRect(0, 0, cssW, cssH);
+    drawSky();
+    drawGroundPlane();
 
     const terrain = (city && city.terrain) || [];
-    // Seed on the English city name so the backdrop decoration stays stable
-    // across language switches (localised names are display-only).
-    const seedName = (city && city.name && city.name.en)
-      || (city && typeof city.name === 'string' ? city.name : 'city');
-    const rng = makePRNG((DECOR_SEED ^ hashString(seedName)) >>> 0);
 
+    // Depth-sort zones so raised hillsides do not overlap incorrectly.
+    const ordered = terrain
+      .map((z) => ({ z, depth: depthOf(z.x + z.w / 2, z.y + z.h / 2) }))
+      .sort((a, b) => a.depth - b.depth);
+
+    for (const { z } of ordered) {
+      if (z.type === 'river') drawRiver(z);
+      else drawZoneQuad(z, city);
+    }
+
+    // Simple low volumes for urban/suburb zones, depth-sorted.
+    const boxes = [];
     for (const z of terrain) {
-      switch (z.type) {
-        case 'hills':
-        case 'mountains':
-          drawHills(z, rng);
-          break;
-        case 'meadow':
-          drawMeadow(z, rng);
-          break;
-        case 'lake':
-          drawLake(z);
-          break;
-        case 'river':
-          drawRiver(z);
-          break;
-        case 'railyard':
-          drawRailyard(z);
-          break;
-        case 'suburb':
-          drawSuburb(z, rng);
-          break;
-        case 'urban':
-          drawUrban(z, rng);
-          break;
-        default:
-          fillZone(z);
-          break;
+      if (z.type !== 'urban' && z.type !== 'suburb') continue;
+      for (let gy = z.y; gy < z.y + z.h; gy++) {
+        for (let gx = z.x; gx < z.x + z.w; gx++) {
+          const h = contextBoxHeight(z, gx, gy);
+          if (h > 0) boxes.push({ gx, gy, h, color: z.color || '#b45309', depth: depthOf(gx + 0.5, gy + 0.5) });
+        }
       }
     }
+    boxes.sort((a, b) => a.depth - b.depth);
+    for (const b of boxes) drawPrism(b.gx, b.gy, 0, b.h, b.color, 0.7);
+
+    // Simple trees on hills (e.g. the Lower Slope Woods).
+    const trees = [];
+    for (const z of terrain) {
+      if (z.type !== 'hills') continue;
+      const dir = slopeDirFor(city, z);
+      for (let gy = z.y; gy < z.y + z.h; gy++) {
+        for (let gx = z.x; gx < z.x + z.w; gx++) {
+          const seed = contextTreeAt(z, gx, gy);
+          if (!seed) continue;
+          const elev = zoneElev(z, gx, gy, dir, MAX_ELEV_UNITS);
+          trees.push({ gx, gy, elev, depth: depthOf(gx + 0.5, gy + 0.5), seed });
+        }
+      }
+    }
+    trees.sort((a, b) => a.depth - b.depth);
+    for (const t of trees) drawTree(t.gx, t.gy, t.elev, t.seed);
   }
 
   // ---------------------------------------------------------------------------
@@ -446,21 +644,24 @@ export function createCityMap(canvas, store) {
   }
 
   /**
-   * Draw each labelled terrain zone's name inside its own rectangle, so labels
-   * never collide with one another.
+   * Draw each labelled terrain zone's name at its projected centre.
    *
-   * @param {{terrain?:Array<object>}} city
+   * @param {{terrain?:Array<object>, coldAir?:{dir?:{x:number,y:number}}}} city
    */
   function drawLabels(city) {
     const terrain = (city && city.terrain) || [];
-    const cw = cssW / MAP_COLS;
-    const ch = cssH / MAP_ROWS;
+    const dir = (city && city.coldAir && city.coldAir.dir) || { x: 0, y: 1 };
     for (const z of terrain) {
       const text = loc(z.label);
       if (!text) continue;
       if (z.w < 3 && z.h < 3) continue;
-      const x = Math.min(cssW - 160, z.x * cw + 10);
-      const y = z.y * ch + 10;
+      const cx = z.x + z.w / 2;
+      const cy = z.y + z.h / 2;
+      const raised = z.type === 'hills' || z.type === 'mountains';
+      const elev = raised ? zoneElev(z, cx, cy, dir, MAX_ELEV_UNITS) : 0;
+      const p = project(cx, cy, elev);
+      const x = clamp(p.x - 40, 8, Math.max(8, cssW - 170));
+      const y = clamp(p.y - 8, 8, Math.max(8, cssH - 30));
       label(text, x, y, { size: 12, weight: 600 });
     }
   }
@@ -468,7 +669,7 @@ export function createCityMap(canvas, store) {
   /**
    * Bottom-left legend listing the selected city's labelled zones.
    *
-   * @param {{name?:string, terrain?:Array<object>}} city
+   * @param {{name?:object, terrain?:Array<object>}} city
    */
   function drawLegend(city) {
     const terrain = (city && city.terrain) || [];
@@ -571,58 +772,32 @@ export function createCityMap(canvas, store) {
   }
 
   // ---------------------------------------------------------------------------
-  // Site grid
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Draw the neutral 10×10 site grid inside the selection box. The Phase-1
-   * selection screen deliberately shows no generated design — only the
-   * underlying terrain and this planning grid — so the dashed selection box
-   * (drawn separately by {@link drawSelectionBox}) clearly outlines the region.
-   *
-   * @param {object} state
-   */
-  function drawSiteGrid(state) {
-    const { cw, ch } = cellSize();
-    const box = state.site.box;
-    const ox = box.x * cw;
-    const oy = box.y * ch;
-    const bw = Math.max(1, box.w);
-    const bh = Math.max(1, box.h);
-
-    // Grid lines.
-    ctx.strokeStyle = 'rgba(15,23,42,0.35)';
-    ctx.lineWidth = 1;
-    for (let gx = 0; gx <= bw; gx++) {
-      ctx.beginPath();
-      ctx.moveTo(ox + gx * cw, oy);
-      ctx.lineTo(ox + gx * cw, oy + bh * ch);
-      ctx.stroke();
-    }
-    for (let gy = 0; gy <= bh; gy++) {
-      ctx.beginPath();
-      ctx.moveTo(ox, oy + gy * ch);
-      ctx.lineTo(ox + bw * cw, oy + gy * ch);
-      ctx.stroke();
-    }
-  }
-
-  // ---------------------------------------------------------------------------
   // Overlays
   // ---------------------------------------------------------------------------
 
   /**
-   * Animated cold-air vector arrow. Runs diagonally across the map from the
-   * upstream green source toward the downstream city, following the selected
-   * city's `coldAir.dir` grid vector (x = east, y = south), and is labelled with
-   * the city's compass shorthand.
+   * Animated cold-air vector arrow. Runs across the 3D scene from the upstream
+   * green source toward the downstream city, following the selected city's
+   * `coldAir.dir` grid vector (x = east, y = south), and is labelled with the
+   * city's compass shorthand.
+   *
+   * The grid direction is rotated into the iso view basis (the same quarter-turn
+   * rotation the projection applies) and then mapped through the iso basis to a
+   * screen vector, so the arrow points downhill in the rendered terrain rather
+   * than in raw compass space.
    *
    * @param {{coldAir?:{dir?:{x:number,y:number}, label?:string}}} city
    */
   function drawColdAirArrow(city) {
     const dir = (city && city.coldAir && city.coldAir.dir) || { x: 0, y: 1 };
-    let dx = dir.x;
-    let dy = dir.y;
+    const o = G ? (G.orientation | 0) : 0;
+    let gdx = dir.x;
+    let gdy = dir.y;
+    for (let k = 0; k < o; k++) { const t = gdx; gdx = gdy; gdy = -t; }
+    const tw = G ? G.tileWidth : 1;
+    const th = G ? G.tileHeight : 1;
+    let dx = (gdx - gdy) * (tw / 2);
+    let dy = (gdx + gdy) * (th / 2);
     const len = Math.hypot(dx, dy) || 1;
     dx /= len;
     dy /= len;
@@ -667,32 +842,51 @@ export function createCityMap(canvas, store) {
   }
 
   /**
-   * Draw the draggable/resizable selection box with corner handles.
+   * The four projected screen corners of the selection box, in the order
+   * `[TL, TR, BL, BR]` (matching {@link cornerAnchors}).
+   *
+   * @param {{x:number,y:number,w:number,h:number}} box
+   * @returns {Array<{x:number,y:number}>}
+   */
+  function boxCorners(box) {
+    return [
+      project(box.x, box.y, 0),
+      project(box.x + box.w, box.y, 0),
+      project(box.x, box.y + box.h, 0),
+      project(box.x + box.w, box.y + box.h, 0),
+    ];
+  }
+
+  /**
+   * Draw the draggable/resizable selection box on the 3D ground: a dashed cyan
+   * quad with four corner handles.
+   *
    * @param {object} state
    */
   function drawSelectionBox(state) {
-    const { cw, ch } = cellSize();
     const box = state.site.box;
-    const x = box.x * cw;
-    const y = box.y * ch;
-    const w = box.w * cw;
-    const h = box.h * ch;
+    const c = boxCorners(box);
 
     ctx.save();
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 4]);
-    ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+    ctx.beginPath();
+    ctx.moveTo(c[0].x, c[0].y);
+    ctx.lineTo(c[1].x, c[1].y);
+    ctx.lineTo(c[3].x, c[3].y);
+    ctx.lineTo(c[2].x, c[2].y);
+    ctx.closePath();
+    ctx.stroke();
     ctx.setLineDash([]);
 
     ctx.fillStyle = '#38bdf8';
     ctx.strokeStyle = 'rgba(15,23,42,0.8)';
     ctx.lineWidth = 1;
     const hs = 7;
-    const corners = [[x, y], [x + w, y], [x, y + h], [x + w, y + h]];
-    for (const [hx, hy] of corners) {
-      ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
-      ctx.strokeRect(hx - hs / 2, hy - hs / 2, hs, hs);
+    for (const p of c) {
+      ctx.fillRect(p.x - hs / 2, p.y - hs / 2, hs, hs);
+      ctx.strokeRect(p.x - hs / 2, p.y - hs / 2, hs, hs);
     }
     ctx.restore();
   }
@@ -709,6 +903,7 @@ export function createCityMap(canvas, store) {
     time += dt;
 
     const city = resolveCity(state);
+    ensureGeom(city);
 
     ctx.clearRect(0, 0, cssW, cssH);
     drawTerrain(city);
@@ -716,7 +911,6 @@ export function createCityMap(canvas, store) {
     drawLegend(city);
     drawNorthArrow();
     drawScaleBar();
-    drawSiteGrid(state);
     drawColdAirArrow(city);
     drawSelectionBox(state);
   }
@@ -726,17 +920,17 @@ export function createCityMap(canvas, store) {
   // ---------------------------------------------------------------------------
 
   /**
-   * Whether a CSS-pixel point lies inside the current selection box.
+   * Whether a CSS-pixel point lies inside the current selection box (tested in
+   * grid coordinates via the inverse projection).
    * @param {number} mx
    * @param {number} my
    * @returns {boolean}
    */
   function hitTest(mx, my) {
-    const { cw, ch } = cellSize();
+    if (!G) ensureGeom(resolveCity(store.getState()));
     const box = store.getState().site.box;
-    const cx = mx / cw;
-    const cy = my / ch;
-    return cx >= box.x && cx <= box.x + box.w && cy >= box.y && cy <= box.y + box.h;
+    const g = unproject(mx, my);
+    return g.x >= box.x && g.x <= box.x + box.w && g.y >= box.y && g.y <= box.y + box.h;
   }
 
   /**
@@ -781,24 +975,22 @@ export function createCityMap(canvas, store) {
   }
 
   /**
-   * Begin a resize (corner handle) or move (inside box) drag.
+   * Begin a resize (corner handle) or move (inside box) drag. Handle hit-testing
+   * is done in screen space against the projected corners; the move test uses
+   * the inverse projection.
    * @param {number} mx
    * @param {number} my
    * @returns {boolean} true if a drag started.
    */
   function onPointerDown(mx, my) {
-    const { cw, ch } = cellSize();
+    if (!G) ensureGeom(resolveCity(store.getState()));
     const box = store.getState().site.box;
-    const x = box.x * cw;
-    const y = box.y * ch;
-    const w = box.w * cw;
-    const h = box.h * ch;
+    const corners = boxCorners(box);
 
     // Corner handles take priority.
     const hr = 12;
-    const corners = [[x, y], [x + w, y], [x, y + h], [x + w, y + h]];
     for (let i = 0; i < corners.length; i++) {
-      if (Math.abs(mx - corners[i][0]) <= hr && Math.abs(my - corners[i][1]) <= hr) {
+      if (Math.abs(mx - corners[i].x) <= hr && Math.abs(my - corners[i].y) <= hr) {
         dragging = true;
         resizeCorner = i;
         return true;
@@ -808,8 +1000,9 @@ export function createCityMap(canvas, store) {
     if (!hitTest(mx, my)) return false;
     dragging = true;
     resizeCorner = -1;
-    dragDX = mx / cw - box.x;
-    dragDY = my / ch - box.y;
+    const g = unproject(mx, my);
+    dragDX = g.x - box.x;
+    dragDY = g.y - box.y;
     return true;
   }
 
@@ -820,13 +1013,14 @@ export function createCityMap(canvas, store) {
    */
   function onPointerMove(mx, my) {
     if (!dragging) return;
-    const { cw, ch } = cellSize();
+    if (!G) ensureGeom(resolveCity(store.getState()));
     const box = store.getState().site.box;
+    const g = unproject(mx, my);
 
     if (resizeCorner >= 0) {
       const [ax, ay] = cornerAnchors(box)[resizeCorner];
-      const mcx = clamp(Math.round(mx / cw), 0, MAP_COLS);
-      const mcy = clamp(Math.round(my / ch), 0, MAP_ROWS);
+      const mcx = clamp(Math.round(g.x), 0, MAP_COLS);
+      const mcy = clamp(Math.round(g.y), 0, MAP_ROWS);
       const nb = resizeBox(ax, ay, mcx, mcy);
       if (nb.x !== box.x || nb.y !== box.y || nb.w !== box.w || nb.h !== box.h) {
         store.dispatch({ type: 'SET_SELECTION_BOX', box: nb });
@@ -834,8 +1028,8 @@ export function createCityMap(canvas, store) {
       return;
     }
 
-    const nx = clamp(Math.round(mx / cw - dragDX), 0, MAP_COLS - box.w);
-    const ny = clamp(Math.round(my / ch - dragDY), 0, MAP_ROWS - box.h);
+    const nx = clamp(Math.round(g.x - dragDX), 0, MAP_COLS - box.w);
+    const ny = clamp(Math.round(g.y - dragDY), 0, MAP_ROWS - box.h);
     if (nx !== box.x || ny !== box.y) {
       store.dispatch({ type: 'SET_SELECTION_BOX', box: { ...box, x: nx, y: ny } });
     }
