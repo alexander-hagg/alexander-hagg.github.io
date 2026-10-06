@@ -115,6 +115,8 @@ function resolveWindLabel(state) {
 
 /** Boot the application. */
 function boot() {
+  // Signal to the page's fallback detector that the module executed.
+  window.__openskizzeBooted = true;
   const store = createStore(reducer, initialState);
 
   // --- Controllers -----------------------------------------------------------
@@ -336,8 +338,20 @@ function boot() {
   });
 }
 
+/** Run boot(), surfacing any startup exception via the page's fallback notice. */
+function safeBoot() {
+  try {
+    boot();
+  } catch (err) {
+    console.error('[OpenSKIZZE] boot failed', err);
+    if (typeof window.__openskizzeShowModuleError === 'function') {
+      window.__openskizzeShowModuleError(err);
+    }
+  }
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
+  document.addEventListener('DOMContentLoaded', safeBoot);
 } else {
-  boot();
+  safeBoot();
 }

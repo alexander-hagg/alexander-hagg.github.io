@@ -33,7 +33,7 @@ Explore the generative quality-diversity design space directly in your browser �
 <p class="demo-jump"><a href="/openskizze-2.0.html" target="_blank" rel="noopener" class="btn btn--primary">⛶ Open full window</a></p>
 
 <div class="openskizze-embed" style="margin:1rem 0;">
-  <iframe src="/openskizze-2.0.html" title="OpenSKIZZE 2.0 — Interactive QD Explorer" loading="lazy" style="width:100%; aspect-ratio:16/9; border:0; border-radius:12px; background:#0f172a;"></iframe>
+  <iframe src="/openskizze-2.0.html" title="OpenSKIZZE 2.0 — Interactive QD Explorer" loading="lazy" class="openskizze-embed__frame"></iframe>
 </div>
 
 The embedded view above is fully interactive. For presentations or a larger canvas, use the **⛶ Open full window** button to open the standalone version in a new tab.

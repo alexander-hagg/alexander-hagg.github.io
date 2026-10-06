@@ -107,23 +107,23 @@
     body.reduced-motion .phase-enter { transform: none !important; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans overflow-x-hidden overflow-y-auto xl:overflow-hidden">
-  <div id="app" class="w-screen min-h-screen xl:h-screen grid grid-rows-[auto_1fr]">
+<body class="bg-slate-900 text-slate-100 font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden">
+  <div id="app" class="w-full min-h-screen lg:h-screen grid grid-rows-[auto_1fr]">
 
     <!-- ===================== Header ===================== -->
-    <header class="glass m-2 px-4 py-3 flex items-center justify-between gap-4">
+    <header class="glass m-2 px-4 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
       <div class="flex items-center gap-3 min-w-0">
         <span class="fs-20 font-semibold whitespace-nowrap">OpenSKIZZE <span class="text-cold">2.0</span></span>
         <span class="fs-12 text-slate-300 hidden md:inline truncate" data-i18n="app.subtitle">Surrogate-assisted Quality-Diversity design for climate-adaptive urban planning</span>
       </div>
 
-      <ol id="phase-stepper" class="flex items-center gap-2 fs-12">
+      <ol id="phase-stepper" class="hidden md:flex items-center gap-2 fs-12">
         <li data-phase="SELECT" class="px-2 py-1 rounded-md text-cold font-semibold">1 · <span data-i18n="stepper.site">Site</span></li>
         <li data-phase="OPTIMIZING" class="px-2 py-1 rounded-md text-slate-300">2 · <span data-i18n="stepper.search">Search</span></li>
         <li data-phase="EXPLORE" class="px-2 py-1 rounded-md text-slate-300">3 · <span data-i18n="stepper.explore">Explore</span></li>
       </ol>
 
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <div id="lang-toggle" role="group" data-i18n-aria="aria.langToggle" aria-label="Language" class="flex items-center gap-1 fs-12">
           <button type="button" data-lang="en" class="px-2 py-1 rounded-md border border-cold/50 bg-cold/20 text-cold transition">EN</button>
           <button type="button" data-lang="de" class="px-2 py-1 rounded-md border border-white/10 bg-white/5 text-slate-300 transition">DE</button>
@@ -133,7 +133,7 @@
           ⚡ Instant Demo Preset
         </button>
         <button id="btn-present" type="button" aria-pressed="false" data-i18n="btn.presentation"
-          class="fs-12 px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-slate-100 transition whitespace-nowrap">
+          class="hidden md:inline-block fs-12 px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-slate-100 transition whitespace-nowrap">
           🖥️ Presentation
         </button>
         <a id="btn-full-window" href="openskizze-2.0.html" target="_blank" rel="noopener" data-i18n="btn.fullWindow"
@@ -144,11 +144,11 @@
     </header>
 
     <!-- ===================== Phase container ===================== -->
-    <main class="relative min-h-0 xl:overflow-hidden">
+    <main class="relative min-h-0 lg:overflow-hidden">
 
       <!-- ===================== Phase 1 · Site ===================== -->
-      <section id="phase-select" class="phase-active grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4 p-4 h-auto xl:h-full min-h-0">
-        <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0">
+      <section id="phase-select" class="phase-active grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 p-4 h-auto lg:h-full min-h-0">
+        <div class="glass relative overflow-hidden min-h-[320px] lg:min-h-0">
           <canvas id="CityMapCanvas" tabindex="0"
             data-i18n-aria="aria.cityMap" aria-label="Site map. Use arrow keys to move the selection box."
             class="w-full h-full block outline-none" style="touch-action:none"></canvas>
@@ -173,8 +173,8 @@
       </section>
 
       <!-- ===================== Phase 2 · Search ===================== -->
-      <section id="phase-optimizing" class="phase-enter hidden grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4 p-4 h-auto xl:h-full min-h-0">
-        <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0">
+      <section id="phase-optimizing" class="phase-enter hidden grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 p-4 h-auto lg:h-full min-h-0">
+        <div class="glass relative overflow-hidden min-h-[320px] lg:min-h-0">
           <canvas id="ArchiveCanvas" tabindex="0"
             data-i18n-aria="aria.archive" aria-label="MAP-Elites archive filling"
             class="w-full h-full block outline-none"></canvas>
@@ -208,9 +208,9 @@
       </section>
 
       <!-- ===================== Phase 3 · Explore ===================== -->
-      <section id="phase-explore" class="phase-enter hidden grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)_300px] gap-4 p-4 h-auto xl:h-full min-h-0">
+      <section id="phase-explore" class="phase-enter hidden grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_300px] gap-4 p-4 h-auto lg:h-full min-h-0">
         <div class="glass p-3 flex flex-col gap-3 overflow-hidden min-h-0 pres-hide">
-          <div class="relative overflow-hidden min-h-[45vh] xl:min-h-0 flex-1">
+          <div class="relative overflow-hidden min-h-[320px] lg:min-h-0 flex-1">
             <canvas id="ArchiveCanvas2" tabindex="0"
               data-i18n-aria="aria.archiveArchetypes" aria-label="MAP-Elites archive with archetypes"
               class="w-full h-full block outline-none"></canvas>
@@ -218,7 +218,7 @@
           <div id="archetype-legend" class="fs-12 text-slate-200"></div>
         </div>
 
-        <div class="glass relative overflow-hidden min-h-[55vh] xl:min-h-0 pres-iso">
+        <div class="glass relative overflow-hidden min-h-[360px] lg:min-h-0 pres-iso">
           <canvas id="IsoViewerCanvas" tabindex="0"
             data-i18n-aria="aria.iso" aria-label="Isometric parcel viewer"
             class="w-full h-full block outline-none"></canvas>
@@ -242,7 +242,49 @@
     file:// URLs (CORS). Serve this page over http(s), e.g. `jekyll serve`,
     `python -m http.server 8000`, or GitHub Pages.
   -->
+
+  <!-- Fallback shown when the ES module cannot load/execute (e.g. file://).
+       Inline styles so it still renders if the Tailwind CDN is unreachable. -->
+  <div id="module-error" role="alert" aria-live="assertive"
+    style="display:none; position:fixed; inset:0; z-index:100; align-items:center; justify-content:center; padding:1.5rem; background:rgba(2,6,23,.94);">
+    <div style="max-width:34rem; background:#0f172a; border:1px solid rgba(148,163,184,.3); border-radius:.75rem; padding:1.5rem; color:#e2e8f0; font-family:system-ui,-apple-system,sans-serif; line-height:1.5; box-shadow:0 20px 50px rgba(2,6,23,.6);">
+      <h2 style="margin:0 0 .5rem; font-size:1.25rem; color:#38bdf8;">OpenSKIZZE 2.0 could not start</h2>
+      <p style="margin:0 0 .75rem;">This page loads its demo as an <strong>ES module</strong>, which browsers block on <code>file://</code> URLs (CORS). Please serve the page over HTTP:</p>
+      <pre style="margin:0 0 .75rem; padding:.75rem; background:#020617; border-radius:.5rem; overflow:auto; font-size:.85rem; color:#e2e8f0;">python3 -m http.server 8000
+# then open http://localhost:8000/openskizze-2.0.html</pre>
+      <p style="margin:0; font-size:.85rem; color:#94a3b8;">Already on http(s)? Open the browser console for the module/network error (e.g. the Tailwind CDN or a missing file).</p>
+    </div>
+  </div>
+
   <script type="module" src="assets/js/openskizze2/main.js"></script>
+
+  <script>
+    // Reveal the fallback notice if the ES module fails to load or boot.
+    (function () {
+      var shown = false;
+      function showModuleError() {
+        if (shown) return;
+        shown = true;
+        var el = document.getElementById('module-error');
+        if (el) el.style.display = 'flex';
+      }
+      // Exposed so main.js can report a boot-time exception too.
+      window.__openskizzeShowModuleError = showModuleError;
+
+      // 1) file:// always blocks ES modules — show the notice immediately.
+      if (location.protocol === 'file:') showModuleError();
+
+      // 2) A failed module fetch fires an `error` event on the <script>.
+      var mod = document.querySelector('script[type="module"][src$="openskizze2/main.js"]');
+      if (mod) mod.addEventListener('error', showModuleError);
+
+      // 3) Timeout fallback: if the module never signalled a successful boot.
+      window.setTimeout(function () {
+        if (!window.__openskizzeBooted) showModuleError();
+      }, 3000);
+    })();
+  </script>
+
   <script>
     // Show the "Full window" control only when the app is embedded in an iframe.
     (function () {
