@@ -2,8 +2,8 @@
  * OpenSKIZZE 2.0 — seeded pseudo-random number generation.
  *
  * Pure ES module: no side effects, no DOM access, no `Math.random`.
- * The core generator is an xorshift32 PRNG adapted from
- * `assets/js/openskizze-demo.js` (`makePRNG`).
+ * The core generator is an xorshift32 PRNG adapted from the legacy
+ * OpenSKIZZE demo's `makePRNG`.
  */
 
 /**

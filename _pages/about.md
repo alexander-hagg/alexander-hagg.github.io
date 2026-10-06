@@ -76,9 +76,9 @@ redirect_from:
     <span class="applet-link__title">Publication map</span>
     <span class="applet-link__desc">Explore the research by year and theme.</span>
   </a>
-  <a class="applet-link" href="/portfolio/openskizze/#qd-explainer">
-    <span class="applet-link__title">QD archive explainer</span>
-    <span class="applet-link__desc">See how quality-diversity search fills a behaviour space.</span>
+  <a class="applet-link" href="/portfolio/openskizze/#interactive-demo">
+    <span class="applet-link__title">OpenSKIZZE QD explorer</span>
+    <span class="applet-link__desc">Explore a quality-diversity design archive and its airflow UMAP.</span>
   </a>
   <a class="applet-link" href="/posts/2022/06/spiegelmaschine/#spiegelmaschine-toy">
     <span class="applet-link__title">Spiegelmaschine toy</span>

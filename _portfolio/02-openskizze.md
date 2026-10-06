@@ -13,9 +13,6 @@ related_publications:
   - full-domain-analysis
 related_talks:
   - kluger-transfer-tandem
-applet_scripts:
-  - /assets/js/openskizze-demo.js
-  - /assets/js/qd-archive-explainer.js
 ---
 
 <span class="tag-pill">DBU Funded</span>&nbsp;<span class="tag-pill">Urban Climate</span>&nbsp;<span class="tag-pill">Open Source</span>&nbsp;<span class="tag-pill">Quality Diversity</span>&nbsp;<span class="tag-pill">Surrogate Models</span>&nbsp;<span class="tag-pill">UMAP</span>
@@ -26,7 +23,7 @@ Climate-adapted building requires knowledge that most planners don't have easy a
 
 **OpenSKIZZE** translates findings from climate models into concrete, usable design options — early in the planning process, before expensive expertise is typically called in.
 
-## OpenSKIZZE 2.0 — Interactive QD Explorer
+## OpenSKIZZE 2.0 — Interactive QD Explorer {#interactive-demo}
 
 Explore the generative quality-diversity design space directly in your browser — no installation required.
 
@@ -42,89 +39,11 @@ The embedded view above is fully interactive. For presentations or a larger canv
   <img src="/images/openskizze-visual.svg" alt="OpenSKIZZE urban planning tool interface" loading="lazy" decoding="async" />
 </div>
 
-<p class="demo-jump"><a href="#interactive-demo" class="btn btn--primary">Jump to the interactive demo ↓</a></p>
-
----
-
-### Interactive demo
-
-The widget below illustrates the two core outputs: the **QD archive** (left — each cell is one design archetype, coloured by the selected view) and the **UMAP embedding** (right — how designs cluster by predicted behaviour). **Hover, tap/click, or use the keyboard** (arrow keys to move the selected cell, Enter/Space to inspect, Escape to clear) to link the archive, preview, and UMAP. Use the **View** selector to switch the colour scale between the surrogate-predicted **cold airflow score** and the **surrogate uncertainty**.
-
-<div id="openskizze-demo" class="applet" data-applet="openskizze">
-  <div class="demo-header">Surrogate-assisted QD · Archive & Airflow UMAP</div>
-  <div class="demo-topbar">
-    <div class="demo-ctrl">
-      <label for="ctrl-view">View</label>
-      <select id="ctrl-view">
-        <option value="score">Cold airflow score</option>
-        <option value="uncertainty">Surrogate uncertainty</option>
-      </select>
-    </div>
-    <div class="demo-ctrl">
-      <label for="ctrl-height">Max height &nbsp;<span class="demo-value" id="val-height">6</span> fl.</label>
-      <input type="range" id="ctrl-height" min="2" max="10" value="6" step="1">
-    </div>
-    <div class="demo-ctrl">
-      <label for="ctrl-green">Min green &nbsp;<span class="demo-value" id="val-green">30</span>%</label>
-      <input type="range" id="ctrl-green" min="10" max="60" value="30" step="5">
-    </div>
-    <div class="demo-ctrl">
-      <label for="ctrl-density">Max density &nbsp;<span class="demo-value" id="val-density">0.50</span></label>
-      <input type="range" id="ctrl-density" min="0.2" max="0.8" value="0.5" step="0.05">
-    </div>
-    <div class="demo-ctrl">
-      <button type="button" id="demo-clear" class="demo-clear">Clear selection</button>
-    </div>
-  </div>
-  <div class="demo-canvas-wrap">
-    <canvas id="qd-canvas" width="760" height="340"
-            role="application"
-            tabindex="0"
-            aria-label="Interactive OpenSKIZZE demo: a quality-diversity design archive, a design preview, and a UMAP embedding of predicted airflow."
-            aria-describedby="demo-desc"></canvas>
-    <p id="demo-desc" class="visually-hidden">This interactive demo has three linked panels. The left panel is a quality-diversity archive: a grid of design archetypes, each drawn as a small isometric city, where the horizontal axis is green-space percentage and the vertical axis is building density. The centre panel shows an enlarged preview of the currently selected design with its statistics. The right panel is a UMAP scatter plot in which each dot is a design, positioned so that designs with similar predicted airflow cluster together. Hover, tap, or click a cell in the archive or a dot in the UMAP to select a design; the selection persists and links all three panels. With the canvas focused, use the arrow keys to move the selected archive cell, Enter or Space to inspect it, and Escape to clear the selection. A text readout below the canvas reports the selected design's green space, density, height, airflow score, uncertainty, and feasibility.</p>
-    <p id="demo-readout" class="demo-readout" role="status" aria-live="polite">No design selected. Hover, tap, or use the arrow keys to select a design.</p>
-    <p class="demo-legend">
-      <strong>Left:</strong> QD archive — each cell is a distinct design archetype shown as an isometric city. The colour bar encodes the selected view (cold airflow score or surrogate uncertainty); the selected cell is also marked with a black border and corner square.<br>
-      <strong>Centre:</strong> Hover, tap, or select any cell to see the full design preview with stats.<br>
-      <strong>Right:</strong> UMAP — clusters of designs with similar predicted behaviour.<br>
-      <span class="demo-legend__swatch" style="color:#2166ac;">■</span> Strong cold airflow &nbsp;
-      <span class="demo-legend__swatch" style="color:#f4a261;">■</span> Blocked / weak &nbsp;
-      <span class="demo-legend__swatch" style="color:#1a9850;">■</span> Confident &nbsp;
-      <span class="demo-legend__swatch" style="color:#d73027;">■</span> Uncertain
-    </p>
-  </div>
-</div>
-
 ---
 
 ### What is a quality-diversity archive?
 
-A conventional optimizer keeps only the single best solution it finds. A **quality-diversity (QD) archive** keeps the best solution for *every* cell of a behaviour space — so instead of one answer, you get a diverse, structured collection of good answers. Press **Run** below to fill the archive and watch coverage grow; hover, tap, or use the keyboard to inspect a cell.
-
-<div id="qd-explainer" class="applet" data-applet="qd-archive-explainer">
-  <div class="demo-header">QD archive · single best vs. diverse archive</div>
-  <div class="demo-topbar">
-    <div class="demo-ctrl">
-      <button type="button" id="qd-explainer-run" class="demo-clear">Run</button>
-    </div>
-    <div class="demo-ctrl">
-      <button type="button" id="qd-explainer-reset" class="demo-clear">Reset</button>
-    </div>
-  </div>
-  <div class="demo-canvas-wrap">
-    <canvas id="qd-explainer-canvas" width="760" height="420"
-            role="application"
-            tabindex="0"
-            aria-label="Quality-diversity archive explainer: a grid of behaviour-space cells that fill as solutions are added."
-            aria-describedby="qd-explainer-desc"></canvas>
-    <p id="qd-explainer-desc" class="visually-hidden">A grid representing a two-dimensional behaviour space. Pressing Run progressively fills each cell with the best solution found for that region, and a coverage bar shows how much of the space is covered. The single best solution across the whole archive is marked with a star. Hover, tap, or click a cell to inspect its quality and whether it is filled; with the canvas focused, use the arrow keys to move the inspected cell, Enter to inspect, and Escape to clear. A text readout reports coverage, the best quality, and the inspected cell.</p>
-    <p id="qd-explainer-readout" class="demo-readout" role="status" aria-live="polite">Archive coverage 0 of 96 cells (0%). No solutions yet — press Run to fill the archive.</p>
-    <p class="demo-legend">
-      <strong>How to read it:</strong> each cell is a region of behaviour space; darker blue means higher quality. A single-objective search would keep only the starred cell; a QD archive keeps the best solution in every filled cell, so the whole space is covered. The starred best cell is marked with a symbol, not colour alone.
-    </p>
-  </div>
-</div>
+A conventional optimizer keeps only the single best solution it finds. A **quality-diversity (QD) archive** keeps the best solution for *every* cell of a behaviour space — so instead of one answer, you get a diverse, structured collection of good answers.
 
 ---
 

@@ -10,8 +10,8 @@ If you make a pull request and change code, please make sure there is a closed i
 
 Interactive demos ("applets") follow a small, consistent pattern so that new
 ones are cheap to add and demo JavaScript only loads on the pages that use it.
-The OpenSKIZZE demo (`_portfolio/02-openskizze.md` +
-`assets/js/openskizze-demo.js`) is the reference implementation.
+The publication map (`_pages/publications.md` +
+`assets/js/publications-explorer.js`) is a current reference implementation.
 
 ### 1. Demo container markup
 
