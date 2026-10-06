@@ -17,9 +17,9 @@
  * Zones are flat-filled with thin strokes and never overlap. City blocks sit on
  * strict, non-overlapping grids inside their zone, so street gaps stay visible.
  *
- * On top sits the 10×10 site grid, which mirrors the isometric view by drawing
- * the actually selected design's `design.cells` (KLAM-tinted). When no design is
- * selected a deterministic, preset-biased block preview is used instead.
+ * On top sits the 10×10 site grid, drawn as a neutral planning grid inside the
+ * selection box. The Phase-1 selection screen intentionally shows no generated
+ * design — only the underlying terrain and the dashed selection box.
  *
  * A legend, north arrow, scale bar, an animated cold-air vector arrow and a
  * draggable/resizable selection box complete the map. All decoration uses a
@@ -28,10 +28,8 @@
  * Pure ES module: no side effects on import.
  */
 
-import { PRESETS, N } from './config.js';
-import { KLAM } from './klam.js';
-import { makePRNG, weightedPick } from './prng.js';
-import { createDesign, rasterize } from './design.js';
+import { PRESETS } from './config.js';
+import { makePRNG } from './prng.js';
 import { loc, t } from './i18n.js';
 
 /** Macro map grid dimensions (cells). */
@@ -44,21 +42,15 @@ const MIN_SITE = 10;
 /** Fixed seed for map decoration so the backdrop is stable across reloads. */
 const DECOR_SEED = 0xc17a5;
 
-/** Building-pattern fallbacks used by the deterministic preset preview. */
-const BUILDING_PATTERNS = ['perimeter', 'courtyard', 'row', 'towerPark', 'detached'];
-
 /** Neutral base fill drawn beneath the terrain zones. */
 const BASE_COLOR = '#0b1220';
 
 /** Restrained warm palette for urban heat-island blocks. */
 const URBAN_PALETTE = ['#c2410c', '#ea580c', '#b91c1c', '#d97706', '#9a3412'];
 
-/** Cache of deterministic preview designs, keyed by preset id. */
-const _previewCache = new Map();
-
 /**
- * FNV-1a string hash → unsigned 32-bit int. Used to seed the preview PRNG from
- * a preset id so the preview is deterministic per preset.
+ * FNV-1a string hash → unsigned 32-bit int. Used to seed the map decoration
+ * PRNG so the backdrop is deterministic per city.
  *
  * @param {string} s
  * @returns {number}
@@ -70,23 +62,6 @@ function hashString(s) {
     h = Math.imul(h, 16777619);
   }
   return h >>> 0;
-}
-
-/**
- * Convert a `#rgb`/`#rrggbb` hex colour to an `rgba()` string.
- *
- * @param {string} hex
- * @param {number} a - Alpha 0..1.
- * @returns {string}
- */
-function hexToRgba(hex, a) {
-  const h = String(hex || '#8fd694').replace('#', '');
-  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
-  const n = parseInt(full, 16) || 0;
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  return `rgba(${r},${g},${b},${a})`;
 }
 
 /** Clamp a number to [lo, hi]. @param {number} v @param {number} lo @param {number} hi @returns {number} */
@@ -116,57 +91,6 @@ function roundRectPath(ctx, x, y, w, h, r) {
   ctx.lineTo(x, y + rr);
   ctx.quadraticCurveTo(x, y, x + rr, y);
   ctx.closePath();
-}
-
-/**
- * Build (and cache) a deterministic block-based preview design for a preset,
- * using the preset's `bias` to seed block land uses and its `structure` as the
- * retained infrastructure. Falls back to `createDesign` / `rasterize` from
- * `design.js`.
- *
- * @param {{id:string, bias?:Record<string,number>, structure?:object}} preset
- * @returns {import('./design.js').Design}
- */
-function previewDesign(preset) {
-  const key = (preset && preset.id) || 'default';
-  const hit = _previewCache.get(key);
-  if (hit) return hit;
-
-  const seed = hashString(key);
-  const d = createDesign(seed, null, preset && preset.structure);
-  const rng = makePRNG((seed ^ 0x9e3779b1) >>> 0);
-  const bias = (preset && preset.bias) || { KLAM_GRASS: 1 };
-
-  for (const b of d.blocks) {
-    const lu = weightedPick(rng, bias);
-    if (lu) b.landUse = lu;
-    if (lu === 'KLAM_WATER') b.pattern = 'water';
-    else if (lu === 'KLAM_GRASS' || lu === 'KLAM_FOREST') b.pattern = 'green';
-    else if (b.pattern === 'green' || b.pattern === 'water') {
-      b.pattern = BUILDING_PATTERNS[b.id % BUILDING_PATTERNS.length];
-    }
-  }
-  rasterize(d);
-  _previewCache.set(key, d);
-  return d;
-}
-
-/**
- * Resolve the currently selected design from app state (matches `iso.js`
- * semantics): the selected id in the archive bins, else the archive best.
- *
- * @param {object} state
- * @returns {import('./design.js').Design|null}
- */
-function resolveDesign(state) {
-  if (!state) return null;
-  const id = state.selectedDesignId;
-  const bins = (state.archive && state.archive.bins) || [];
-  if (id != null) {
-    for (const b of bins) if (b && b.design && b.design.id === id) return b.design;
-  }
-  if (state.archive && state.archive.best) return state.archive.best.design;
-  return null;
 }
 
 /** Fallback city context used only if a preset somehow lacks `city`. */
@@ -651,121 +575,20 @@ export function createCityMap(canvas, store) {
   // ---------------------------------------------------------------------------
 
   /**
-   * Draw the retained site infrastructure (roads, rails, green corridor and
-   * pre-existing blocks) distinctly over the site-grid preview, so the user sees
-   * the existing structure inside the selection box.
-   *
-   * @param {object} structure
-   * @param {number} ox
-   * @param {number} oy
-   * @param {number} lcw - Local cell width (CSS px) for one 10×10 cell.
-   * @param {number} lch - Local cell height (CSS px) for one 10×10 cell.
-   */
-  function drawStructureOverlay(structure, ox, oy, lcw, lch) {
-    if (!structure) return;
-    const eachCell = (line, fn) => {
-      if (!line) return;
-      const from = Math.max(0, line.from);
-      const to = Math.min(N - 1, line.to);
-      for (let t = from; t <= to; t++) {
-        const gx = line.axis === 'v' ? line.x : t;
-        const gy = line.axis === 'h' ? line.y : t;
-        if (gx < 0 || gx >= N || gy < 0 || gy >= N) continue;
-        fn(gx, gy);
-      }
-    };
-
-    ctx.save();
-    // Existing roads: light bands.
-    for (const line of structure.roads || []) {
-      eachCell(line, (gx, gy) => {
-        ctx.fillStyle = 'rgba(203,213,225,0.30)';
-        ctx.fillRect(ox + gx * lcw, oy + gy * lch, lcw, lch);
-      });
-    }
-    // Green corridor: permeable band.
-    eachCell(structure.greenCorridor, (gx, gy) => {
-      ctx.fillStyle = 'rgba(63,163,77,0.32)';
-      ctx.fillRect(ox + gx * lcw, oy + gy * lch, lcw, lch);
-    });
-    // Rails: dark band + parallel rail strokes / sleepers.
-    for (const line of structure.rails || []) {
-      eachCell(line, (gx, gy) => {
-        const x = ox + gx * lcw;
-        const y = oy + gy * lch;
-        ctx.fillStyle = 'rgba(51,65,85,0.55)';
-        ctx.fillRect(x, y, lcw, lch);
-        ctx.strokeStyle = 'rgba(226,232,240,0.8)';
-        ctx.lineWidth = 1;
-        const n = 3;
-        if (line.axis === 'h') {
-          for (let k = 1; k <= n; k++) {
-            const yy = y + (k / (n + 1)) * lch;
-            ctx.beginPath();
-            ctx.moveTo(x + lcw * 0.12, yy);
-            ctx.lineTo(x + lcw * 0.88, yy);
-            ctx.stroke();
-          }
-        } else {
-          for (let k = 1; k <= n; k++) {
-            const xx = x + (k / (n + 1)) * lcw;
-            ctx.beginPath();
-            ctx.moveTo(xx, y + lch * 0.12);
-            ctx.lineTo(xx, y + lch * 0.88);
-            ctx.stroke();
-          }
-        }
-      });
-    }
-    // Pre-existing blocks: outline.
-    for (const eb of structure.existingBlocks || []) {
-      ctx.strokeStyle = 'rgba(148,163,184,0.85)';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(ox + eb.x * lcw, oy + eb.y * lch, eb.w * lcw, eb.h * lch);
-    }
-    ctx.restore();
-  }
-
-  /**
-   * Draw the site grid inside the selection box, tinted by the selected design's
-   * KLAM cells (or a deterministic preset preview when nothing is selected), with
-   * the retained site structure (rails/roads) drawn distinctly on top.
+   * Draw the neutral 10×10 site grid inside the selection box. The Phase-1
+   * selection screen deliberately shows no generated design — only the
+   * underlying terrain and this planning grid — so the dashed selection box
+   * (drawn separately by {@link drawSelectionBox}) clearly outlines the region.
    *
    * @param {object} state
    */
   function drawSiteGrid(state) {
-    const preset = PRESETS.find((p) => p.id === state.site.presetId) || PRESETS[0];
-    const design = resolveDesign(state) || previewDesign(preset);
     const { cw, ch } = cellSize();
     const box = state.site.box;
     const ox = box.x * cw;
     const oy = box.y * ch;
-
     const bw = Math.max(1, box.w);
     const bh = Math.max(1, box.h);
-
-    for (let j = 0; j < bh; j++) {
-      for (let i = 0; i < bw; i++) {
-        // Nearest sampling of the 10×10 design raster into the box.
-        const sgx = Math.min(N - 1, Math.floor((i / bw) * N));
-        const sgy = Math.min(N - 1, Math.floor((j / bh) * N));
-        const cell = design.cells[sgy * N + sgx] || { klam: 'KLAM_GRASS', height: 0 };
-        const color = (KLAM[cell.klam] && KLAM[cell.klam].color) || '#8fd694';
-        const x = ox + i * cw;
-        const y = oy + j * ch;
-        ctx.fillStyle = hexToRgba(color, 0.78);
-        ctx.fillRect(x, y, cw, ch);
-        if (cell.height > 0) {
-          ctx.fillStyle = hexToRgba('#0f172a', Math.min(0.5, cell.height * 0.05));
-          ctx.fillRect(x, y, cw, ch);
-        }
-      }
-    }
-
-    // Retained site structure (rails become roads; existing roads/corridor).
-    const lcw = (bw * cw) / N;
-    const lch = (bh * ch) / N;
-    drawStructureOverlay(design.structure || (preset && preset.structure), ox, oy, lcw, lch);
 
     // Grid lines.
     ctx.strokeStyle = 'rgba(15,23,42,0.35)';

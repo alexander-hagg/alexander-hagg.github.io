@@ -12,7 +12,7 @@
 
 import { PRESETS, N, BINS } from './config.js';
 import { KLAM, KLAM_IDS } from './klam.js';
-import { selectedDesign, describeCell } from './iso.js';
+import { selectedDesign, describeCell, renderPresetPreview } from './iso.js';
 import { loc, t, applyI18n, onChange, getLang, setLang } from './i18n.js';
 
 /**
@@ -45,6 +45,38 @@ export function initUI(store, deps) {
   // Preset list
   // ---------------------------------------------------------------------------
 
+  /** CSS size of each preset preview thumbnail. */
+  const PREVIEW_W = 96;
+  const PREVIEW_H = 64;
+
+  /**
+   * Size a preview canvas for the current device pixel ratio and draw the
+   * preset's simple 3D scene into it (crisp, not blurry).
+   *
+   * @param {HTMLCanvasElement} canvasEl
+   * @param {object} preset
+   */
+  function drawPresetPreview(canvasEl, preset) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvasEl.width = Math.round(PREVIEW_W * dpr);
+    canvasEl.height = Math.round(PREVIEW_H * dpr);
+    canvasEl.style.width = PREVIEW_W + 'px';
+    canvasEl.style.height = PREVIEW_H + 'px';
+    const pctx = canvasEl.getContext('2d');
+    if (!pctx) return;
+    pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    renderPresetPreview(pctx, preset, PREVIEW_W, PREVIEW_H);
+  }
+
+  /** Redraw every preset preview (used on resize / DPR change). */
+  function renderPresetPreviews() {
+    if (!presetList) return;
+    for (const cv of presetList.querySelectorAll('canvas[data-preset-preview]')) {
+      const p = PRESETS.find((x) => x.id === cv.dataset.presetPreview);
+      if (p) drawPresetPreview(cv, p);
+    }
+  }
+
   function renderPresets() {
     if (!presetList) return;
     presetList.innerHTML = '';
@@ -53,15 +85,31 @@ export function initUI(store, deps) {
       btn.type = 'button';
       btn.dataset.presetId = p.id;
       btn.className =
-        'preset-btn text-left px-3 py-2 rounded-lg border border-white/10 bg-white/5 ' +
+        'preset-btn flex items-center gap-2 text-left px-2 py-2 rounded-lg border border-white/10 bg-white/5 ' +
         'hover:bg-white/10 transition text-sm';
-      btn.textContent = loc(p.name);
+      const cv = document.createElement('canvas');
+      cv.dataset.presetPreview = p.id;
+      cv.setAttribute('aria-hidden', 'true');
+      cv.className = 'preset-preview rounded shrink-0';
+      const label = document.createElement('span');
+      label.className = 'flex-1 min-w-0';
+      label.textContent = loc(p.name);
+      btn.appendChild(cv);
+      btn.appendChild(label);
       btn.addEventListener('click', () => {
         store.dispatch({ type: 'SET_PRESET', presetId: p.id, box: { ...p.box } });
       });
       presetList.appendChild(btn);
+      drawPresetPreview(cv, p);
     }
   }
+
+  // Re-render previews when the viewport (and thus DPR) changes.
+  let previewResizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(previewResizeTimer);
+    previewResizeTimer = setTimeout(renderPresetPreviews, 150);
+  });
 
   /** Highlight the active preset button. @param {object} state */
   function markActivePreset(state) {

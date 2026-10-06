@@ -18,6 +18,7 @@
 import { N } from './config.js';
 import { KLAM, isBuilding } from './klam.js';
 import { PALETTE, paletteFor } from './palette.js';
+import { makePRNG } from './prng.js';
 import { loc, t } from './i18n.js';
 
 /**
@@ -993,6 +994,149 @@ export function renderThumbnail(ctx, design, geom) {
 
   ctx.fillStyle = env.vignette;
   ctx.fillRect(0, 0, geom.width, geom.height);
+}
+
+// ===========================================================================
+// Preset previews (Phase-1 site selection)
+// ===========================================================================
+
+/**
+ * FNV-1a string hash → unsigned 32-bit int, used to seed the deterministic
+ * preset-preview PRNG from a preset id.
+ *
+ * @param {string} s
+ * @returns {number}
+ */
+function hashSeed(s) {
+  let h = 2166136261 >>> 0;
+  const str = String(s == null ? '' : s);
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/**
+ * Elevation (screen px) of a point on a simple hillside that descends toward
+ * `dir`. The upstream edge (opposite `dir`) is highest; the downstream edge is
+ * at zero. Shared by {@link drawIsoSlope} and the preset-preview building placer.
+ *
+ * @param {number} gx
+ * @param {number} gy
+ * @param {{x:number,y:number}} dir - Cold-air direction (grid units).
+ * @param {number} maxElev - Peak elevation in screen px.
+ * @returns {number}
+ */
+function slopeElevAt(gx, gy, dir, maxElev) {
+  let dx = dir && Number.isFinite(dir.x) ? dir.x : 0;
+  let dy = dir && Number.isFinite(dir.y) ? dir.y : 1;
+  const len = Math.hypot(dx, dy) || 1;
+  dx /= len;
+  dy /= len;
+  const c = (N - 1) / 2;
+  const range = (Math.abs(dx) + Math.abs(dy)) * c || 1;
+  const t = ((gx - c) * dx + (gy - c) * dy) / range; // -1 (upstream) .. 1 (downstream)
+  return maxElev * (1 - (t + 1) / 2);
+}
+
+/**
+ * Trace the four grid corners as a quad, each raised by its own elevation, and
+ * fill it. With `maxElev === 0` this is a flat iso diamond; with a positive
+ * `maxElev` it is a simple tilted hillside whose far (upstream) edge is raised
+ * and which descends toward `dir`.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} geom
+ * @param {{x:number,y:number}} dir - Cold-air direction (grid units).
+ * @param {{top?:string,grid?:string,maxElev?:number}} [opts]
+ */
+export function drawIsoSlope(ctx, geom, dir, opts) {
+  const o = opts || {};
+  const maxElev = o.maxElev != null ? o.maxElev : geom.tileHeight * 2.6;
+  const corners = [[0, 0], [N - 1, 0], [N - 1, N - 1], [0, N - 1]];
+  const pts = corners.map(([gx, gy]) => isoProject(gx, gy, slopeElevAt(gx, gy, dir, maxElev), geom));
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.closePath();
+  ctx.fillStyle = o.top || '#3f6b4a';
+  ctx.fill();
+  ctx.strokeStyle = o.grid || 'rgba(15,23,42,0.35)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * Whether a preset's city contains a hillside (any `hills`/`mountains` zone).
+ *
+ * @param {object} preset
+ * @returns {boolean}
+ */
+function isHillsidePreset(preset) {
+  const terrain = (preset && preset.city && preset.city.terrain) || [];
+  return terrain.some((z) => z && (z.type === 'hills' || z.type === 'mountains'));
+}
+
+/**
+ * Draw a small, simple 3D preview of a site preset into `ctx`. The scene reuses
+ * the iso aesthetic (sky gradient, soft ground plane, vignette) and shows a
+ * simple ground surface — a flat diamond, or a tilted hillside for presets with
+ * `hills`/`mountains` terrain — plus a few low building volumes. The view is
+ * oriented so the city's cold-air direction projects downward, and the whole
+ * scene is deterministic (seeded from the preset id).
+ *
+ * Intended to be called once per preset (not per animation frame).
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} preset
+ * @param {number} cssW - CSS-pixel width.
+ * @param {number} cssH - CSS-pixel height.
+ */
+export function renderPresetPreview(ctx, preset, cssW, cssH) {
+  const W = Math.max(1, cssW);
+  const H = Math.max(1, cssH);
+  const city = (preset && preset.city) || {};
+  const dir = (city.coldAir && city.coldAir.dir) || { x: 0, y: 1 };
+  const orientation = orientationForDir(dir);
+  const geom = computeGeom({ width: W, height: H }, N, 3, orientation);
+
+  ctx.clearRect(0, 0, W, H);
+  const env = makeEnvGradients(ctx, geom);
+  drawSky(ctx, geom, env);
+  drawGroundPlane(ctx, geom, env);
+
+  const hillside = isHillsidePreset(preset);
+  const maxElev = hillside ? geom.tileHeight * 2.6 : 0;
+  drawIsoSlope(ctx, geom, dir, {
+    top: hillside ? '#3f6b4a' : '#4a7a52',
+    maxElev,
+  });
+
+  // A few simple low building volumes, deterministic per preset.
+  const rng = makePRNG(hashSeed((preset && preset.id) || 'preset'));
+  const spots = [[3, 3], [6, 3], [3, 6], [6, 6], [4, 4]];
+  const count = 2 + Math.floor(rng() * 3); // 2..4
+  const palette = { top: '#e8f2f5', left: '#9ab0bb', right: '#6f8590' };
+  const order = [];
+  for (let i = 0; i < count; i++) {
+    const [gx, gy] = spots[i % spots.length];
+    order.push({ gx, gy, h: 1 + Math.floor(rng() * 2) });
+  }
+  order.sort((a, b) => isoProject(a.gx, a.gy, 0, geom).y - isoProject(b.gx, b.gy, 0, geom).y);
+  for (const b of order) {
+    const elev = hillside ? slopeElevAt(b.gx, b.gy, dir, maxElev) : 0;
+    ctx.save();
+    ctx.translate(0, -elev);
+    drawIsoBox(ctx, b.gx, b.gy, b.h, geom, palette);
+    ctx.restore();
+  }
+
+  ctx.fillStyle = env.vignette;
+  ctx.fillRect(0, 0, W, H);
 }
 
 /**
