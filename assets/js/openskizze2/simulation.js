@@ -19,7 +19,7 @@ import {
   computeFitness,
   binIndex,
   binOfX,
-  binOfY,
+  binOfYStructures,
   setDescriptorScale,
   computeFreeRects,
 } from './design.js';
@@ -36,7 +36,7 @@ import {
  * @property {(Design|null)[]} bins - 144 bins (12x12), null when empty.
  * @property {number} coverage - Fraction of non-empty bins 0..1.
  * @property {Design|null} best - Highest-fitness elite.
- * @property {number[]} pareto - Ids of elites non-dominated on (floorArea, buildingCount).
+ * @property {number[]} pareto - Ids of elites non-dominated on (floorArea, structureCount).
  */
 
 /**
@@ -137,7 +137,7 @@ function landUseMaps(bias, seed, rects) {
  * The mixed schemes are chosen to spread candidates across the *2-D* descriptor
  * plane: north green/blue strips (upstream cold-air sources) are combined with
  * dense building patterns downstream so that high `floorArea` co-occurs with a
- * high `buildingCount` (upper-right region), while forest-heavy and water-heavy
+ * high `structureCount` (upper-right region), while forest-heavy and water-heavy
  * schemes reach the low/low and low/high corners. Schemes are indexed row-major
  * (block b is at grid column `b % 3`, row `floor(b / 3)`; row 0 is North).
  *
@@ -238,20 +238,22 @@ export function generateCandidates(site, count, seed) {
   }
 
   // --- 2. Measure the population and install adaptive normalization ---------
-  // The fixed GFZ_MAX does not match the achievable floor-area range, packing
-  // all candidates into a few bins. Measure the raw population once
-  // (deterministically) and map the observed 2nd–98th percentile range onto
-  // [0,1], so the floor-area axis stays monotonic but fills all bins. The
-  // building-count axis is an integer count and needs no adaptive scale.
+  // The fixed GFZ_MAX / STRUCT_MAX references do not match the achievable
+  // ranges, packing all candidates into a few bins. Measure the raw population
+  // once (deterministically) and map the observed 2nd–98th percentile range of
+  // each axis onto [0,1], so both axes stay monotonic but fill all bins.
   const probes = pool.map((blocks) => {
     const probe = createDesign(0, blocks, structure, windDir);
     computeMetrics(probe);
     return probe;
   });
   const gfzVals = probes.map((d) => d.metrics.planner.gfz).sort((a, b) => a - b);
+  const structVals = probes.map((d) => d.metrics.planner.structureCount).sort((a, b) => a - b);
   setDescriptorScale({
     floorLo: percentile(gfzVals, 0.02),
     floorHi: percentile(gfzVals, 0.98),
+    structLo: percentile(structVals, 0.02),
+    structHi: percentile(structVals, 0.98),
   });
 
   // --- 3. Greedy selection of a bin-covering subset -------------------------
@@ -259,7 +261,7 @@ export function generateCandidates(site, count, seed) {
   const seen = new Set();
   for (const probe of probes) {
     const desc = computeDescriptor(probe);
-    const key = binOfY(desc.buildingCount) * BINS + binOfX(desc.floorArea);
+    const key = binOfYStructures(desc.structureCount) * BINS + binOfX(desc.floorArea);
     if (!seen.has(key)) {
       seen.add(key);
       selected.push(probe.blocks);
@@ -318,7 +320,7 @@ export function runMAPElites(candidates, archive) {
     const fit = computeFitness(d);
 
     const bx = binOfX(desc.floorArea);
-    const by = binOfY(desc.buildingCount);
+    const by = binOfYStructures(desc.structureCount);
 
     const idx = binIndex(bx, by);
     const cur = archive.bins[idx];
@@ -334,14 +336,14 @@ export function runMAPElites(candidates, archive) {
   }
   archive.best = best;
 
-  // Pareto set on the two QD features (floorArea, buildingCount).
+  // Pareto set on the two QD features (floorArea, structureCount).
   const pareto = [];
   for (const a of elites) {
     let dominated = false;
     for (const b of elites) {
       if (a === b) continue;
-      const af = a.descriptor.floorArea, ab = a.descriptor.buildingCount;
-      const bf = b.descriptor.floorArea, bb = b.descriptor.buildingCount;
+      const af = a.descriptor.floorArea, ab = a.descriptor.structureCount;
+      const bf = b.descriptor.floorArea, bb = b.descriptor.structureCount;
       if (bf >= af && bb >= ab && (bf > af || bb > ab)) {
         dominated = true;
         break;
@@ -358,6 +360,10 @@ export function runMAPElites(candidates, archive) {
  * Build the 9-dim normalized feature vector for an elite design.
  * [floorArea, buildingCountNorm, greenNorm, meanHeightNorm,
  *  waterFrac, forestFrac, sealedFrac, meanFootprint, streetFraction]
+ *
+ * Dimension 1 stays **cell-based** (`buildingCount / N*N`) so the archetype
+ * labelling (A = highest porosity) keeps its documented meaning; the QD
+ * archive axis uses `structureCount` instead.
  *
  * @param {Design} d
  * @returns {number[]}
@@ -382,7 +388,7 @@ function featureVector(d) {
 
   return [
     clamp01(desc.floorArea),
-    clamp01(desc.buildingCount / (N * N)),
+    clamp01(m.planner.buildingCount / (N * N)),
     clamp01(m.layman.greenSpace / 100),
     clamp01(m.planner.gfz / SIM.GFZ_MAX),
     clamp01((pct.KLAM_WATER || 0) / 100),

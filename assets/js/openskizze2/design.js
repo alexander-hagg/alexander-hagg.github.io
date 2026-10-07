@@ -55,7 +55,7 @@ import { weightedPick, randInt, pick, valueNoise2D } from './prng.js';
  * @property {{cols:number[], rows:number[], width:number}} streets - Derived from `structure`.
  * @property {Cell[]} cells - 100 cells, row-major, index = gy*N + gx (gy=0 is North).
  * @property {Metrics|null} metrics
- * @property {{floorArea:number, buildingCount:number}|null} descriptor
+ * @property {{floorArea:number, structureCount:number}|null} descriptor
  * @property {number|null} fitness
  * @property {string|null} archetype
  */
@@ -64,7 +64,7 @@ import { weightedPick, randInt, pick, valueNoise2D } from './prng.js';
  * Layman + planner metric bundle.
  * @typedef {Object} Metrics
  * @property {{homes:number, freshAirInflow:number, greenSpace:number, summaryBadge:string}} layman
- * @property {{grz:number, gfz:number, vFlux:number, z0Mean:number, sigma:number, buildingCount:number, porosity:number, classPct:Record<string,number>}} planner
+ * @property {{grz:number, gfz:number, vFlux:number, z0Mean:number, sigma:number, buildingCount:number, structureCount:number, porosity:number, classPct:Record<string,number>}} planner
  */
 
 /** Classes considered permeable (green/blue infrastructure). */
@@ -867,6 +867,57 @@ export function mutateDesign(d, rng, rate) {
 }
 
 /**
+ * Count distinct contiguous building structures in the raster.
+ *
+ * A structure is a **4-connected** component of cells with `height > 0`
+ * (edge-adjacency only; diagonally touching cells are separate structures).
+ * This is the QD "number of buildings" feature: it counts built masses rather
+ * than built cells, so a perimeter block counts once while a row of detached
+ * structures counts many times. Pre-existing blocks and genome blocks that
+ * touch merge into a single structure.
+ *
+ * Pure and deterministic; O(N*N) with an iterative flood fill.
+ *
+ * @param {Cell[]} cells - Row-major 100-cell raster (index = gy*N + gx).
+ * @returns {number} Number of connected building components (0..N*N).
+ */
+export function countStructures(cells) {
+  const n = N * N;
+  const seen = new Uint8Array(n);
+  let structures = 0;
+  for (let start = 0; start < n; start++) {
+    if (seen[start]) continue;
+    const c0 = cells[start];
+    if (!c0 || !(c0.height > 0)) continue;
+    structures++;
+    const stack = [start];
+    seen[start] = 1;
+    while (stack.length > 0) {
+      const i = stack.pop();
+      const gx = i % N;
+      const gy = (i - gx) / N;
+      if (gx > 0) {
+        const j = i - 1;
+        if (!seen[j] && cells[j] && cells[j].height > 0) { seen[j] = 1; stack.push(j); }
+      }
+      if (gx < N - 1) {
+        const j = i + 1;
+        if (!seen[j] && cells[j] && cells[j].height > 0) { seen[j] = 1; stack.push(j); }
+      }
+      if (gy > 0) {
+        const j = i - N;
+        if (!seen[j] && cells[j] && cells[j].height > 0) { seen[j] = 1; stack.push(j); }
+      }
+      if (gy < N - 1) {
+        const j = i + N;
+        if (!seen[j] && cells[j] && cells[j].height > 0) { seen[j] = 1; stack.push(j); }
+      }
+    }
+  }
+  return structures;
+}
+
+/**
  * Compute and cache the footprint-aware metrics bundle for a design.
  *
  * - `grz = Σ footprint_i / count`
@@ -911,6 +962,11 @@ export function computeMetrics(d) {
     z0[i] = k.z0;
     pCold[i] = k.pCold;
   }
+
+  // Distinct contiguous building structures (4-connected components of built
+  // cells) — the QD "number of buildings" feature. Counted separately from
+  // `buildingCount` (built cells) so the porosity objective stays cell-based.
+  const structureCount = countStructures(cells);
 
   // Cold-air flux with upstream sheltering along the city's cold-air direction.
   // For each cell we walk backwards along `-windDir`, accumulating the
@@ -1003,6 +1059,7 @@ export function computeMetrics(d) {
       z0Mean,
       sigma,
       buildingCount,
+      structureCount,
       porosity,
       classPct,
     },
@@ -1032,31 +1089,28 @@ function summaryBadge(freshAirInflow, homes) {
 }
 
 /**
- * Module-level adaptive descriptor scale for the **floor-area** axis.
+ * Module-level adaptive descriptor scale for both QD axes.
  *
- * The *fixed* reference constant (`SIM.GFZ_MAX = 6`) does not match the value
- * range actually reachable by the block genome: real `gfz` only reaches ≈1.47,
- * so the old normalization compressed every candidate into a narrow corner of
- * the descriptor plane. When a scale is installed by
- * {@link module:simulation.generateCandidates}, the raw `gfz` is linearly
+ * The *fixed* reference constants (`SIM.GFZ_MAX = 6`, `SIM.STRUCT_MAX`) do not
+ * match the value ranges actually reachable by the block genome: real `gfz`
+ * only reaches ≈1.47, and the number of contiguous building structures is far
+ * below `N*N`. When a scale is installed by
+ * {@link module:simulation.generateCandidates}, each raw feature is linearly
  * mapped through the observed 2nd–98th percentile range of the candidate
- * population, so candidates spread across all `BINS` bins. The mapping stays
- * strictly monotonic (higher `gfz` → higher `floorArea`). `null` restores the
- * legacy fixed-reference behaviour.
+ * population, so candidates spread across all `BINS` bins. Both mappings stay
+ * strictly monotonic (higher raw value → higher normalized value). `null`
+ * restores the legacy fixed-reference behaviour.
  *
- * The second descriptor axis (`buildingCount`) is an integer count and needs no
- * adaptive scale — it is binned directly by {@link binOfY}.
- *
- * @type {{floorLo:number, floorHi:number}|null}
+ * @type {{floorLo:number, floorHi:number, structLo:number, structHi:number}|null}
  */
 let descriptorScale = null;
 
 /**
- * Install (or clear) the adaptive floor-area normalization scale. Called once,
+ * Install (or clear) the adaptive descriptor normalization scale. Called once,
  * deterministically, from `generateCandidates` after measuring the candidate
  * population. Passing `null` restores the legacy fixed-reference mapping.
  *
- * @param {{floorLo:number, floorHi:number}|null} scale
+ * @param {{floorLo:number, floorHi:number, structLo:number, structHi:number}|null} scale
  */
 export function setDescriptorScale(scale) {
   descriptorScale = scale || null;
@@ -1064,23 +1118,25 @@ export function setDescriptorScale(scale) {
 
 /**
  * Read the currently installed descriptor scale (mainly for tests).
- * @returns {{floorLo:number, floorHi:number}|null}
+ * @returns {{floorLo:number, floorHi:number, structLo:number, structHi:number}|null}
  */
 export function getDescriptorScale() {
   return descriptorScale;
 }
 
 /**
- * Compute and cache the 2-D QD descriptor `{floorArea, buildingCount}`.
+ * Compute and cache the 2-D QD descriptor `{floorArea, structureCount}`.
  *
  * `floorArea` is the normalized floor-area ratio (`gfz`) in 0..1, using the
  * adaptive {@link setDescriptorScale|descriptorScale} when installed and
- * otherwise the fixed `SIM.GFZ_MAX` fallback. `buildingCount` is the raw
- * integer number of built cells (0..N*N) — a genuine QD feature, not an
- * optimization target.
+ * otherwise the fixed `SIM.GFZ_MAX` fallback. `structureCount` is the raw
+ * integer number of contiguous building structures (4-connected components of
+ * built cells) — a genuine QD feature, not an optimization target. It is
+ * deliberately distinct from the cell-based `buildingCount` used by the
+ * porosity objective.
  *
  * @param {Design} d
- * @returns {{floorArea:number, buildingCount:number}}
+ * @returns {{floorArea:number, structureCount:number}}
  */
 export function computeDescriptor(d) {
   const m = d.metrics || computeMetrics(d);
@@ -1088,8 +1144,8 @@ export function computeDescriptor(d) {
   const floorArea = s
     ? clamp01((m.planner.gfz - s.floorLo) / ((s.floorHi - s.floorLo) || 1))
     : clamp01(m.planner.gfz / SIM.GFZ_MAX);
-  const buildingCount = m.planner.buildingCount;
-  const descriptor = { floorArea, buildingCount };
+  const structureCount = m.planner.structureCount;
+  const descriptor = { floorArea, structureCount };
   d.descriptor = descriptor;
   return descriptor;
 }
@@ -1125,10 +1181,11 @@ export function binOfX(floorArea) {
 }
 
 /**
- * Bin the building-count descriptor axis into `[0, BINS-1]`.
+ * Bin the legacy cell-based building-count axis into `[0, BINS-1]`.
  *
  * Maps `0 → 0` and `N*N → BINS-1`, monotonically and integer-safely, so the
- * top bin always includes the maximum possible count.
+ * top bin always includes the maximum possible count. Retained for cell-based
+ * uses; the QD archive axis now uses {@link binOfYStructures}.
  *
  * @param {number} buildingCount - Integer number of built cells (0..N*N).
  * @returns {number}
@@ -1137,6 +1194,28 @@ export function binOfY(buildingCount) {
   const n = N * N;
   const v = Number.isFinite(buildingCount) ? buildingCount : 0;
   const b = Math.floor((v * BINS) / (n + 1));
+  return b < 0 ? 0 : b >= BINS ? BINS - 1 : b;
+}
+
+/**
+ * Bin the structure-count descriptor axis into `[0, BINS-1]`.
+ *
+ * The raw structure count is normalized through the adaptive
+ * {@link setDescriptorScale|descriptorScale} structure range when installed
+ * (2nd–98th percentile of the candidate pool), otherwise through the fixed
+ * `SIM.STRUCT_MAX` fallback, then mapped monotonically onto the bins. The
+ * mapping is strictly monotonic: more structures always yields a higher bin.
+ *
+ * @param {number} structureCount - Integer number of contiguous building structures.
+ * @returns {number}
+ */
+export function binOfYStructures(structureCount) {
+  const v = Number.isFinite(structureCount) ? structureCount : 0;
+  const s = descriptorScale;
+  const norm = s && Number.isFinite(s.structLo) && Number.isFinite(s.structHi)
+    ? clamp01((v - s.structLo) / ((s.structHi - s.structLo) || 1))
+    : clamp01(v / SIM.STRUCT_MAX);
+  const b = Math.floor(norm * BINS);
   return b < 0 ? 0 : b >= BINS ? BINS - 1 : b;
 }
 

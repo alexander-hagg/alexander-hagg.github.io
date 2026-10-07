@@ -330,9 +330,10 @@ greenSpace = 100 * (grass + forest + water count) / count
 ```
 
 `grz` is the mean building footprint fraction (0..1); `gfz` is the mean
-floor-area ratio (stories × footprint). `SIM.GFZ_MAX = 6` and `V_FLUX_REF`
-(≈33.33 m³/s) are retained as **fixed fallback references** for descriptor
-normalization; the search normally uses an adaptive scale instead (see below).
+floor-area ratio (stories × footprint). `SIM.GFZ_MAX = 6`, `SIM.STRUCT_MAX = 24`
+and `V_FLUX_REF` (≈33.33 m³/s) are retained as **fixed fallback references** for
+descriptor normalization; the search normally uses an adaptive scale instead
+(see below).
 
 ### Directional cold-air flux with street canyons and sheltering
 
@@ -375,36 +376,48 @@ The two MAP-Elites behaviour axes are genuine QD **features** (not optimization
 targets), returned by [`computeDescriptor`](design.js:1074):
 
 - **floorArea** — the normalized floor-area ratio `gfz` (0..1)
-- **buildingCount** — the raw integer number of built cells (0..N*N)
+- **structureCount** — the raw integer number of **contiguous building
+  structures** (4-connected components of cells with `height > 0`, 0..N*N)
+
+`structureCount` counts built *masses*, not built *cells*: a perimeter block
+counts once, a row of detached structures counts many times, and adjacent
+genome blocks (or a genome block touching a pre-existing block) merge into one
+structure. It is computed by [`countStructures`](design.js:884) and is
+deliberately distinct from the cell-based `buildingCount` used by the porosity
+objective (see [Fitness](#fitness)).
 
 **Adaptive descriptor scale (coverage fix).** The block genome only reaches
-`gfz ≈ 1.47`, far below the fixed ceiling (`SIM.GFZ_MAX = 6`). Normalising
-against that fixed reference compressed every candidate into a narrow corner of
-descriptor space. [`generateCandidates`](simulation.js:237) therefore measures
-the whole enumeration pool once, deterministically, and installs a **2nd–98th
-percentile scale** of the candidate population via
+`gfz ≈ 1.47` and a handful of structures, far below the fixed ceilings
+(`SIM.GFZ_MAX = 6`, `SIM.STRUCT_MAX = 24`). Normalising against those fixed
+references compressed every candidate into a narrow corner of descriptor space.
+[`generateCandidates`](simulation.js:237) therefore measures the whole
+enumeration pool once, deterministically, and installs a **2nd–98th percentile
+scale** for *each* axis of the candidate population via
 [`setDescriptorScale`](design.js:1053) before any ticking:
 
 ```text
-floorArea = clamp01((gfz - floorLo) / (floorHi - floorLo))
+floorArea      = clamp01((gfz - floorLo) / (floorHi - floorLo))
+structureCount = raw integer (not normalized in the descriptor)
 # Lo/Hi are the 2nd/98th percentiles of the candidate pool
 ```
 
-The mapping stays **strictly monotonic** — higher `gfz` always yields higher
-`floorArea` — so the search ordering is unchanged while candidates now spread
-across all bins. The `buildingCount` axis is an integer count and needs no
-adaptive scale. [`getDescriptorScale`](design.js:1061) exposes the installed
-scale for tests. When no scale is installed, `computeDescriptor` falls back to
-the fixed `SIM.GFZ_MAX` reference.
+Both mappings stay **strictly monotonic** — higher `gfz` always yields higher
+`floorArea`, and more structures always yields a higher bin — so the search
+ordering is unchanged while candidates now spread across all bins.
+[`getDescriptorScale`](design.js:1061) exposes the installed scale for tests.
+When no scale is installed, `computeDescriptor` falls back to the fixed
+`SIM.GFZ_MAX` reference and `binOfYStructures` to `SIM.STRUCT_MAX`.
 
 Each axis is split into `BINS = 12` bins, giving a 12×12 = 144-cell archive.
 Binning is centralized in [`design.js`](design.js:1) and used by **both**
 [`simulation.js`](simulation.js:1) and [`state.js`](state.js:1):
 
 ```text
-binOfX(floorArea)     = min(BINS-1, floor(clamp01(floorArea) * BINS))
-binOfY(buildingCount) = min(BINS-1, floor(buildingCount * BINS / (N*N + 1)))
-# binOfY maps 0 → 0 and N*N → BINS-1, monotonically and integer-safely
+binOfX(floorArea)            = min(BINS-1, floor(clamp01(floorArea) * BINS))
+binOfYStructures(structures) = min(BINS-1, floor(clamp01((structures - structLo) / (structHi - structLo)) * BINS))
+# structLo/Hi are the 2nd/98th percentiles of the candidate pool;
+# without a scale, structures / SIM.STRUCT_MAX is used instead.
+# binOfY(buildingCount) is retained for the legacy cell-based axis.
 ```
 
 A bin coordinate maps to a flat index via
@@ -416,11 +429,14 @@ The scalar fitness in `[0, 1]` is the **porosity** objective — the fraction of
 the parcel left unbuilt ([`design.js`](design.js:1097)):
 
 ```text
-porosity = 1 - buildingCount / (N*N)
+porosity = 1 - buildingCount / (N*N)   # buildingCount = built CELLS
 fitness  = clamp01(porosity)
 ```
 
-The two descriptor axes are QD features, not optimization targets, so fitness is
+Porosity stays **cell-based** (`buildingCount`), independent of the
+`structureCount` descriptor axis, so the objective keeps its meaning ("share of
+the parcel left unbuilt") and selection pressure is preserved. The two
+descriptor axes are QD features, not optimization targets, so fitness is
 deliberately a pure function of porosity (no housing/permeability blend and no
 uncertainty penalty, which would dilute the stated objective).
 
@@ -445,6 +461,10 @@ archetypes with deterministic k-means (k-means++ init, `KMEANS_SEED = 15`,
 [floorArea, buildingCountNorm, greenNorm, meanHeightNorm,
  waterFrac, forestFrac, sealedFrac, meanFootprint, streetFraction]
 ```
+
+Dimension 1 stays **cell-based** (`buildingCount / N*N`) so the archetype
+labelling (A = highest porosity) keeps its documented meaning; only the QD
+archive axis uses `structureCount`.
 
 Labels are assigned deterministically ([`simulation.js`](simulation.js:527)):
 
@@ -512,7 +532,7 @@ Concise shapes (see the JSDoc in each module for the full definitions).
   streets: { cols: number[], rows: number[], width: number },  // derived from structure
   cells: Cell[],         // 100 cells, row-major: index = gy*N + gx (gy=0 is North)
   metrics: Metrics | null,
-  descriptor: { floorArea: number, buildingCount: number } | null,
+  descriptor: { floorArea: number, structureCount: number } | null,
   fitness: number | null,
   archetype: string | null
 }
@@ -535,6 +555,7 @@ Concise shapes (see the JSDoc in each module for the full definitions).
     z0Mean: number,           // mean roughness length (m)
     sigma: number,            // surrogate uncertainty 0..1
     buildingCount: number,    // integer count of built cells (0..N*N)
+    structureCount: number,   // integer count of contiguous building structures (4-connected)
     porosity: number,         // 1 - buildingCount/(N*N), the QD objective
     classPct: Record<string, number>   // per-KLAM percentage (7 classes)
   }
@@ -548,7 +569,7 @@ Concise shapes (see the JSDoc in each module for the full definitions).
   bins: (Design | null)[],   // 144 bins (12×12), null when empty
   coverage: number,          // fraction of non-empty bins 0..1
   best: Design | null,       // highest-fitness elite
-  pareto: number[]           // ids of elites non-dominated on (floorArea, buildingCount)
+  pareto: number[]           // ids of elites non-dominated on (floorArea, structureCount)
 }
 ```
 
@@ -936,8 +957,10 @@ anywhere — all randomness flows through the seeded xorshift32 PRNG in
 > **Reproducibility contract.** The seed is the reproducibility contract. The R1
 > metric change — GFZ is now a real floor-area ratio (footprint × height) and
 > `KLAM_STREET` was added — means the archive differs from the pre-upgrade
-> build. Changing `SIM.SEED` produces a different but still fully reproducible
-> archive.
+> build. The QD Y-axis change from cell-based `buildingCount` to
+> `structureCount` likewise alters the archive (coverage, Pareto set and
+> archetypes) for a fixed seed. Changing `SIM.SEED` produces a different but
+> still fully reproducible archive.
 
 ---
 
@@ -960,7 +983,8 @@ legend pick up the new class automatically.
 
 All tunables live in `SIM` in [`config.js`](config.js:23): `SEED`,
 `TOTAL_CANDIDATES`, `DURATION_MS`, `MUTATION_RATE`, `BLOCK_MUTATION_RATE`,
-`GLOBAL_MUTATION_RATE`, `KMEANS_SEED`, `KMEANS_ITERS`, `SHELTER_K`, `GFZ_MAX`.
+`GLOBAL_MUTATION_RATE`, `KMEANS_SEED`, `KMEANS_ITERS`, `SHELTER_K`, `GFZ_MAX`,
+`STRUCT_MAX`.
 Changing `SEED` produces a different (but still reproducible) archive. Changing
 `BINS` or `N` resizes the archive and parcel respectively — check the hard-coded
 `144` in [`state.js`](state.js:58) if you change `BINS`.
@@ -994,7 +1018,7 @@ how the numbers are produced.
 | [`klam.js`](klam.js:1) | 89 | The seven KLAM_21 land-use classes, height ranges, transition kernel and accessors. |
 | [`palette.js`](palette.js:1) | 49 | Cached per-KLAM three-tone isometric colour ramps (`paletteFor`). |
 | [`i18n.js`](i18n.js:1) | 599 | Dependency-free EN/DE localisation core: `LANGS`, `DICT` (en/de), `t(key, params)` with `{param}` interpolation, `loc(value)` for `{en,de}` data, `getLang`/`setLang`/`toggleLang` + `onChange`, `localStorage['openskizze.lang']` persistence, and `applyI18n` for `data-i18n`/`data-i18n-html`/`data-i18n-aria`/`data-i18n-title`. |
-| [`design.js`](design.js:1) | 1120 | Block/Cell genome, `computeFreeRects`/`streetsFromStructure`/`cloneStructure`, `createDesign`/`cloneDesign`/`mutateDesign` (fixed `windDir`), structure-aware `rasterize`, footprint-aware metrics with directional upstream shelter, descriptor/fitness, adaptive `setDescriptorScale`/`getDescriptorScale`. |
+| [`design.js`](design.js:1) | 1120 | Block/Cell genome, `computeFreeRects`/`streetsFromStructure`/`cloneStructure`, `createDesign`/`cloneDesign`/`mutateDesign` (fixed `windDir`), structure-aware `rasterize`, footprint-aware metrics with directional upstream shelter, `countStructures` (4-connected building components), descriptor/fitness, adaptive `setDescriptorScale`/`getDescriptorScale`, `binOfX`/`binOfY`/`binOfYStructures`. |
 | [`simulation.js`](simulation.js:1) | 636 | `generateCandidates` (land-use maps × pattern schemes × height/density/profile sweep + adaptive scale; threads `city.coldAir.dir` into every design), `runMAPElites`, `deriveArchetypes` (k-means k=4, 9-dim features), `createArchive`. |
 | [`consensus.js`](consensus.js:1) | 728 | Pure consensus + requirement-extraction engine: `buildDesignIndex`, `collectClusterDesigns`, `computeConsensus` (per-cell `classDist`/`dominant`/`confidence`/normalized `entropy`, height/footprint mean+std, `buildingFrac`; plus per-class program `meanShare`/`stdShare`/`expectedCells`/`presence` and 3×3 `zones` with `concentration`/`zoneEntropy`), `zoneOf`/`zonePhrase`, `computeRequirements` (quantity/placement/avoid), `describeRegion`, `formatBrief`. |
 | [`state.js`](state.js:1) | 313 | Central store: `createStore`, pure `reducer`, `makeInitialState`, all actions. |

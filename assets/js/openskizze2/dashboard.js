@@ -763,7 +763,7 @@ export function createDashboard(store, deps) {
     const p = m.planner;
     const refPct = Math.round((p.vFlux / V_FLUX_REF) * 100);
 
-    // Big KPI row. Porosity (the QD objective) and building count (a QD
+    // Big KPI row. Porosity (the QD objective) and the structure count (a QD
     // feature) are foregrounded alongside the statutory GRZ/GFZ ratios.
     const kpis =
       '<div class="grid grid-cols-2 gap-3">' +
@@ -784,7 +784,7 @@ export function createDashboard(store, deps) {
         '</div>' +
         '<div class="glass p-3">' +
           '<div class="fs-11 uppercase tracking-wider text-slate-300">' + t('dash.buildingCount') + '</div>' +
-          '<div class="fs-20 font-bold text-slate-100 leading-tight">' + fmtInt(p.buildingCount) + '</div>' +
+          '<div class="fs-20 font-bold text-slate-100 leading-tight">' + fmtInt(p.structureCount) + '</div>' +
           '<div class="fs-11 text-slate-300">' + t('dash.buildingCount') + '</div>' +
         '</div>' +
       '</div>';

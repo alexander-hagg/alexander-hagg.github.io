@@ -18,7 +18,7 @@ import {
   computeFitness,
   binIndex,
   binOfX,
-  binOfY,
+  binOfYStructures,
 } from './design.js';
 import { createArchive, deriveArchetypes } from './simulation.js';
 
@@ -140,7 +140,7 @@ export function reducer(state, action) {
       const fitness = design.fitness != null ? design.fitness : computeFitness(design);
 
       const bx = binOfX(desc.floorArea);
-      const by = binOfY(desc.buildingCount);
+      const by = binOfYStructures(desc.structureCount);
 
       const idx = binIndex(bx, by);
       const bins = state.archive.bins.slice();
@@ -174,16 +174,16 @@ export function reducer(state, action) {
       const archive = state.archive;
       const elites = archive.bins.filter(Boolean);
 
-      // Pareto set on the two QD features (floorArea, buildingCount).
+      // Pareto set on the two QD features (floorArea, structureCount).
       const pareto = [];
       for (const a of elites) {
         const af = a.design.descriptor.floorArea;
-        const ab = a.design.descriptor.buildingCount;
+        const ab = a.design.descriptor.structureCount;
         let dominated = false;
         for (const b of elites) {
           if (a === b) continue;
           const bf = b.design.descriptor.floorArea;
-          const bb = b.design.descriptor.buildingCount;
+          const bb = b.design.descriptor.structureCount;
           if (bf >= af && bb >= ab && (bf > af || bb > ab)) {
             dominated = true;
             break;

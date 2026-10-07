@@ -32,6 +32,7 @@ export const SIM = {
   KMEANS_ITERS: 40,
   SHELTER_K: 0.15,
   GFZ_MAX: 6,                 // real floor-area ratio ceiling
+  STRUCT_MAX: 24,             // fallback ceiling for the structure-count axis
 };
 
 /**

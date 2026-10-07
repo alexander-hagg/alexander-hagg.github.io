@@ -562,8 +562,10 @@ export function createArchiveView(canvas, opts = {}) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText(t('archive.xAxis'), ox + gridW / 2, oy + gridH + 8);
+    // The Y axis increases downward (by = 0 is the top row), so the label is
+    // rotated +90°: it reads top-to-bottom and its trailing arrow points down.
     ctx.translate(14, oy + gridH / 2);
-    ctx.rotate(-Math.PI / 2);
+    ctx.rotate(Math.PI / 2);
     ctx.textBaseline = 'middle';
     ctx.fillText(t('archive.yAxis'), 0, 0);
     ctx.restore();
