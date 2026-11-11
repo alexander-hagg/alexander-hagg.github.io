@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cold Air — OpenSKIZZE site planner</title>
+<meta name="description" content="A miniature OpenSKIZZE planner: paint a small city block, balance homes against cooling, and certify it before the budget runs out.">
+<meta name="theme-color" content="#0b0c0a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b0c0a'/%3E%3Cpath d='M10 34c8-12 14 12 22 0s14 12 22 0' fill='none' stroke='%238fd8d2' stroke-width='5'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <p class="kicker"><span class="dot" aria-hidden="true"></span>OpenSKIZZE · night-air planner</p>
+      <h1>Cold Air</h1>
+      <p class="tagline">Paint a small block that breathes. Cold night air enters from the west.</p>
+    </div>
+    <div class="site-meta" aria-label="Site conditions">
+      <span class="meta"><span>Site</span><b id="siteId">07</b></span>
+      <span class="meta"><span>Wind</span><b>W → E · 2.1 m/s</b></span>
+      <span class="meta"><span>Grid</span><b>14 × 10</b></span>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="map-panel" aria-label="Site plan">
+      <div class="map-stage" id="mapStage">
+        <canvas id="plan" tabindex="0" role="application" aria-roledescription="interactive site grid"
+          aria-label="Fourteen by ten site grid. Drag to paint with the selected tool. Arrow keys move a grid cursor, Enter applies the tool, and the 1, 2 and 3 keys set building height."
+          aria-describedby="mapHelp"></canvas>
+        <div class="map-id" aria-hidden="true"><span id="siteId2">SITE 07</span><i></i><span>NIGHT-AIR BLOCK</span></div>
+        <div class="readout" id="readout" aria-hidden="true">E — · N —</div>
+        <div class="layer-chips" role="group" aria-label="Map layers">
+          <button type="button" class="layer" data-layer="wind" aria-pressed="true" aria-label="Wind particle layer" title="West-to-east airflow; particles slow and deflect around buildings.">
+            <span class="swatch sw-wind" aria-hidden="true"></span>Wind
+          </button>
+          <button type="button" class="layer" data-layer="heat" aria-pressed="true" aria-label="Heat overlay" title="Amber shows still air and heat held by buildings; water and canopy cool the air.">
+            <span class="swatch sw-heat" aria-hidden="true"></span>Heat
+          </button>
+        </div>
+        <div class="stamp" id="stamp" hidden aria-hidden="true">
+          <div class="stamp-inner">
+            <span>Block certified</span>
+            <strong id="stampStars">
+              <svg viewBox="0 0 24 24" class="star" aria-hidden="true"><path d="M12 2.4l2.9 6.2 6.7.8-5 4.6 1.4 6.6L12 17.5l-6 3.1 1.4-6.6-5-4.6 6.7-.8z"/></svg>
+              <svg viewBox="0 0 24 24" class="star" aria-hidden="true"><path d="M12 2.4l2.9 6.2 6.7.8-5 4.6 1.4 6.6L12 17.5l-6 3.1 1.4-6.6-5-4.6 6.7-.8z"/></svg>
+              <svg viewBox="0 0 24 24" class="star" aria-hidden="true"><path d="M12 2.4l2.9 6.2 6.7.8-5 4.6 1.4 6.6L12 17.5l-6 3.1 1.4-6.6-5-4.6 6.7-.8z"/></svg>
+            </strong>
+            <em id="stampMeta">90 homes · 68% comfort</em>
+          </div>
+        </div>
+      </div>
+      <div class="map-foot">
+        <p id="mapHelp">Drag to paint · click a building to cycle floors · arrow keys + Enter also work</p>
+        <p class="legend" aria-hidden="true">
+          <span><i class="lg-b"></i>Homes</span>
+          <span><i class="lg-t"></i>Canopy</span>
+          <span><i class="lg-w"></i>Water</span>
+        </p>
+      </div>
+    </section>
+
+    <aside class="sidebar" aria-label="Planner controls">
+      <section class="panel budget-panel">
+        <div class="panel-head"><h2>Build budget</h2><span class="mono" id="spentLabel">0 / 90</span></div>
+        <div class="budget-line"><b id="remaining">90</b><span>credits left</span></div>
+        <div class="meter" id="budgetBar" role="progressbar" aria-label="Credits spent" aria-valuemin="0" aria-valuemax="90" aria-valuenow="0"><i></i></div>
+        <ul class="costs" aria-label="Tool costs">
+          <li><i class="cost-b"></i>Building <b>6</b></li>
+          <li><i class="cost-t"></i>Tree <b>2</b></li>
+          <li><i class="cost-w"></i>Water <b>3</b></li>
+        </ul>
+      </section>
+
+      <section class="panel tools-panel">
+        <div class="panel-head"><h2>Tools</h2><span class="mono">B T W E</span></div>
+        <div class="tool-grid" role="group" aria-label="Build tools">
+          <button type="button" class="tool" data-tool="building" aria-pressed="true" aria-label="Building tool, 6 credits">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V9.5L12 4l8 5.5V21"/><path d="M9 21v-6h6v6"/><path d="M4 9.5h16"/></svg>
+            <span>Building</span><em>6 cr</em>
+          </button>
+          <button type="button" class="tool" data-tool="tree" aria-pressed="false" aria-label="Tree tool, 2 credits">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-6"/><path d="M12 15c-4.2 0-6.4-3.1-6.4-6.3 4.2 0 6.4 2.2 6.4 6.3z"/><path d="M12 15c4.2 0 6.4-3.1 6.4-6.3-4.2 0-6.4 2.2-6.4 6.3z"/></svg>
+            <span>Tree</span><em>2 cr</em>
+          </button>
+          <button type="button" class="tool" data-tool="water" aria-pressed="false" aria-label="Water tool, 3 credits">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13.5c3-3.8 6 3.8 9 0s6 3.8 9 0"/><path d="M3 18.5c3-3.8 6 3.8 9 0s6 3.8 9 0"/></svg>
+            <span>Water</span><em>3 cr</em>
+          </button>
+          <button type="button" class="tool" data-tool="erase" aria-pressed="false" aria-label="Erase tool, refunds the cell">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16.2l7.4-7.4 6.3 6.3-5.1 5.1H7.6z"/><path d="M9.5 21h11"/><path d="M12 8.8l6.3 6.3"/></svg>
+            <span>Erase</span><em>refund</em>
+          </button>
+        </div>
+        <div class="height-row">
+          <span class="mono">Height</span>
+          <div class="seg" role="group" aria-label="Height for new buildings">
+            <button type="button" data-height="1" aria-pressed="false" aria-label="One floor">1F</button>
+            <button type="button" data-height="2" aria-pressed="false" aria-label="Two floors">2F</button>
+            <button type="button" data-height="3" aria-pressed="true" aria-label="Three floors">3F</button>
+          </div>
+          <span class="height-note">click a building to cycle</span>
+        </div>
+      </section>
+
+      <section class="panel metrics-panel">
+        <div class="panel-head"><h2>Live metrics</h2><span class="mono">grid model</span></div>
+        <div class="metric">
+          <div class="metric-top"><span title="Each building floor houses three households.">Homes</span><b><span id="homes">0</span><em> / 90</em></b></div>
+          <div class="bar bar-homes" id="homesBar" role="progressbar" aria-label="Homes target progress" aria-valuemin="0" aria-valuemax="90" aria-valuenow="0"><i></i><u style="--t:90%"></u></div>
+        </div>
+        <div class="metric">
+          <div class="metric-top"><span title="Mean cool-air score of every housing cell.">Comfort</span><b><span id="comfort">0</span><em>% / 65</em></b></div>
+          <div class="bar bar-comfort" id="comfortBar" role="progressbar" aria-label="Comfort target progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i><u style="--t:65%"></u></div>
+        </div>
+        <div class="metric">
+          <div class="metric-top"><span title="Share of east-edge cells still receiving at least 60% of the incoming wind.">Corridor</span><b><span id="corridor">0</span><em>% / 65</em></b></div>
+          <div class="bar bar-corridor" id="corridorBar" role="progressbar" aria-label="Cold-air corridor health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i><u style="--t:65%"></u></div>
+        </div>
+        <p class="metric-note">Comfort is the mean cool-air score of every housing cell.</p>
+      </section>
+
+      <section class="panel goals-panel">
+        <div class="panel-head"><h2>Certification</h2><span class="mono" id="starsLabel">0 / 3</span></div>
+        <ul class="goal-list">
+          <li id="goalHomes"><span class="mark" aria-hidden="true"></span><span>Homes ≥ 90</span><em>open</em></li>
+          <li id="goalComfort"><span class="mark" aria-hidden="true"></span><span>Comfort ≥ 65%</span><em>open</em></li>
+          <li id="goalCorridor"><span class="mark" aria-hidden="true"></span><span>Corridor ≥ 65%</span><em>bonus</em></li>
+        </ul>
+        <p class="cert-note" id="certNote">Meet homes and comfort to certify the block.</p>
+      </section>
+
+      <div class="actions">
+        <button type="button" class="btn btn-auto" id="autoBtn" title="Load a starter scheme: 90 homes, about 61% comfort, 12 credits spare." aria-label="Auto-plan: load a starter scheme with 90 homes, about 61 percent comfort and 12 credits spare.">Auto-plan</button>
+        <button type="button" class="btn btn-new" id="newBtn">New site</button>
+        <button type="button" class="btn btn-reset" id="resetBtn">Reset</button>
+      </div>
+
+      <details class="model">
+        <summary>How is this scored?</summary>
+        <p>Comfort is the mean score of every housing cell: 75% of the west wind still reaching it after upwind buildings, plus a 0.9× cooling bonus from trees and water up to four cells downstream, minus 6% for every floor above the first.</p>
+      </details>
+    </aside>
+  </main>
+
+  <footer class="statusbar">
+    <p id="status" role="status" aria-live="polite" aria-atomic="true">Site 07 loaded. Paint homes and cooling, then certify the block.</p>
+    <p class="windnote" aria-hidden="true">Wind W → E · cold-air inlet on west edge</p>
+  </footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

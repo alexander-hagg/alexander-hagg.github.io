@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenSKIZZE — Alexander Hagg</title>
+<meta name="description" content="An open-source AI assistant for climate-adapted urban planning — surrogate-assisted quality diversity optimization generates thousands of diverse design families, evaluated for cold airflow impact without costly CFD simulation.">
+<meta name="theme-color" content="#0b0c0a">
+<meta property="og:title" content="OpenSKIZZE — Alexander Hagg">
+<meta property="og:description" content="An open-source AI assistant for climate-adapted urban planning — surrogate-assisted quality diversity optimization generates thousands of diverse design families, evaluated for cold airflow impact without costly CFD simulation.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%230b0c0a'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23c9f26b'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/site.css">
+
+</head>
+<body data-section="projects" class="" id="top">
+
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand" href="../index.html" aria-label="Alexander Hagg — home">
+      <span class="brand-mark">AH<span>.</span></span>
+      <span class="brand-name">Alexander Hagg</span>
+    </a>
+    <nav class="main-nav" id="mainNav" aria-label="Primary">
+      <a href="../projects/index.html" data-nav="projects" aria-current="page">Projects</a>
+      <a href="../research/index.html" data-nav="research">Research</a>
+      <a href="../index.html#playground" class="nav-play">Play</a>
+      <a href="../writing/index.html" data-nav="writing">Writing</a>
+      <a href="../teaching/index.html" data-nav="teaching">Teaching</a>
+      <a href="../talks/index.html" data-nav="talks">Talks</a>
+      <a href="../cv/index.html" data-nav="cv">CV</a>
+    </nav>
+    <div class="head-actions">
+      <a class="head-mail" href="mailto:alex@haggdesign.de">Email</a>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="mainNav">Menu</button>
+    </div>
+  </div>
+</header>
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Projects</a><span>/</span><span aria-current="page">OpenSKIZZE</span></nav>
+    <p class="section-label">Case study</p>
+    <h1>OpenSKIZZE</h1>
+    <p class="lede">An open-source AI assistant for climate-adapted urban planning — surrogate-assisted quality diversity optimization generates thousands of diverse design families, evaluated for cold airflow impact without costly CFD simulation.</p>
+    
+    
+  </div>
+</section>
+<section class="page-body">
+  <div class="wrap">
+
+    <div class="article-layout">
+        <div class="prose"><p>     </p>
+<h2 id="open-source-ai-for-climate-adapted-urban-design">Open-source AI for Climate-adapted Urban Design</h2>
+<p>Climate-adapted building requires knowledge that most planners don't have easy access to: which configurations keep cold air flowing into a neighbourhood? How do building heights interact with cold air corridors? Which density trade-offs actually matter for reducing urban heat?</p>
+<p><strong>OpenSKIZZE</strong> translates findings from climate models into concrete, usable design options — early in the planning process, before expensive expertise is typically called in.</p>
+<h2 id="interactive-demo">OpenSKIZZE 2.0 — Interactive QD Explorer</h2>
+<p>Explore the generative quality-diversity design space directly in your browser — no installation required.</p>
+
+
+<div class="qd-embed">
+<div class="qd-embed__bar">
+<span class="qd-embed__label">OpenSKIZZE 2.0 · Interactive QD Explorer</span>
+<a class="qd-embed__link" href="openskizze-2.0/index.html" target="_blank" rel="noopener">Open full window ↗</a>
+</div>
+<iframe class="qd-embed__frame" src="openskizze-2.0/index.html" title="OpenSKIZZE 2.0 — interactive quality-diversity design explorer" loading="lazy" allowfullscreen></iframe>
+</div>
+<hr/>
+<h3 id="what-is-a-quality-diversity-archive">What is a quality-diversity archive?</h3>
+<p>A conventional optimizer keeps only the single best solution it finds. A <strong>quality-diversity (QD) archive</strong> keeps the best solution for <em>every</em> cell of a behaviour space — so instead of one answer, you get a diverse, structured collection of good answers.</p>
+<hr/>
+<h3 id="how-it-works-surrogate-assisted-quality-diversity">How it works: surrogate-assisted quality diversity</h3>
+<p>The core of OpenSKIZZE is a <strong>surrogate-assisted quality diversity (QD) optimization</strong> loop:</p>
+<ol>
+<li>A QD algorithm (MAP-Elites) maintains an archive of diverse building layouts, each occupying a unique position in a behavioural feature space (e.g., density × green space ratio).</li>
+<li>For each candidate layout, a <strong>surrogate model</strong> predicts the cold airflow impact without running a full CFD simulation — reducing compute by <strong>three orders of magnitude</strong>. We use two surrogate architectures:
+   - <strong>Gaussian Process regressors (SVGP)</strong> — sparse variational GPs that provide calibrated uncertainty estimates, which guide the QD algorithm toward under-explored regions of design space
+   - <strong>U-Net prediction models</strong> — convolutional encoder-decoders trained on CFD outputs to predict full 2D airflow fields from building footprint rasters</li>
+<li><strong>Conditional generative AI</strong> (conditional diffusion and flow-matching models) is used to generate plausible layout variants conditioned on target airflow properties, seeding the QD archive with high-quality initial solutions.</li>
+<li>To make the high-dimensional airflow fields interpretable, a <strong>UMAP model</strong> projects them into 2D — revealing clusters of layouts that produce similar airflow behaviour, even when their building footprints look very different.</li>
+</ol>
+<p>The result: planners receive a structured vocabulary of design archetypes, each backed by a predicted cold airflow map and uncertainty estimate, ready for expert review and comparison.</p>
+<hr/>
+<h3 id="workflow">Workflow</h3>
+<ol>
+<li><strong>Define scope</strong> — select the planning area on an interactive map; parcel data auto-loads from NRW geodata portal</li>
+<li><strong>Set goals</strong> — define structural constraints (max height, min spacing) and optimization targets (GRZ, GFZ, green space %)</li>
+<li><strong>Optimize</strong> — surrogate-assisted QD fills the archive; surrogate uncertainty drives targeted resampling</li>
+<li><strong>Explore</strong> — the UMAP reveals which design families produce similar cold airflow patterns; parallel coordinate plots surface trade-offs</li>
+<li><strong>Cluster</strong> — similar designs grouped into archetypes (best, most representative, consensus map per type)</li>
+<li><strong>Compare</strong> — side-by-side 3D visualization with wind flow fields; export PDF report</li>
+<li><strong>Export</strong> — exporting into usable documentation and urban planning formats</li>
+</ol>
+<h3 id="evaluation-site">Evaluation site</h3>
+<p>OpenSKIZZE is being validated on real construction projects in <strong>Bonn-Dransdorf</strong> — on the site of the old city nursery, which sits in a cold air inflow corridor adjacent to an Urban Heat Island. Partners: <a href="https://www.montag-stiftungen.de/montag-stiftung-urbane-raeume/initialkapital-projekte/projekte-in-untersuchung/zukunftsort-dransdorfer-berg" rel="noopener" target="_blank"><strong>Montag Stiftung Urbane Räume gAG</strong></a> and <a href="https://neue-stadtgaertnerei.org/" rel="noopener" target="_blank"><strong>Neue Stadtgärtnerei e.V.</strong></a></p>
+<h3 id="funding-partners">Funding &amp; partners</h3>
+<p>Funded by the <a href="https://www.dbu.de/en/" rel="noopener" target="_blank"><strong>Deutsche Bundesstiftung Umwelt (DBU)</strong></a>. In collaboration with <a href="https://www.h-brs.de/en/emt/dirk-reith" rel="noopener" target="_blank">Dirk Reith</a> at <a href="https://www.h-brs.de/en/tree" rel="noopener" target="_blank">TREE</a>, <a href="https://www.h-brs.de/en" rel="noopener" target="_blank">H-BRS</a>.</p>
+<p><a href="https://www.h-brs.de/en/openskizze" rel="noopener" target="_blank">OpenSKIZZE project page at H-BRS</a></p>
+<h3 id="open-science-commitment">Open science commitment</h3>
+<p>OpenSKIZZE is developed fully in the open — open-source code, open training data, and open model weights. We believe that publicly funded climate tools must be publicly accessible, reproducible, and extensible by the communities they are meant to serve.</p>
+        <div class="cv-callout">
+            <p class="cv-callout__title">Try the interactive prototypes</p>
+            <p>This case study is paired with two live experiences:</p>
+            <div class="btn-row">
+                <a class="btn btn--solid" href="../index.html#playground">Try the new Cold Air prototype</a>
+                <a class="btn btn--ghost" href="openskizze-2.0/index.html" target="_blank" rel="noopener">Open the full OpenSKIZZE 2.0 explorer</a>
+            </div>
+        </div>
+        </div>
+        <aside class="article-aside"><div class="aside-block"><div class="aside-label">Tags</div><div class="aside-tags"><span>AI</span><span>urban planning</span><span>climate</span><span>open source</span><span>quality diversity</span><span>surrogate model</span><span>UMAP</span><span>machine learning</span></div></div></aside>
+    </div>
+    <div class="related-block">
+        <a class="back-link" href="index.html">← All projects</a>
+    </div>
+    
+  </div>
+</section>
+</main>
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="../index.html" aria-label="Alexander Hagg — home">
+        <span class="brand-mark">AH<span>.</span></span>
+      </a>
+      <p>Researcher in AI &amp; optimization. Co-creative systems for complex, uncertain decisions — from urban climate to molecular design.</p>
+      <p class="foot-loc">Bonn, Germany</p>
+    </div>
+    <div>
+      <p class="foot-title">Pages</p>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="../projects/index.html">Projects</a>
+        <a href="../research/index.html">Research</a>
+        <a href="../index.html#playground">Playground</a>
+        <a href="../writing/index.html">Writing</a>
+        <a href="../teaching/index.html">Teaching</a>
+        <a href="../talks/index.html">Talks</a>
+        <a href="../cv/index.html">CV</a>
+      </nav>
+    </div>
+    <div>
+      <p class="foot-title">Elsewhere</p>
+      <nav class="foot-links" aria-label="Elsewhere">
+        <a href="mailto:alex@haggdesign.de">alex@haggdesign.de</a>
+        <a href="https://github.com/alexander-hagg" target="_blank" rel="noopener">GitHub ↗</a>
+        <a href="https://www.linkedin.com/in/alexander-hagg-66185b4" target="_blank" rel="noopener">LinkedIn ↗</a>
+        <a href="https://scholar.google.com/citations?user=hzKO-s8AAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar ↗</a>
+      </nav>
+    </div>
+  </div>
+  <div class="wrap foot-base">
+    <span>© 2026 Alexander Hagg <span class="sep">·</span> Bonn, Germany</span>
+    <span>Built with vanilla HTML / CSS / JS</span>
+    <a href="#top">Back to top ↑</a>
+  </div>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

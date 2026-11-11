@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preference Hunter — Shape Preference Map</title>
+<meta name="description" content="Click through sixty generative shapes to map your design taste. A live model scores similar forms and reveals your top three shape archetypes.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="shell">
+  <header class="masthead">
+    <div class="topline">
+      <div class="eyebrow"><span class="dot" aria-hidden="true"></span>FIELD LAB / 04 <span class="sep">·</span> PREFERENCE MAPPING</div>
+      <div class="topline-note mono">INTERACTIVE FIELD NOTES — NO. 04</div>
+    </div>
+    <div class="title-row">
+      <h1>Preference <em>Hunter</em></h1>
+      <p class="dek">Click the forms that feel right. A live model compares their geometry, pulls similar shapes into view, and names the three archetypes you lean toward.</p>
+    </div>
+  </header>
+
+  <main class="board">
+    <section class="archetype-bar" id="archetypeBar" aria-labelledby="archetypeTitle">
+      <div class="arch-head">
+        <div class="arch-head-copy">
+          <h2 class="label" id="archetypeTitle">TOP THREE ARCHETYPES</h2>
+          <p class="arch-note" id="archEmpty">Click forms to reveal your top three archetypes.</p>
+        </div>
+        <span class="mono dim" id="archMeta">AWAITING INPUT</span>
+      </div>
+      <div class="arch-cards" id="archCards" hidden></div>
+    </section>
+
+    <section class="stage" aria-label="Shape preference stage">
+      <div class="stage-head">
+        <span class="mono">SHAPE WALL <span class="dim">/ 60 FORMS · 6 FAMILIES</span></span>
+        <span class="mono dim" id="seedLabel">SEED —</span>
+      </div>
+      <div class="wall-wrap">
+        <div class="shape-field" id="shapeField">
+          <canvas id="model" width="800" height="600" aria-hidden="true"></canvas>
+          <div class="shape-grid" id="shapeGrid" role="group"
+            aria-label="Shape wall. Sixty forms from six archetypes. Click a form to add or remove it from your preference model."></div>
+          <span class="corner c-tl" aria-hidden="true"></span>
+          <span class="corner c-tr" aria-hidden="true"></span>
+          <span class="corner c-bl" aria-hidden="true"></span>
+          <span class="corner c-br" aria-hidden="true"></span>
+        </div>
+      </div>
+      <div class="stage-foot">
+        <span class="mono dim">CLICK TO TOGGLE · EVERY CLICK RESCORES ALL 60</span>
+        <div class="legend mono" aria-hidden="true">
+          <span><i class="key key-selected"></i>Selected</span>
+          <span><i class="key key-similar"></i>Similar</span>
+          <span><i class="key key-field"></i>Model field</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="rail" aria-label="Preference model readings and controls">
+      <section class="panel model-panel">
+        <div class="panel-head">
+          <span class="label">PREFERENCE MODEL</span>
+          <span class="state-chip" id="modelChip">IDLE</span>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span class="label">SELECTED</span><strong id="selectedCount">0<span>/60</span></strong></div>
+          <div class="metric"><span class="label">SIMILAR</span><strong id="similarCount">0</strong></div>
+        </div>
+        <div class="family-readout">
+          <span class="label">TOP FAMILY</span>
+          <strong class="family-name" id="topFamily">—</strong>
+        </div>
+        <p class="model-copy">Pick any form, or several. Similarity is recomputed from six geometric features on every click, and the field behind the wall shows where your taste gathers.</p>
+        <div class="controls">
+          <button class="btn" id="resetBtn" type="button">Reset</button>
+          <button class="btn" id="newBtn" type="button">New set</button>
+        </div>
+        <p class="status-line mono" id="status" role="status" aria-live="polite" aria-atomic="true">Click any form to begin.</p>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <span class="mono">MODEL: FEATURE SIMILARITY · 6D SHAPE SPACE</span>
+    <span class="mono dim">60 FORMS / SIX FAMILIES / CLICK TO REFINE</span>
+  </footer>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+{
+  "projects": {
+    "preference": {
+      "file": "assets/art/projects/preference.webp",
+      "alt": "A researcher leans over a glowing topographic relief model, reaching toward one chosen point among scattered markers."
+    },
+    "openskizze": {
+      "file": "assets/art/projects/openskizze.webp",
+      "alt": "An older planner at a rooftop parapet watches pale cold-air streams thread between the roofs and courtyards below."
+    },
+    "openskizze-praxis": {
+      "file": "assets/art/projects/openskizze-praxis.webp",
+      "alt": "A planner with long locs sits at a monitor, chin in hand, studying abstract map parcels and wind arrows."
+    },
+    "cytotransport": {
+      "file": "assets/art/projects/cytotransport.webp",
+      "alt": "An older biophysicist uses tweezers to place an ion bead into a cutaway glass model of a membrane channel."
+    },
+    "ummbas": {
+      "file": "assets/art/projects/ummbas.webp",
+      "alt": "Two researchers in VR headsets cup their hands around a small shared molecular wireframe in a dark lab."
+    },
+    "digital-twin": {
+      "file": "assets/art/projects/digital-twin.webp",
+      "alt": "An engineer kneels beside a workbench, comparing a small service robot with a lime wireframe building on her tablet."
+    },
+    "aeromat": {
+      "file": "assets/art/projects/aeromat.webp",
+      "alt": "An aerodynamicist in profile watches coral smoke streamlines pass an airfoil model in a wind tunnel."
+    },
+    "elabor": {
+      "file": "assets/art/projects/elabor.webp",
+      "alt": "A planner places charge-point markers along a route on a city map, an electric car visible through the window."
+    },
+    "kiss-bis": {
+      "file": "assets/art/projects/kiss-bis.webp",
+      "alt": "A sprinter and a sports scientist sit shoulder to shoulder on a track bench, reading a motion trace on a tablet."
+    },
+    "bitbots": {
+      "file": "assets/art/projects/bitbots.webp",
+      "alt": "A young engineer sits on the floor of a home test arena while a small service robot offers a cup between faint perception cones."
+    },
+    "nifti": {
+      "file": "assets/art/projects/nifti.webp",
+      "alt": "A rescue operator kneels beside a tracked robot in a collapsed concrete interior, its searchlight probing the rubble."
+    }
+  },
+  "craft": {
+    "models": {
+      "file": "assets/art/craft/models.webp",
+      "alt": "An older person in a cardigan studies a branching network diagram at a desk, thread-connected cards pinned above."
+    },
+    "search": {
+      "file": "assets/art/craft/search.webp",
+      "alt": "A young woman with a lantern stands in a vast archive, facing a constellation of countless candidate cards."
+    },
+    "interfaces": {
+      "file": "assets/art/craft/interfaces.webp",
+      "alt": "A human hand with a pencil and a mechanical drafting hand with a pen meet over a faintly glowing drawing surface."
+    },
+    "practice": {
+      "file": "assets/art/craft/practice.webp",
+      "alt": "An older mentor leans over blueprints with two students, guiding them from a sketch toward a small physical model."
+    }
+  },
+  "life": {
+    "music": {
+      "file": "assets/art/life/music.webp",
+      "alt": "A man plays a grand piano alone at night, eyes closed, one hand lifted above the keys."
+    },
+    "writing": {
+      "file": "assets/art/life/writing.webp",
+      "alt": "A writer reads back a handwritten page at a lamplit desk, a stack of finished pages beside her."
+    },
+    "cooking": {
+      "file": "assets/art/life/cooking.webp",
+      "alt": "An Indonesian woman tosses a wok in a home kitchen, steam rising among spice jars and shallots."
+    },
+    "growing": {
+      "file": "assets/art/life/growing.webp",
+      "alt": "An older gardener kneels by a raised seedling bed at the city edge, pressing soil around young plants."
+    },
+    "outside": {
+      "file": "assets/art/life/outside.webp",
+      "alt": "A lone cyclist climbs a rainy moorland road, small against dark hills and low cloud."
+    },
+    "questions": {
+      "file": "assets/art/life/questions.webp",
+      "alt": "A seated woman rests her chin on her hand while abstract ideas orbit her in the dark."
+    }
+  }
+}

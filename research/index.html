@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research — Alexander Hagg</title>
+<meta name="description" content="Publications by Dr. Alexander Hagg across quality-diversity optimization, co-creative AI, surrogate modelling, urban climate, computational chemistry, robotics and elite sports.">
+<meta name="theme-color" content="#0b0c0a">
+<meta property="og:title" content="Research — Alexander Hagg">
+<meta property="og:description" content="Publications by Dr. Alexander Hagg across quality-diversity optimization, co-creative AI, surrogate modelling, urban climate, computational chemistry, robotics and elite sports.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%230b0c0a'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23c9f26b'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/site.css">
+
+<style>
+[hidden]{display:none !important}
+.research-intro{max-width:70ch}
+.research-intro p{color:var(--ink-2);font-size:1rem;line-height:1.75}
+.research-intro a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(201,242,107,.35)}
+.research-intro a:hover{text-decoration-color:var(--accent)}
+.filter-bar{flex-direction:column;align-items:stretch;gap:10px;margin:clamp(30px,4vw,44px) 0 22px}
+.filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%}
+.filter-row .label{width:76px;margin:0}
+.filter-actions{margin-top:2px;padding-top:10px;border-top:1px solid var(--line-2)}
+.chip .n{font-size:8px;opacity:.62;margin-left:1px}
+.chip[aria-pressed="true"] .n{opacity:.75}
+.pub-map-block{margin:clamp(30px,4vw,44px) 0 clamp(34px,5vw,52px)}
+.pub-map__intro{max-width:72ch;color:var(--muted);font-size:.9rem;line-height:1.65;margin-bottom:14px}
+.pub-map__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:10px 12px 12px}
+.pub-map{display:grid;grid-template-columns:150px repeat(13,minmax(44px,1fr));min-width:760px}
+.pub-map__corner{padding:6px 8px 8px 0;border-bottom:1px solid var(--line)}
+.pub-map__year{font-family:var(--mono);font-size:8px;letter-spacing:.06em;text-align:center;padding:8px 2px;border-bottom:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pub-map__theme{position:sticky;left:0;z-index:2;background:var(--panel);font-family:var(--mono);font-size:8px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);padding:8px 8px 8px 0;border-bottom:1px solid var(--line-2);display:flex;align-items:center;white-space:normal;line-height:1.3}
+.pub-map__theme.is-dim{opacity:.38}
+.pub-map__cell{min-height:36px;border-left:1px solid var(--line-2);border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;padding:4px 2px}
+.pub-dot{width:11px;height:11px;border-radius:50%;background:rgba(201,242,107,.68);border:1px solid rgba(201,242,107,.95);display:block;transition:transform .2s,box-shadow .2s,background .2s}
+.pub-dot:hover,.pub-dot.is-active{background:var(--accent);box-shadow:0 0 0 4px rgba(201,242,107,.16);transform:scale(1.18)}
+.pub-dot[hidden]{display:none}
+.pub-map__detail{margin-top:12px;border-left:2px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;padding:14px 16px;min-height:88px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.pub-map__detail-title{font-family:var(--serif);font-size:1.18rem;line-height:1.22;color:var(--ink)}
+.pub-map__detail-title a:hover{color:var(--accent)}
+.pub-map__detail-meta{font-family:var(--mono);font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);line-height:1.65}
+.pub-map__detail-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px}
+.pub-map__detail-empty{color:var(--muted);font-size:.88rem;line-height:1.65}
+.pub-map__legend{font-family:var(--mono);font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);line-height:1.7;margin-top:9px}
+.pub-list-head{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.pub-list-head .section-label{flex:1;margin-bottom:0}
+.pub-list-head .filter-count{margin-left:0;flex:none}
+.pub-year__count{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--muted);margin-left:10px;vertical-align:2px}
+.pub-item__authors{font-size:.86rem;color:var(--ink-2);line-height:1.5;margin-top:3px}
+.pub-item__badges a{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px;transition:color .25s,border-color .25s}
+.pub-item__badges a:hover{color:var(--accent);border-color:var(--accent)}
+.pub-item__badges .kind{color:var(--accent);border:1px solid rgba(201,242,107,.28);border-radius:999px;padding:2px 6px}
+.pub-empty{margin-top:18px}
+.hero-tags{margin-top:18px}
+.pub-article{max-width:var(--read)}
+.citation-block{margin-top:clamp(34px,5vw,52px);padding-top:22px;border-top:1px solid var(--line)}
+.citation-block .section-label{margin-bottom:14px}
+.citation-text{font-family:var(--serif);font-size:clamp(1.15rem,1.6vw,1.32rem);line-height:1.55;color:var(--ink-2);border-left:2px solid var(--line);padding-left:18px;margin:0 0 18px}
+.citation-text a{color:var(--accent)}
+.pub-detail-footer{margin-top:clamp(34px,5vw,52px);padding-top:22px;border-top:1px solid var(--line)}
+.pub-detail-footer h2{font-family:var(--serif);font-weight:400;font-size:1.5rem;letter-spacing:-.01em;margin-bottom:12px}
+.pub-back{margin-top:28px}
+.tag-row a.tag{transition:color .2s,border-color .2s}
+.tag-row a.tag:hover{color:var(--accent);border-color:rgba(201,242,107,.4)}
+@media (max-width:760px){
+  .filter-row .label{width:100%;margin-bottom:1px}
+  .pub-map{grid-template-columns:118px repeat(13,minmax(40px,1fr));min-width:700px}
+  .pub-list-head{flex-wrap:wrap;gap:6px}
+  .pub-list-head .filter-count{margin-left:0}
+}
+</style>
+
+</head>
+<body data-section="research" class="" id="top">
+
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand" href="../index.html" aria-label="Alexander Hagg — home">
+      <span class="brand-mark">AH<span>.</span></span>
+      <span class="brand-name">Alexander Hagg</span>
+    </a>
+    <nav class="main-nav" id="mainNav" aria-label="Primary">
+      <a href="../projects/index.html" data-nav="projects">Projects</a>
+      <a href="../research/index.html" data-nav="research" aria-current="page">Research</a>
+      <a href="../index.html#playground" class="nav-play">Play</a>
+      <a href="../writing/index.html" data-nav="writing">Writing</a>
+      <a href="../teaching/index.html" data-nav="teaching">Teaching</a>
+      <a href="../talks/index.html" data-nav="talks">Talks</a>
+      <a href="../cv/index.html" data-nav="cv">CV</a>
+    </nav>
+    <div class="head-actions">
+      <a class="head-mail" href="mailto:alex@haggdesign.de">Email</a>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="mainNav">Menu</button>
+    </div>
+  </div>
+</header>
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><span aria-current="page">Research</span></nav>
+    <p class="section-label">Publications</p>
+    <h1>Research</h1>
+    <p class="lede">Thirty-one publications across quality-diversity search, co-creative AI, surrogate modelling, urban climate, computational chemistry and robotics — from 2014 to 2026.</p>
+    <div class="hero-meta"><span>2014–2026</span><span class="dot"></span><span>31 publications</span><span class="dot"></span><span>11 themes</span></div>
+    <div class="btn-row"><a class="btn btn--solid" href="https://scholar.google.com/citations?user=hzKO-s8AAAAJ&hl=en&oi=ao" target="_blank" rel="noopener">Google Scholar ↗</a><a class="btn" href="https://www.researchgate.net/profile/Alexander-Hagg" target="_blank" rel="noopener">ResearchGate ↗</a></div>
+  </div>
+</section>
+<section class="page-body">
+  <div class="wrap">
+
+<div class="research-intro">
+  <p>My publications follow a single question through several fields: how can computational systems help people explore large, uncertain design spaces and find diverse, high-quality solutions they can actually use? That work spans quality-diversity search, co-creative AI, surrogate modelling, urban climate, computational chemistry, robotics and elite sports. The full record is also available on <a href="https://scholar.google.com/citations?user=hzKO-s8AAAAJ&hl=en&oi=ao" target="_blank" rel="noopener">Google Scholar</a> and <a href="https://www.researchgate.net/profile/Alexander-Hagg" target="_blank" rel="noopener">ResearchGate</a>.</p>
+</div>
+<div class="stat-row" aria-label="Publication statistics">
+  <div class="stat"><b>31</b><span>Publications</span></div><div class="stat"><b>11</b><span>Active years</span></div><div class="stat"><b>11</b><span>Research themes</span></div><div class="stat"><b>24</b><span>Venues &amp; journals</span></div>
+</div>
+<div class="filter-bar" role="group" aria-label="Filter publications">
+  <div class="filter-row">
+    <span class="label">Year</span>
+    <button class="chip" type="button" data-filter="year" data-value="all" aria-pressed="true">All years <span class="n">31</span></button><button class="chip" type="button" data-filter="year" data-value="2026" aria-pressed="false">2026 <span class="n">3</span></button><button class="chip" type="button" data-filter="year" data-value="2025" aria-pressed="false">2025 <span class="n">3</span></button><button class="chip" type="button" data-filter="year" data-value="2024" aria-pressed="false">2024 <span class="n">0</span></button><button class="chip" type="button" data-filter="year" data-value="2023" aria-pressed="false">2023 <span class="n">4</span></button><button class="chip" type="button" data-filter="year" data-value="2022" aria-pressed="false">2022 <span class="n">2</span></button><button class="chip" type="button" data-filter="year" data-value="2021" aria-pressed="false">2021 <span class="n">3</span></button><button class="chip" type="button" data-filter="year" data-value="2020" aria-pressed="false">2020 <span class="n">6</span></button><button class="chip" type="button" data-filter="year" data-value="2019" aria-pressed="false">2019 <span class="n">2</span></button><button class="chip" type="button" data-filter="year" data-value="2018" aria-pressed="false">2018 <span class="n">1</span></button><button class="chip" type="button" data-filter="year" data-value="2017" aria-pressed="false">2017 <span class="n">4</span></button><button class="chip" type="button" data-filter="year" data-value="2016" aria-pressed="false">2016 <span class="n">0</span></button><button class="chip" type="button" data-filter="year" data-value="2015" aria-pressed="false">2015 <span class="n">2</span></button><button class="chip" type="button" data-filter="year" data-value="2014" aria-pressed="false">2014 <span class="n">1</span></button>
+  </div>
+  <div class="filter-row">
+    <span class="label">Theme</span>
+    <button class="chip" type="button" data-filter="theme" data-value="all" aria-pressed="true">All themes <span class="n">31</span></button><button class="chip" type="button" data-filter="theme" data-value="quality-diversity" aria-pressed="false">quality diversity <span class="n">12</span></button><button class="chip" type="button" data-filter="theme" data-value="urban-planning" aria-pressed="false">urban planning <span class="n">6</span></button><button class="chip" type="button" data-filter="theme" data-value="surrogate-models" aria-pressed="false">surrogate models <span class="n">8</span></button><button class="chip" type="button" data-filter="theme" data-value="co-creativity" aria-pressed="false">co-creativity <span class="n">5</span></button><button class="chip" type="button" data-filter="theme" data-value="computational-chemistry" aria-pressed="false">computational chemistry <span class="n">6</span></button><button class="chip" type="button" data-filter="theme" data-value="evolutionary-computation" aria-pressed="false">evolutionary computation <span class="n">4</span></button><button class="chip" type="button" data-filter="theme" data-value="sports-ai" aria-pressed="false">sports AI <span class="n">4</span></button><button class="chip" type="button" data-filter="theme" data-value="urban-climate" aria-pressed="false">urban climate <span class="n">4</span></button><button class="chip" type="button" data-filter="theme" data-value="mobility" aria-pressed="false">mobility <span class="n">2</span></button><button class="chip" type="button" data-filter="theme" data-value="robotics" aria-pressed="false">robotics <span class="n">2</span></button><button class="chip" type="button" data-filter="theme" data-value="virtual-screening" aria-pressed="false">virtual screening <span class="n">1</span></button>
+  </div>
+  <div class="filter-row filter-actions">
+    <span class="label">Reset</span>
+    <button class="chip" type="button" id="pub-reset" aria-label="Clear year and theme filters">Clear filters</button>
+    <span class="filter-count" id="pub-count" role="status" aria-live="polite">Showing 31 of 31 publications</span>
+  </div>
+</div>
+
+<section class="pub-map-block" aria-labelledby="pub-map-title">
+  <div class="section-label" id="pub-map-title">Publication map</div>
+  <p class="pub-map__intro">Each dot is one publication–theme pairing, positioned by <strong>year</strong> on the horizontal axis and <strong>theme</strong> on the vertical axis. Hover or focus a dot to inspect it, use the arrow keys to move, and press Enter to open it. On small screens, swipe the map horizontally to reach later years. This is a deterministic thematic layout, not a computed embedding.</p>
+  <div class="pub-map__scroll">
+    <div class="pub-map" role="group" aria-label="Publication map by year and theme">
+      <div class="pub-map__corner" aria-hidden="true"></div>
+      <div class="pub-map__year">2014</div><div class="pub-map__year">2015</div><div class="pub-map__year">2016</div><div class="pub-map__year">2017</div><div class="pub-map__year">2018</div><div class="pub-map__year">2019</div><div class="pub-map__year">2020</div><div class="pub-map__year">2021</div><div class="pub-map__year">2022</div><div class="pub-map__year">2023</div><div class="pub-map__year">2024</div><div class="pub-map__year">2025</div><div class="pub-map__year">2026</div>
+      <div class="pub-map__theme" title="quality diversity">quality diversity</div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="prototype-discovery.html" data-year="2018" data-theme="quality diversity" data-tags="|quality-diversity|co-creativity|" data-row="0" data-col="4" data-title="Prototype discovery using quality-diversity" data-authors="Hagg, Asteroth, Bäck" data-venue="In the proceedings of Parallel Problem Solving from Nature--PPSN XV: 15th International Conference, Coimbra, Portugal, September 8--12, 2018, Proceedings, Part I 15" data-year-label="2018" data-tags-label="quality diversity, co-creativity" aria-label="Prototype discovery using quality-diversity — Hagg, Asteroth, Bäck, In the proceedings of Parallel Problem Solving from Nature--PPSN XV: 15th International Conference, Coimbra, Portugal, September 8--12, 2018, Proceedings, Part I 15, 2018. Themes: quality diversity, co-creativity."></a></div><div class="pub-map__cell"><a class="pub-dot" href="modeling-user-selection.html" data-year="2019" data-theme="quality diversity" data-tags="|quality-diversity|co-creativity|" data-row="0" data-col="5" data-title="Modeling user selection in quality diversity" data-authors="Hagg, Asteroth, Bäck" data-venue="In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference" data-year-label="2019" data-tags-label="quality diversity, co-creativity" aria-label="Modeling user selection in quality diversity — Hagg, Asteroth, Bäck, In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference, 2019. Themes: quality diversity, co-creativity."></a></div><div class="pub-map__cell"><a class="pub-dot" href="phenotypic-diversity-analysis.html" data-year="2020" data-theme="quality diversity" data-tags="|quality-diversity|" data-row="0" data-col="6" data-title="An analysis of phenotypic diversity in multi-solution optimization" data-authors="Hagg, Preuss, Asteroth, et al." data-venue="In the proceedings of International Conference on Bioinspired Methods and Their Applications" data-year-label="2020" data-tags-label="quality diversity" aria-label="An analysis of phenotypic diversity in multi-solution optimization — Hagg, Preuss, Asteroth, et al., In the proceedings of International Conference on Bioinspired Methods and Their Applications, 2020. Themes: quality diversity."></a></div><div class="pub-map__cell"><a class="pub-dot" href="expressivity-representations.html" data-year="2021" data-theme="quality diversity" data-tags="|quality-diversity|co-creativity|" data-row="0" data-col="7" data-title="Expressivity of parameterized and data-driven representations in quality diversity search" data-authors="Hagg, Berns, Asteroth, et al." data-venue="In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference" data-year-label="2021" data-tags-label="quality diversity, co-creativity" aria-label="Expressivity of parameterized and data-driven representations in quality diversity search — Hagg, Berns, Asteroth, et al., In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference, 2021. Themes: quality diversity, co-creativity."></a><a class="pub-dot" href="phenotypic-niching.html" data-year="2021" data-theme="quality diversity" data-tags="|quality-diversity|" data-row="0" data-col="7" data-title="Phenotypic niching using quality diversity algorithms" data-authors="Hagg" data-venue="Metaheuristics for Finding Multiple Solutions" data-year-label="2021" data-tags-label="quality diversity" aria-label="Phenotypic niching using quality diversity algorithms — Hagg, Metaheuristics for Finding Multiple Solutions, 2021. Themes: quality diversity."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="efficient-qd-3d-buildings.html" data-year="2023" data-theme="quality diversity" data-tags="|quality-diversity|urban-climate|" data-row="0" data-col="9" data-title="Efficient Quality Diversity Optimization of 3D Buildings through 2D Pre-optimization" data-authors="Hagg, Kliemank, Asteroth, et al." data-venue="Evolutionary computation" data-year-label="2023" data-tags-label="quality diversity, urban climate" aria-label="Efficient Quality Diversity Optimization of 3D Buildings through 2D Pre-optimization — Hagg, Kliemank, Asteroth, et al., Evolutionary computation, 2023. Themes: quality diversity, urban climate."></a><a class="pub-dot" href="suitability-representations-shapes.html" data-year="2023" data-theme="quality diversity" data-tags="|quality-diversity|" data-row="0" data-col="9" data-title="On the Suitability of Representations for Quality Diversity Optimization of Shapes" data-authors="Scarton, Hagg" data-venue="In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference" data-year-label="2023" data-tags-label="quality diversity" aria-label="On the Suitability of Representations for Quality Diversity Optimization of Shapes — Scarton, Hagg, In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference, 2023. Themes: quality diversity."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="unet-qd-climate-urban.html" data-year="2026" data-theme="quality diversity" data-tags="|quality-diversity|urban-planning|urban-climate|surrogate-models|" data-row="0" data-col="12" data-title="U-Net-Accelerated Quality-Diversity Optimization for Climate-Adaptive Urban Layouts" data-authors="Hagg, Guerrero, Reith" data-venue="International Conference on Parallel Problem Solving from Nature (PPSN)" data-year-label="2026" data-tags-label="quality diversity, urban climate, surrogate models" aria-label="U-Net-Accelerated Quality-Diversity Optimization for Climate-Adaptive Urban Layouts — Hagg, Guerrero, Reith, International Conference on Parallel Problem Solving from Nature (PPSN), 2026. Themes: quality diversity, urban climate, surrogate models."></a></div><div class="pub-map__theme" title="computational chemistry">computational chemistry</div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="lennard-jones-params.html" data-year="2023" data-theme="computational chemistry" data-tags="|computational-chemistry|surrogate-models|" data-row="1" data-col="9" data-title="Determining Lennard-Jones Parameters Using Multiscale Target Data through Presampling-Enhanced, Surrogate-Assisted Global Optimization" data-authors="Müller, Hagg, Strickstrock, et al." data-venue="Journal of chemical information and modeling" data-year-label="2023" data-tags-label="computational chemistry, surrogate models" aria-label="Determining Lennard-Jones Parameters Using Multiscale Target Data through Presampling-Enhanced, Surrogate-Assisted Global Optimization — Müller, Hagg, Strickstrock, et al., Journal of chemical information and modeling, 2023. Themes: computational chemistry, surrogate models."></a><a class="pub-dot" href="open-source-ml-chemistry.html" data-year="2023" data-theme="computational chemistry" data-tags="|computational-chemistry|" data-row="1" data-col="9" data-title="Open-source machine learning in computational chemistry" data-authors="Hagg, Kirschner" data-venue="Journal of chemical information and modeling" data-year-label="2023" data-tags-label="computational chemistry" aria-label="Open-source machine learning in computational chemistry — Hagg, Kirschner, Journal of chemical information and modeling, 2023. Themes: computational chemistry."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="fine-tuning-force-field.html" data-year="2025" data-theme="computational chemistry" data-tags="|computational-chemistry|" data-row="1" data-col="11" data-title="Fine-tuning property domain weighting factors and the objective function in force-field parameter optimization" data-authors="Strickstrock, Hagg, Hülsmann, et al." data-venue="Journal of Molecular Graphics and Modelling" data-year-label="2025" data-tags-label="computational chemistry" aria-label="Fine-tuning property domain weighting factors and the objective function in force-field parameter optimization — Strickstrock, Hagg, Hülsmann, et al., Journal of Molecular Graphics and Modelling, 2025. Themes: computational chemistry."></a><a class="pub-dot" href="speed-up-force-field.html" data-year="2025" data-theme="computational chemistry" data-tags="|computational-chemistry|surrogate-models|" data-row="1" data-col="11" data-title="Speed up Multi-Scale Force-Field Parameter Optimization by Substituting Molecular Dynamics Calculations with a Machine Learning Surrogate Model" data-authors="Strickstrock, Hagg, Reith, et al." data-venue="ChemPhysChem" data-year-label="2025" data-tags-label="computational chemistry, surrogate models" aria-label="Speed up Multi-Scale Force-Field Parameter Optimization by Substituting Molecular Dynamics Calculations with a Machine Learning Surrogate Model — Strickstrock, Hagg, Reith, et al., ChemPhysChem, 2025. Themes: computational chemistry, surrogate models."></a></div><div class="pub-map__cell"><a class="pub-dot" href="molecular-function-enrichment.html" data-year="2026" data-theme="computational chemistry" data-tags="|computational-chemistry|virtual-screening|" data-row="1" data-col="12" data-title="Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening" data-authors="Hagg, Reith, Preller, et al." data-venue="Journal of Cheminformatics (under review)" data-year-label="2026" data-tags-label="computational chemistry, virtual screening" aria-label="Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening — Hagg, Reith, Preller, et al., Journal of Cheminformatics (under review), 2026. Themes: computational chemistry, virtual screening."></a><a class="pub-dot" href="molfuse-dataset.html" data-year="2026" data-theme="computational chemistry" data-tags="|computational-chemistry|virtual-screening|" data-row="1" data-col="12" data-title="Dataset and Example Model for Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening" data-authors="Hagg, Reith, Preller, et al." data-venue="Zenodo" data-year-label="2026" data-tags-label="computational chemistry, virtual screening" aria-label="Dataset and Example Model for Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening — Hagg, Reith, Preller, et al., Zenodo, 2026. Themes: computational chemistry, virtual screening."></a></div><div class="pub-map__theme" title="surrogate models">surrogate models</div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="hierarchical-surrogate.html" data-year="2017" data-theme="surrogate models" data-tags="|surrogate-models|quality-diversity|" data-row="2" data-col="3" data-title="Hierarchical surrogate modeling for illumination algorithms" data-authors="Hagg" data-venue="In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion" data-year-label="2017" data-tags-label="surrogate models, quality diversity" aria-label="Hierarchical surrogate modeling for illumination algorithms — Hagg, In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion, 2017. Themes: surrogate models, quality diversity."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="prediction-nn-performance.html" data-year="2019" data-theme="surrogate models" data-tags="|surrogate-models|" data-row="2" data-col="5" data-title="Prediction of neural network performance by phenotypic modeling" data-authors="Hagg, Zaefferer, Stork, et al." data-venue="In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion" data-year-label="2019" data-tags-label="surrogate models" aria-label="Prediction of neural network performance by phenotypic modeling — Hagg, Zaefferer, Stork, et al., In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion, 2019. Themes: surrogate models."></a></div><div class="pub-map__cell"><a class="pub-dot" href="aeromat-final-report.html" data-year="2020" data-theme="surrogate models" data-tags="|surrogate-models|" data-row="2" data-col="6" data-title="AErOmAt Abschlussbericht" data-authors="Asteroth" data-venue="In the proceedings of Hochschule Bonn-Rhein-Sieg" data-year-label="2020" data-tags-label="surrogate models" aria-label="AErOmAt Abschlussbericht — Asteroth, In the proceedings of Hochschule Bonn-Rhein-Sieg, 2020. Themes: surrogate models."></a><a class="pub-dot" href="designing-air-flow.html" data-year="2020" data-theme="surrogate models" data-tags="|surrogate-models|urban-climate|quality-diversity|" data-row="2" data-col="6" data-title="Designing air flow with surrogate-assisted phenotypic niching" data-authors="Hagg, Wilde, Asteroth, et al." data-venue="In the proceedings of International Conference on Parallel Problem Solving from Nature" data-year-label="2020" data-tags-label="surrogate models, urban climate, quality diversity" aria-label="Designing air flow with surrogate-assisted phenotypic niching — Hagg, Wilde, Asteroth, et al., In the proceedings of International Conference on Parallel Problem Solving from Nature, 2020. Themes: surrogate models, urban climate, quality diversity."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="full-domain-analysis.html" data-year="2025" data-theme="surrogate models" data-tags="|surrogate-models|urban-climate|" data-row="2" data-col="11" data-title="Full Domain Analysis in Fluid Dynamics" data-authors="Hagg, Gaier, Wilde, et al." data-venue="Machine Learning and Knowledge Extraction" data-year-label="2025" data-tags-label="surrogate models, urban climate" aria-label="Full Domain Analysis in Fluid Dynamics — Hagg, Gaier, Wilde, et al., Machine Learning and Knowledge Extraction, 2025. Themes: surrogate models, urban climate."></a></div><div class="pub-map__cell"></div><div class="pub-map__theme" title="sports AI">sports AI</div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="ki-status-quo.html" data-year="2020" data-theme="sports AI" data-tags="|sports-ai|" data-row="3" data-col="6" data-title="Einsatz von Künstlicher Intelligenz im internationalen Spitzensport--Eine Erhebung des Status Quo" data-authors="Hammes, Link, Lames, et al." data-venue="spinfortec 2020 digital" data-year-label="2020" data-tags-label="sports AI" aria-label="Einsatz von Künstlicher Intelligenz im internationalen Spitzensport--Eine Erhebung des Status Quo — Hammes, Link, Lames, et al., spinfortec 2020 digital, 2020. Themes: sports AI."></a><a class="pub-dot" href="ki-transfer-small-big-data.html" data-year="2020" data-theme="sports AI" data-tags="|sports-ai|" data-row="3" data-col="6" data-title="Einsatzmöglichkeiten und Transfer von Künstlicher Intelligenz im inter-nationalen Spitzensport--zwischen Small und Big Data" data-authors="Hagg, Asteroth, Pfeiffer, et al." data-venue="spinfortec 2020 digital" data-year-label="2020" data-tags-label="sports AI" aria-label="Einsatzmöglichkeiten und Transfer von Künstlicher Intelligenz im inter-nationalen Spitzensport--zwischen Small und Big Data — Hagg, Asteroth, Pfeiffer, et al., spinfortec 2020 digital, 2020. Themes: sports AI."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="ai-elite-sports-review.html" data-year="2022" data-theme="sports AI" data-tags="|sports-ai|" data-row="3" data-col="8" data-title="Artificial intelligence in elite sports—A narrative review of success stories and challenges" data-authors="Hammes, Hagg, Asteroth, et al." data-venue="Frontiers in Sports and Active Living" data-year-label="2022" data-tags-label="sports AI" aria-label="Artificial intelligence in elite sports—A narrative review of success stories and challenges — Hammes, Hagg, Asteroth, et al., Frontiers in Sports and Active Living, 2022. Themes: sports AI."></a><a class="pub-dot" href="ki-elite-sports-german.html" data-year="2022" data-theme="sports AI" data-tags="|sports-ai|" data-row="3" data-col="8" data-title="Künstliche Intelligenz für den Spitzensport im Spannungsfeld zwischen Big und Small Data" data-authors="Hagg, Asteroth, Rasche, et al." data-venue="In the proceedings of Hochschule Bonn-Rhein-Sieg" data-year-label="2022" data-tags-label="sports AI" aria-label="Künstliche Intelligenz für den Spitzensport im Spannungsfeld zwischen Big und Small Data — Hagg, Asteroth, Rasche, et al., In the proceedings of Hochschule Bonn-Rhein-Sieg, 2022. Themes: sports AI."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__theme" title="co-creativity">co-creativity</div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="deep-dive-preference-hypervolume.html" data-year="2020" data-theme="co-creativity" data-tags="|co-creativity|quality-diversity|" data-row="4" data-col="6" data-title="A Deep Dive Into Exploring the Preference Hypervolume" data-authors="Hagg, Asteroth, Bäck" data-venue="In the proceedings of International Conference on Computational Creativity" data-year-label="2020" data-tags-label="co-creativity, quality diversity" aria-label="A Deep Dive Into Exploring the Preference Hypervolume — Hagg, Asteroth, Bäck, In the proceedings of International Conference on Computational Creativity, 2020. Themes: co-creativity, quality diversity."></a></div><div class="pub-map__cell"><a class="pub-dot" href="discovering-preference-hypervolume.html" data-year="2021" data-theme="co-creativity" data-tags="|co-creativity|quality-diversity|" data-row="4" data-col="7" data-title="Discovering the preference hypervolume: an interactive model for real world computational co-creativity" data-authors="Hagg" data-venue="In the proceedings of Dissertation" data-year-label="2021" data-tags-label="co-creativity, quality diversity" aria-label="Discovering the preference hypervolume: an interactive model for real world computational co-creativity — Hagg, In the proceedings of Dissertation, 2021. Themes: co-creativity, quality diversity."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__theme" title="evolutionary computation">evolutionary computation</div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="apply-genetic-algorithms.html" data-year="2015" data-theme="evolutionary computation" data-tags="|evolutionary-computation|" data-row="5" data-col="1" data-title="How to successfully apply genetic algorithms in practice: Representation and parametrization" data-authors="Asteroth, Hagg" data-venue="In the proceedings of 2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA)" data-year-label="2015" data-tags-label="evolutionary computation" aria-label="How to successfully apply genetic algorithms in practice: Representation and parametrization — Asteroth, Hagg, In the proceedings of 2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA), 2015. Themes: evolutionary computation."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="evolving-parsimonious-networks.html" data-year="2017" data-theme="evolutionary computation" data-tags="|evolutionary-computation|" data-row="5" data-col="3" data-title="Evolving parsimonious networks by mixing activation functions" data-authors="Hagg, Mensing, Asteroth" data-venue="In the proceedings of Proceedings of the genetic and evolutionary computation conference" data-year-label="2017" data-tags-label="evolutionary computation" aria-label="Evolving parsimonious networks by mixing activation functions — Hagg, Mensing, Asteroth, In the proceedings of Proceedings of the genetic and evolutionary computation conference, 2017. Themes: evolutionary computation."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__theme" title="mobility">mobility</div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="successive-charging-stations.html" data-year="2015" data-theme="mobility" data-tags="|mobility|evolutionary-computation|" data-row="6" data-col="1" data-title="Successive evolution of charging station placement" data-authors="Spieker, Hagg, Asteroth, et al." data-venue="In the proceedings of 2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA)" data-year-label="2015" data-tags-label="mobility, evolutionary computation" aria-label="Successive evolution of charging station placement — Spieker, Hagg, Asteroth, et al., In the proceedings of 2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA), 2015. Themes: mobility, evolutionary computation."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="multi-stage-mclp.html" data-year="2017" data-theme="mobility" data-tags="|mobility|evolutionary-computation|" data-row="6" data-col="3" data-title="Multi-stage evolution of single-and multi-objective MCLP: Successive placement of charging stations" data-authors="Spieker, Hagg, Gaier, et al." data-venue="Soft Computing" data-year-label="2017" data-tags-label="mobility, evolutionary computation" aria-label="Multi-stage evolution of single-and multi-objective MCLP: Successive placement of charging stations — Spieker, Hagg, Gaier, et al., Soft Computing, 2017. Themes: mobility, evolutionary computation."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__theme" title="robotics">robotics</div><div class="pub-map__cell"><a class="pub-dot" href="robocup-home-2014.html" data-year="2014" data-theme="robotics" data-tags="|robotics|" data-row="7" data-col="0" data-title="The b-it-bots Robo-Cup at Home 2014 Team Description Paper" data-authors="Dwiputra, Füller, Hegger, et al." data-venue="Joao Pessoa, Brazil" data-year-label="2014" data-tags-label="robotics" aria-label="The b-it-bots Robo-Cup at Home 2014 Team Description Paper — Dwiputra, Füller, Hegger, et al., Joao Pessoa, Brazil, 2014. Themes: robotics."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="transparent-objects.html" data-year="2017" data-theme="robotics" data-tags="|robotics|" data-row="7" data-col="3" data-title="On recognizing transparent objects in domestic environments using fusion of multiple sensor modalities" data-authors="Hagg, Hegger, Plöger" data-venue="In the proceedings of RoboCup 2016: Robot World Cup XX 20" data-year-label="2017" data-tags-label="robotics" aria-label="On recognizing transparent objects in domestic environments using fusion of multiple sensor modalities — Hagg, Hegger, Plöger, In the proceedings of RoboCup 2016: Robot World Cup XX 20, 2017. Themes: robotics."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div>
+    <div class="pub-map__theme" title="urban planning">urban planning</div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="successive-charging-stations.html" data-year="2015" data-theme="urban planning" data-tags="|mobility|evolutionary-computation|urban-planning|" data-row="8" data-col="1" data-title="Successive evolution of charging station placement" data-authors="Spieker, Hagg, Asteroth, et al." data-venue="2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA)" data-year-label="2015" data-tags-label="mobility, evolutionary computation, urban planning" aria-label="Successive evolution of charging station placement — Spieker, Hagg, Asteroth, et al., 2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA), 2015. Themes: mobility, evolutionary computation, urban planning."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="multi-stage-mclp.html" data-year="2017" data-theme="urban planning" data-tags="|mobility|evolutionary-computation|urban-planning|" data-row="8" data-col="3" data-title="Multi-stage evolution of single-and multi-objective MCLP: Successive placement of charging stations" data-authors="Spieker, Hagg, Gaier, et al." data-venue="Soft Computing" data-year-label="2017" data-tags-label="mobility, evolutionary computation, urban planning" aria-label="Multi-stage evolution of single-and multi-objective MCLP: Successive placement of charging stations — Spieker, Hagg, Gaier, et al., Soft Computing, 2017. Themes: mobility, evolutionary computation, urban planning."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="efficient-qd-3d-buildings.html" data-year="2023" data-theme="urban planning" data-tags="|quality-diversity|urban-climate|urban-planning|" data-row="8" data-col="9" data-title="Efficient Quality Diversity Optimization of 3D Buildings through 2D Pre-optimization" data-authors="Hagg, Kliemank, Asteroth, et al." data-venue="Evolutionary computation" data-year-label="2023" data-tags-label="quality diversity, urban climate, urban planning" aria-label="Efficient Quality Diversity Optimization of 3D Buildings through 2D Pre-optimization — Hagg, Kliemank, Asteroth, et al., Evolutionary computation, 2023. Themes: quality diversity, urban climate, urban planning."></a><a class="pub-dot" href="suitability-representations-shapes.html" data-year="2023" data-theme="urban planning" data-tags="|quality-diversity|urban-planning|" data-row="8" data-col="9" data-title="On the Suitability of Representations for Quality Diversity Optimization of Shapes" data-authors="Scarton, Hagg" data-venue="Proceedings of the Genetic and Evolutionary Computation Conference" data-year-label="2023" data-tags-label="quality diversity, urban planning" aria-label="On the Suitability of Representations for Quality Diversity Optimization of Shapes — Scarton, Hagg, Proceedings of the Genetic and Evolutionary Computation Conference, 2023. Themes: quality diversity, urban planning."></a></div><div class="pub-map__cell"></div><div class="pub-map__cell"><a class="pub-dot" href="full-domain-analysis.html" data-year="2025" data-theme="urban planning" data-tags="|surrogate-models|urban-climate|urban-planning|" data-row="8" data-col="11" data-title="Full Domain Analysis in Fluid Dynamics" data-authors="Hagg, Gaier, Wilde, et al." data-venue="Machine Learning and Knowledge Extraction" data-year-label="2025" data-tags-label="surrogate models, urban climate, urban planning" aria-label="Full Domain Analysis in Fluid Dynamics — Hagg, Gaier, Wilde, et al., Machine Learning and Knowledge Extraction, 2025. Themes: surrogate models, urban climate, urban planning."></a></div><div class="pub-map__cell"><a class="pub-dot" href="unet-qd-climate-urban.html" data-year="2026" data-theme="urban planning" data-tags="|quality-diversity|urban-planning|urban-climate|surrogate-models|" data-row="8" data-col="12" data-title="U-Net-Accelerated Quality-Diversity Optimization for Climate-Adaptive Urban Layouts" data-authors="Hagg, Guerrero, Reith" data-venue="International Conference on Parallel Problem Solving from Nature (PPSN)" data-year-label="2026" data-tags-label="quality diversity, urban planning, urban climate, surrogate models" aria-label="U-Net-Accelerated Quality-Diversity Optimization for Climate-Adaptive Urban Layouts — Hagg, Guerrero, Reith, International Conference on Parallel Problem Solving from Nature (PPSN), 2026. Themes: quality diversity, urban planning, urban climate, surrogate models."></a></div>
+    </div>
+  </div>
+  <div class="pub-map__detail" id="pub-map-detail" role="status" aria-live="polite">
+    <p class="pub-map__detail-empty">Focus or hover a dot to inspect a publication. Dots are grouped by theme tag; the vertical axis labels that theme.</p>
+  </div>
+  <p class="pub-map__legend">Selected dots get a ring. Colour is not used to encode theme; vertical position is. On touch screens, scroll the map sideways, then tap a dot to open its page.</p>
+</section>
+<div class="pub-list-head">
+  <div class="section-label" id="pub-list-title">All publications</div>
+</div>
+<div id="pub-list" aria-labelledby="pub-list-title">
+  <section class="pub-year" data-year="2026" aria-labelledby="year-2026">
+  <h2 id="year-2026">2026<span class="pub-year__count">3</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2026" data-tags="|computational-chemistry|virtual-screening|">
+  <div>
+    <h3><a href="molfuse-dataset.html">Dataset and Example Model for Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening</a></h3>
+    <p class="pub-item__meta">Zenodo · 2026</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Dirk Reith, Matthias Preller, Karl Kirschner">Hagg, Reith, Preller, et al.</p>
+    <p class="pub-item__tags"><span class="tag">computational chemistry</span><span class="tag">virtual screening</span></p>
+  </div>
+  <div class="pub-item__badges"><span class="kind">Dataset</span><a href="https://scholar.google.com/scholar?q=Dataset+and+Example+Model+for+Molecular+Function+guided+Unsupervised+Similarity+based+Enrichment+for+Low+Data+Virtual+Screening" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Dataset and Example Model for Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2026" data-tags="|computational-chemistry|virtual-screening|">
+  <div>
+    <h3><a href="molecular-function-enrichment.html">Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening</a></h3>
+    <p class="pub-item__meta">Journal of Cheminformatics (under review) · 2026</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Dirk Reith, Matthias Preller, Karl Kirschner">Hagg, Reith, Preller, et al.</p>
+    <p class="pub-item__tags"><span class="tag">computational chemistry</span><span class="tag">virtual screening</span></p>
+  </div>
+  <div class="pub-item__badges"><span class="kind">Article</span><a href="https://scholar.google.com/scholar?q=Molecular+Function+guided+Unsupervised+Similarity+based+Enrichment+for+Low+Data+Virtual+Screening" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Molecular Function-guided Unsupervised Similarity-based Enrichment for Low-Data Virtual Screening">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2026" data-tags="|quality-diversity|urban-planning|urban-climate|surrogate-models|">
+  <div>
+    <h3><a href="unet-qd-climate-urban.html">U-Net-Accelerated Quality-Diversity Optimization for Climate-Adaptive Urban Layouts</a></h3>
+    <p class="pub-item__meta">International Conference on Parallel Problem Solving from Nature (PPSN) · 2026</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Tania Guerrero, Dirk Reith">Hagg, Guerrero, Reith</p>
+    <p class="pub-item__tags"><span class="tag">quality diversity</span><span class="tag">urban planning</span><span class="tag">urban climate</span><span class="tag">surrogate models</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=U+Net+Accelerated+Quality+Diversity+Optimization+for+Climate+Adaptive+Urban+Layouts" target="_blank" rel="noopener" aria-label="Google Scholar lookup for U-Net-Accelerated Quality-Diversity Optimization for Climate-Adaptive Urban Layouts">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2025" aria-labelledby="year-2025">
+  <h2 id="year-2025">2025<span class="pub-year__count">3</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2025" data-tags="|computational-chemistry|">
+  <div>
+    <h3><a href="fine-tuning-force-field.html">Fine-tuning property domain weighting factors and the objective function in force-field parameter optimization</a></h3>
+    <p class="pub-item__meta">Journal of Molecular Graphics and Modelling · 2025</p>
+    <p class="pub-item__authors" title="Robin Strickstrock, Alexander Hagg, Marco Hülsmann, Karl Kirschner, Dirk Reith">Strickstrock, Hagg, Hülsmann, et al.</p>
+    <p class="pub-item__tags"><span class="tag">computational chemistry</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Fine+tuning+property+domain+weighting+factors+and+the+objective+function+in+force+field+parameter+optimization" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Fine-tuning property domain weighting factors and the objective function in force-field parameter optimization">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2025" data-tags="|surrogate-models|urban-climate|urban-planning|">
+  <div>
+    <h3><a href="full-domain-analysis.html">Full Domain Analysis in Fluid Dynamics</a></h3>
+    <p class="pub-item__meta">Machine Learning and Knowledge Extraction · 2025</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Adam Gaier, Dominik Wilde, Alexander Asteroth, Holger Foysi, Dirk Reith">Hagg, Gaier, Wilde, et al.</p>
+    <p class="pub-item__tags"><span class="tag">surrogate models</span><span class="tag">urban climate</span><span class="tag">urban planning</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Full+Domain+Analysis+in+Fluid+Dynamics" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Full Domain Analysis in Fluid Dynamics">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2025" data-tags="|computational-chemistry|surrogate-models|">
+  <div>
+    <h3><a href="speed-up-force-field.html">Speed up Multi-Scale Force-Field Parameter Optimization by Substituting Molecular Dynamics Calculations with a Machine Learning Surrogate Model</a></h3>
+    <p class="pub-item__meta">ChemPhysChem · 2025</p>
+    <p class="pub-item__authors" title="Robin Strickstrock, Alexander Hagg, Dirk Reith, Karl Kirschner">Strickstrock, Hagg, Reith, et al.</p>
+    <p class="pub-item__tags"><span class="tag">computational chemistry</span><span class="tag">surrogate models</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Speed+up+Multi+Scale+Force+Field+Parameter+Optimization+by+Substituting+Molecular+Dynamics+Calculations+with+a+Machine+Learning+Surrogate+Model" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Speed up Multi-Scale Force-Field Parameter Optimization by Substituting Molecular Dynamics Calculations with a Machine Learning Surrogate Model">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2023" aria-labelledby="year-2023">
+  <h2 id="year-2023">2023<span class="pub-year__count">4</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2023" data-tags="|computational-chemistry|surrogate-models|">
+  <div>
+    <h3><a href="lennard-jones-params.html">Determining Lennard-Jones Parameters Using Multiscale Target Data through Presampling-Enhanced, Surrogate-Assisted Global Optimization</a></h3>
+    <p class="pub-item__meta">Journal of chemical information and modeling · 2023</p>
+    <p class="pub-item__authors" title="Max Müller, Alexander Hagg, Robin Strickstrock, Marco Hülsmann, Alexander Asteroth, Karl Kirschner, Dirk Reith">Müller, Hagg, Strickstrock, et al.</p>
+    <p class="pub-item__tags"><span class="tag">computational chemistry</span><span class="tag">surrogate models</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Determining+Lennard+Jones+Parameters+Using+Multiscale+Target+Data+through+Presampling+Enhanced,+Surrogate+Assisted+Global+Optimization" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Determining Lennard-Jones Parameters Using Multiscale Target Data through Presampling-Enhanced, Surrogate-Assisted Global Optimization">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2023" data-tags="|quality-diversity|urban-climate|urban-planning|">
+  <div>
+    <h3><a href="efficient-qd-3d-buildings.html">Efficient Quality Diversity Optimization of 3D Buildings through 2D Pre-optimization</a></h3>
+    <p class="pub-item__meta">Evolutionary computation · 2023</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Martin Kliemank, Alexander Asteroth, Dominik Wilde, Mario Bedrunka, Holger Foysi, Dirk Reith">Hagg, Kliemank, Asteroth, et al.</p>
+    <p class="pub-item__tags"><span class="tag">quality diversity</span><span class="tag">urban climate</span><span class="tag">urban planning</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Efficient+Quality+Diversity+Optimization+of+3D+Buildings+through+2D+Pre+optimization" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Efficient Quality Diversity Optimization of 3D Buildings through 2D Pre-optimization">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2023" data-tags="|quality-diversity|urban-planning|">
+  <div>
+    <h3><a href="suitability-representations-shapes.html">On the Suitability of Representations for Quality Diversity Optimization of Shapes</a></h3>
+    <p class="pub-item__meta">In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference · 2023</p>
+    <p class="pub-item__authors" title="Ludovico Scarton, Alexander Hagg">Scarton, Hagg</p>
+    <p class="pub-item__tags"><span class="tag">quality diversity</span><span class="tag">urban planning</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=On+the+Suitability+of+Representations+for+Quality+Diversity+Optimization+of+Shapes" target="_blank" rel="noopener" aria-label="Google Scholar lookup for On the Suitability of Representations for Quality Diversity Optimization of Shapes">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2023" data-tags="|computational-chemistry|">
+  <div>
+    <h3><a href="open-source-ml-chemistry.html">Open-source machine learning in computational chemistry</a></h3>
+    <p class="pub-item__meta">Journal of chemical information and modeling · 2023</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Karl Kirschner">Hagg, Kirschner</p>
+    <p class="pub-item__tags"><span class="tag">computational chemistry</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Open+source+machine+learning+in+computational+chemistry" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Open-source machine learning in computational chemistry">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2022" aria-labelledby="year-2022">
+  <h2 id="year-2022">2022<span class="pub-year__count">2</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2022" data-tags="|sports-ai|">
+  <div>
+    <h3><a href="ai-elite-sports-review.html">Artificial intelligence in elite sports—A narrative review of success stories and challenges</a></h3>
+    <p class="pub-item__meta">Frontiers in Sports and Active Living · 2022</p>
+    <p class="pub-item__authors" title="Fabian Hammes, Alexander Hagg, Alexander Asteroth, Daniel Link">Hammes, Hagg, Asteroth, et al.</p>
+    <p class="pub-item__tags"><span class="tag">sports AI</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Artificial+intelligence+in+elite+sports—A+narrative+review+of+success+stories+and+challenges" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Artificial intelligence in elite sports—A narrative review of success stories and challenges">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2022" data-tags="|sports-ai|">
+  <div>
+    <h3><a href="ki-elite-sports-german.html">Künstliche Intelligenz für den Spitzensport im Spannungsfeld zwischen Big und Small Data</a></h3>
+    <p class="pub-item__meta">In the proceedings of Hochschule Bonn-Rhein-Sieg · 2022</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Alexander Asteroth, Christian Rasche, Kevin Bach, Mark Pfeiffer">Hagg, Asteroth, Rasche, et al.</p>
+    <p class="pub-item__tags"><span class="tag">sports AI</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Künstliche+Intelligenz+für+den+Spitzensport+im+Spannungsfeld+zwischen+Big+und+Small+Data" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Künstliche Intelligenz für den Spitzensport im Spannungsfeld zwischen Big und Small Data">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2021" aria-labelledby="year-2021">
+  <h2 id="year-2021">2021<span class="pub-year__count">3</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2021" data-tags="|co-creativity|quality-diversity|">
+  <div>
+    <h3><a href="discovering-preference-hypervolume.html">Discovering the preference hypervolume: an interactive model for real world computational co-creativity</a></h3>
+    <p class="pub-item__meta">In the proceedings of Dissertation · 2021</p>
+    <p class="pub-item__authors" title="Alexander Hagg">Hagg</p>
+    <p class="pub-item__tags"><span class="tag">co-creativity</span><span class="tag">quality diversity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Discovering+the+preference+hypervolume:+an+interactive+model+for+real+world+computational+co+creativity" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Discovering the preference hypervolume: an interactive model for real world computational co-creativity">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2021" data-tags="|quality-diversity|co-creativity|">
+  <div>
+    <h3><a href="expressivity-representations.html">Expressivity of parameterized and data-driven representations in quality diversity search</a></h3>
+    <p class="pub-item__meta">In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference · 2021</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Sebastian Berns, Alexander Asteroth, Simon Colton, Thomas Bäck">Hagg, Berns, Asteroth, et al.</p>
+    <p class="pub-item__tags"><span class="tag">quality diversity</span><span class="tag">co-creativity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Expressivity+of+parameterized+and+data+driven+representations+in+quality+diversity+search" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Expressivity of parameterized and data-driven representations in quality diversity search">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2021" data-tags="|quality-diversity|">
+  <div>
+    <h3><a href="phenotypic-niching.html">Phenotypic niching using quality diversity algorithms</a></h3>
+    <p class="pub-item__meta">Metaheuristics for Finding Multiple Solutions · 2021</p>
+    <p class="pub-item__authors" title="Alexander Hagg">Hagg</p>
+    <p class="pub-item__tags"><span class="tag">quality diversity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Phenotypic+niching+using+quality+diversity+algorithms" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Phenotypic niching using quality diversity algorithms">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2020" aria-labelledby="year-2020">
+  <h2 id="year-2020">2020<span class="pub-year__count">6</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2020" data-tags="|co-creativity|quality-diversity|">
+  <div>
+    <h3><a href="deep-dive-preference-hypervolume.html">A Deep Dive Into Exploring the Preference Hypervolume</a></h3>
+    <p class="pub-item__meta">In the proceedings of International Conference on Computational Creativity · 2020</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Alexander Asteroth, Thomas Bäck">Hagg, Asteroth, Bäck</p>
+    <p class="pub-item__tags"><span class="tag">co-creativity</span><span class="tag">quality diversity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=A+Deep+Dive+Into+Exploring+the+Preference+Hypervolume" target="_blank" rel="noopener" aria-label="Google Scholar lookup for A Deep Dive Into Exploring the Preference Hypervolume">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2020" data-tags="|surrogate-models|">
+  <div>
+    <h3><a href="aeromat-final-report.html">AErOmAt Abschlussbericht</a></h3>
+    <p class="pub-item__meta">In the proceedings of Hochschule Bonn-Rhein-Sieg · 2020</p>
+    <p class="pub-item__authors" title="Alexander Asteroth">Asteroth</p>
+    <p class="pub-item__tags"><span class="tag">surrogate models</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=AErOmAt+Abschlussbericht" target="_blank" rel="noopener" aria-label="Google Scholar lookup for AErOmAt Abschlussbericht">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2020" data-tags="|quality-diversity|">
+  <div>
+    <h3><a href="phenotypic-diversity-analysis.html">An analysis of phenotypic diversity in multi-solution optimization</a></h3>
+    <p class="pub-item__meta">In the proceedings of International Conference on Bioinspired Methods and Their Applications · 2020</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Mike Preuss, Alexander Asteroth, Thomas Bäck">Hagg, Preuss, Asteroth, et al.</p>
+    <p class="pub-item__tags"><span class="tag">quality diversity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=An+analysis+of+phenotypic+diversity+in+multi+solution+optimization" target="_blank" rel="noopener" aria-label="Google Scholar lookup for An analysis of phenotypic diversity in multi-solution optimization">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2020" data-tags="|surrogate-models|urban-climate|quality-diversity|">
+  <div>
+    <h3><a href="designing-air-flow.html">Designing air flow with surrogate-assisted phenotypic niching</a></h3>
+    <p class="pub-item__meta">In the proceedings of International Conference on Parallel Problem Solving from Nature · 2020</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Dominik Wilde, Alexander Asteroth, Thomas Bäck">Hagg, Wilde, Asteroth, et al.</p>
+    <p class="pub-item__tags"><span class="tag">surrogate models</span><span class="tag">urban climate</span><span class="tag">quality diversity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Designing+air+flow+with+surrogate+assisted+phenotypic+niching" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Designing air flow with surrogate-assisted phenotypic niching">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2020" data-tags="|sports-ai|">
+  <div>
+    <h3><a href="ki-status-quo.html">Einsatz von Künstlicher Intelligenz im internationalen Spitzensport--Eine Erhebung des Status Quo</a></h3>
+    <p class="pub-item__meta">spinfortec 2020 digital · 2020</p>
+    <p class="pub-item__authors" title="Fabian Hammes, Daniel Link, Martin Lames, Alexander Hagg, Alexander Asteroth, Mark Pfeiffer">Hammes, Link, Lames, et al.</p>
+    <p class="pub-item__tags"><span class="tag">sports AI</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Einsatz+von+Künstlicher+Intelligenz+im+internationalen+Spitzensport++Eine+Erhebung+des+Status+Quo" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Einsatz von Künstlicher Intelligenz im internationalen Spitzensport--Eine Erhebung des Status Quo">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2020" data-tags="|sports-ai|">
+  <div>
+    <h3><a href="ki-transfer-small-big-data.html">Einsatzmöglichkeiten und Transfer von Künstlicher Intelligenz im inter-nationalen Spitzensport--zwischen Small und Big Data</a></h3>
+    <p class="pub-item__meta">spinfortec 2020 digital · 2020</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Alexander Asteroth, Mark Pfeiffer, Fabian Hammes, Daniel Link">Hagg, Asteroth, Pfeiffer, et al.</p>
+    <p class="pub-item__tags"><span class="tag">sports AI</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Einsatzmöglichkeiten+und+Transfer+von+Künstlicher+Intelligenz+im+inter+nationalen+Spitzensport++zwischen+Small+und+Big+Data" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Einsatzmöglichkeiten und Transfer von Künstlicher Intelligenz im inter-nationalen Spitzensport--zwischen Small und Big Data">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2019" aria-labelledby="year-2019">
+  <h2 id="year-2019">2019<span class="pub-year__count">2</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2019" data-tags="|quality-diversity|co-creativity|">
+  <div>
+    <h3><a href="modeling-user-selection.html">Modeling user selection in quality diversity</a></h3>
+    <p class="pub-item__meta">In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference · 2019</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Alexander Asteroth, Thomas Bäck">Hagg, Asteroth, Bäck</p>
+    <p class="pub-item__tags"><span class="tag">quality diversity</span><span class="tag">co-creativity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Modeling+user+selection+in+quality+diversity" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Modeling user selection in quality diversity">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2019" data-tags="|surrogate-models|">
+  <div>
+    <h3><a href="prediction-nn-performance.html">Prediction of neural network performance by phenotypic modeling</a></h3>
+    <p class="pub-item__meta">In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion · 2019</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Martin Zaefferer, Jörg Stork, Adam Gaier">Hagg, Zaefferer, Stork, et al.</p>
+    <p class="pub-item__tags"><span class="tag">surrogate models</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Prediction+of+neural+network+performance+by+phenotypic+modeling" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Prediction of neural network performance by phenotypic modeling">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2018" aria-labelledby="year-2018">
+  <h2 id="year-2018">2018<span class="pub-year__count">1</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2018" data-tags="|quality-diversity|co-creativity|">
+  <div>
+    <h3><a href="prototype-discovery.html">Prototype discovery using quality-diversity</a></h3>
+    <p class="pub-item__meta">In the proceedings of Parallel Problem Solving from Nature--PPSN XV: 15th International Conference, Coimbra, Portugal, September 8--12, 2018, Proceedings, Part I 15 · 2018</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Alexander Asteroth, Thomas Bäck">Hagg, Asteroth, Bäck</p>
+    <p class="pub-item__tags"><span class="tag">quality diversity</span><span class="tag">co-creativity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Prototype+discovery+using+quality+diversity" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Prototype discovery using quality-diversity">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2017" aria-labelledby="year-2017">
+  <h2 id="year-2017">2017<span class="pub-year__count">4</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2017" data-tags="|evolutionary-computation|">
+  <div>
+    <h3><a href="evolving-parsimonious-networks.html">Evolving parsimonious networks by mixing activation functions</a></h3>
+    <p class="pub-item__meta">In the proceedings of Proceedings of the genetic and evolutionary computation conference · 2017</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Maximilian Mensing, Alexander Asteroth">Hagg, Mensing, Asteroth</p>
+    <p class="pub-item__tags"><span class="tag">evolutionary computation</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Evolving+parsimonious+networks+by+mixing+activation+functions" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Evolving parsimonious networks by mixing activation functions">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2017" data-tags="|surrogate-models|quality-diversity|">
+  <div>
+    <h3><a href="hierarchical-surrogate.html">Hierarchical surrogate modeling for illumination algorithms</a></h3>
+    <p class="pub-item__meta">In the proceedings of Proceedings of the Genetic and Evolutionary Computation Conference Companion · 2017</p>
+    <p class="pub-item__authors" title="Alexander Hagg">Hagg</p>
+    <p class="pub-item__tags"><span class="tag">surrogate models</span><span class="tag">quality diversity</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Hierarchical+surrogate+modeling+for+illumination+algorithms" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Hierarchical surrogate modeling for illumination algorithms">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2017" data-tags="|mobility|evolutionary-computation|urban-planning|">
+  <div>
+    <h3><a href="multi-stage-mclp.html">Multi-stage evolution of single-and multi-objective MCLP: Successive placement of charging stations</a></h3>
+    <p class="pub-item__meta">Soft Computing · 2017</p>
+    <p class="pub-item__authors" title="Helge Spieker, Alexander Hagg, Adam Gaier, Stefanie Meilinger, Alexander Asteroth">Spieker, Hagg, Gaier, et al.</p>
+    <p class="pub-item__tags"><span class="tag">mobility</span><span class="tag">evolutionary computation</span><span class="tag">urban planning</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Multi+stage+evolution+of+single+and+multi+objective+MCLP:+Successive+placement+of+charging+stations" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Multi-stage evolution of single-and multi-objective MCLP: Successive placement of charging stations">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2017" data-tags="|robotics|">
+  <div>
+    <h3><a href="transparent-objects.html">On recognizing transparent objects in domestic environments using fusion of multiple sensor modalities</a></h3>
+    <p class="pub-item__meta">In the proceedings of RoboCup 2016: Robot World Cup XX 20 · 2017</p>
+    <p class="pub-item__authors" title="Alexander Hagg, Frederik Hegger, Paul Plöger">Hagg, Hegger, Plöger</p>
+    <p class="pub-item__tags"><span class="tag">robotics</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=On+recognizing+transparent+objects+in+domestic+environments+using+fusion+of+multiple+sensor+modalities" target="_blank" rel="noopener" aria-label="Google Scholar lookup for On recognizing transparent objects in domestic environments using fusion of multiple sensor modalities">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2015" aria-labelledby="year-2015">
+  <h2 id="year-2015">2015<span class="pub-year__count">2</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2015" data-tags="|evolutionary-computation|">
+  <div>
+    <h3><a href="apply-genetic-algorithms.html">How to successfully apply genetic algorithms in practice: Representation and parametrization</a></h3>
+    <p class="pub-item__meta">In the proceedings of 2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA) · 2015</p>
+    <p class="pub-item__authors" title="Alexander Asteroth, Alexander Hagg">Asteroth, Hagg</p>
+    <p class="pub-item__tags"><span class="tag">evolutionary computation</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=How+to+successfully+apply+genetic+algorithms+in+practice:+Representation+and+parametrization" target="_blank" rel="noopener" aria-label="Google Scholar lookup for How to successfully apply genetic algorithms in practice: Representation and parametrization">Scholar ↗</a></div>
+</article><article class="pub-item" data-year="2015" data-tags="|mobility|evolutionary-computation|urban-planning|">
+  <div>
+    <h3><a href="successive-charging-stations.html">Successive evolution of charging station placement</a></h3>
+    <p class="pub-item__meta">In the proceedings of 2015 International Symposium on Innovations in Intelligent SysTems and Applications (INISTA) · 2015</p>
+    <p class="pub-item__authors" title="Helge Spieker, Alexander Hagg, Alexander Asteroth, Stefanie Meilinger, Volker Jacobs, Alexander Oslislo">Spieker, Hagg, Asteroth, et al.</p>
+    <p class="pub-item__tags"><span class="tag">mobility</span><span class="tag">evolutionary computation</span><span class="tag">urban planning</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=Successive+evolution+of+charging+station+placement" target="_blank" rel="noopener" aria-label="Google Scholar lookup for Successive evolution of charging station placement">Scholar ↗</a></div>
+</article>
+  </div>
+</section><section class="pub-year" data-year="2014" aria-labelledby="year-2014">
+  <h2 id="year-2014">2014<span class="pub-year__count">1</span></h2>
+  <div class="pub-list">
+    <article class="pub-item" data-year="2014" data-tags="|robotics|">
+  <div>
+    <h3><a href="robocup-home-2014.html">The b-it-bots Robo-Cup at Home 2014 Team Description Paper</a></h3>
+    <p class="pub-item__meta">Joao Pessoa, Brazil · 2014</p>
+    <p class="pub-item__authors" title="Rhama Dwiputra, Matthias Füller, Frederik Hegger, Sven Schneider, Nico Hochgeschwender, Iman Awaad, José Loza, Alexey Ozhigov, Saugata Biswas, Niranjan Deshpande">Dwiputra, Füller, Hegger, et al.</p>
+    <p class="pub-item__tags"><span class="tag">robotics</span></p>
+  </div>
+  <div class="pub-item__badges"><a href="https://scholar.google.com/scholar?q=The+b+it+bots+Robo+Cup+at+Home+2014+Team+Description+Paper" target="_blank" rel="noopener" aria-label="Google Scholar lookup for The b-it-bots Robo-Cup at Home 2014 Team Description Paper">Scholar ↗</a></div>
+</article>
+  </div>
+</section>
+</div>
+<p class="pub-empty" id="pub-empty" hidden>No publications match this combination. Clear a year or theme filter to see more.</p>
+<script>
+(function () {
+  'use strict';
+  var root = document.getElementById('pub-list');
+  if (!root) return;
+  var items = Array.prototype.slice.call(root.querySelectorAll('.pub-item'));
+  var sections = Array.prototype.slice.call(root.querySelectorAll('.pub-year'));
+  var dots = Array.prototype.slice.call(document.querySelectorAll('.pub-dot'));
+  var yearButtons = Array.prototype.slice.call(document.querySelectorAll('[data-filter="year"]'));
+  var themeButtons = Array.prototype.slice.call(document.querySelectorAll('[data-filter="theme"]'));
+  var count = document.getElementById('pub-count');
+  var empty = document.getElementById('pub-empty');
+  var reset = document.getElementById('pub-reset');
+  var mapDetail = document.getElementById('pub-map-detail');
+  var state = { year: 'all', theme: 'all' };
+  var activeDot = null;
+  var total = items.length;
+
+  function isShown(el) {
+    var year = el.getAttribute('data-year');
+    var tags = el.getAttribute('data-tags') || '';
+    var okYear = state.year === 'all' || year === state.year;
+    var okTheme = state.theme === 'all' || tags.indexOf('|' + state.theme + '|') !== -1;
+    return okYear && okTheme;
+  }
+
+  function detail(dot) {
+    if (!mapDetail) return;
+    if (!dot) {
+      mapDetail.innerHTML = '<p class="pub-map__detail-empty">Focus or hover a dot to inspect a publication. Dots are grouped by theme tag; the vertical axis labels that theme.</p>';
+      return;
+    }
+    var title = document.createElement('p');
+    title.className = 'pub-map__detail-title';
+    var link = document.createElement('a');
+    link.href = dot.getAttribute('href');
+    link.textContent = dot.getAttribute('data-title');
+    title.appendChild(link);
+    var meta = document.createElement('p');
+    meta.className = 'pub-map__detail-meta';
+    meta.textContent = dot.getAttribute('data-authors') + ' · ' + dot.getAttribute('data-venue') + ' · ' + dot.getAttribute('data-year-label');
+    var tags = document.createElement('p');
+    tags.className = 'pub-map__detail-tags';
+    String(dot.getAttribute('data-tags-label') || '').split(',').forEach(function (name) {
+      name = name.trim();
+      if (!name) return;
+      var tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = name;
+      tags.appendChild(tag);
+    });
+    mapDetail.replaceChildren(title, meta, tags);
+  }
+
+  function activate(dot) {
+    dots.forEach(function (d) { d.classList.toggle('is-active', d === dot); });
+    activeDot = dot;
+    detail(dot);
+  }
+
+  function noResults() {
+    if (!mapDetail) return;
+    mapDetail.innerHTML = '<p class="pub-map__detail-empty">No publications match the current filters. Clear a year or theme filter to see more.</p>';
+  }
+
+  function apply() {
+    var visible = 0;
+    items.forEach(function (item) {
+      var show = isShown(item);
+      item.hidden = !show;
+      if (show) visible++;
+    });
+    sections.forEach(function (section) {
+      var any = section.querySelectorAll('.pub-item:not([hidden])').length > 0;
+      section.hidden = !any;
+    });
+    dots.forEach(function (dot) { dot.hidden = !isShown(dot); });
+    Array.prototype.forEach.call(document.querySelectorAll('.pub-map__theme'), function (label, index) {
+      var rowDots = dots.filter(function (d) { return Number(d.getAttribute('data-row')) === index; });
+      var rowVisible = rowDots.some(function (d) { return !d.hidden; });
+      label.classList.toggle('is-dim', !rowVisible);
+    });
+    if (activeDot && activeDot.hidden) {
+      activeDot.classList.remove('is-active');
+      activeDot = null;
+      detail(null);
+    }
+    if (count) count.textContent = 'Showing ' + visible + ' of ' + total + ' publications';
+    if (empty) empty.hidden = visible !== 0;
+    if (visible === 0) noResults();
+    else if (!activeDot) detail(null);
+  }
+
+  function setGroup(group, value) {
+    state[group] = value;
+    var buttons = group === 'year' ? yearButtons : themeButtons;
+    buttons.forEach(function (button) {
+      button.setAttribute('aria-pressed', button.getAttribute('data-value') === value ? 'true' : 'false');
+    });
+    apply();
+  }
+
+  yearButtons.forEach(function (button) {
+    button.addEventListener('click', function () { setGroup('year', button.getAttribute('data-value')); });
+  });
+  themeButtons.forEach(function (button) {
+    button.addEventListener('click', function () { setGroup('theme', button.getAttribute('data-value')); });
+  });
+  if (reset) {
+    reset.addEventListener('click', function () {
+      setGroup('year', 'all');
+      setGroup('theme', 'all');
+      try { history.replaceState(null, '', location.pathname); } catch (err) { /* file:// may refuse */ }
+    });
+  }
+
+  dots.forEach(function (dot) {
+    dot.addEventListener('focus', function () { activate(dot); });
+    dot.addEventListener('mouseenter', function () { activate(dot); });
+  });
+
+  var map = document.querySelector('.pub-map');
+  if (map) {
+    map.addEventListener('keydown', function (event) {
+      var dot = event.target.closest('.pub-dot');
+      if (!dot) return;
+      var directions = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0] };
+      var dir = directions[event.key];
+      if (!dir) return;
+      event.preventDefault();
+      var row = Number(dot.getAttribute('data-row'));
+      var col = Number(dot.getAttribute('data-col'));
+      var candidates = dots.filter(function (other) {
+        if (other.hidden || other === dot) return false;
+        var orow = Number(other.getAttribute('data-row'));
+        var ocol = Number(other.getAttribute('data-col'));
+        if (dir[1] && orow === row && (dir[1] > 0 ? ocol > col : ocol < col)) return true;
+        if (dir[0] && ocol === col && (dir[0] > 0 ? orow > row : orow < row)) return true;
+        return false;
+      });
+      if (!candidates.length) return;
+      candidates.sort(function (a, b) {
+        var ar = Number(a.getAttribute('data-row')), ac = Number(a.getAttribute('data-col'));
+        var br = Number(b.getAttribute('data-row')), bc = Number(b.getAttribute('data-col'));
+        return (Math.abs(ar - row) + Math.abs(ac - col)) - (Math.abs(br - row) + Math.abs(bc - col));
+      });
+      candidates[0].focus();
+    });
+  }
+
+  var params = new URLSearchParams(location.search);
+  var initialYear = params.get('year');
+  var initialTheme = params.get('theme');
+  if (initialYear && yearButtons.some(function (b) { return b.getAttribute('data-value') === initialYear; })) {
+    setGroup('year', initialYear);
+  }
+  if (initialTheme && themeButtons.some(function (b) { return b.getAttribute('data-value') === initialTheme; })) {
+    setGroup('theme', initialTheme);
+  }
+  apply();
+})();
+</script>
+  </div>
+</section>
+</main>
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="../index.html" aria-label="Alexander Hagg — home">
+        <span class="brand-mark">AH<span>.</span></span>
+      </a>
+      <p>Researcher in AI &amp; optimization. Co-creative systems for complex, uncertain decisions — from urban climate to molecular design.</p>
+      <p class="foot-loc">Bonn, Germany</p>
+    </div>
+    <div>
+      <p class="foot-title">Pages</p>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="../projects/index.html">Projects</a>
+        <a href="../research/index.html">Research</a>
+        <a href="../index.html#playground">Playground</a>
+        <a href="../writing/index.html">Writing</a>
+        <a href="../teaching/index.html">Teaching</a>
+        <a href="../talks/index.html">Talks</a>
+        <a href="../cv/index.html">CV</a>
+      </nav>
+    </div>
+    <div>
+      <p class="foot-title">Elsewhere</p>
+      <nav class="foot-links" aria-label="Elsewhere">
+        <a href="mailto:alex@haggdesign.de">alex@haggdesign.de</a>
+        <a href="https://github.com/alexander-hagg" target="_blank" rel="noopener">GitHub ↗</a>
+        <a href="https://www.linkedin.com/in/alexander-hagg-66185b4" target="_blank" rel="noopener">LinkedIn ↗</a>
+        <a href="https://scholar.google.com/citations?user=hzKO-s8AAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar ↗</a>
+      </nav>
+    </div>
+  </div>
+  <div class="wrap foot-base">
+    <span>© 2026 Alexander Hagg <span class="sep">·</span> Bonn, Germany</span>
+    <span>Built with vanilla HTML / CSS / JS</span>
+    <a href="#top">Back to top ↑</a>
+  </div>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

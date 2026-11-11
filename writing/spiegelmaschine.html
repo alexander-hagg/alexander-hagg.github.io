@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spiegelmaschine — Alexander Hagg</title>
+<meta name="description" content="An interactive model between painter and machine, trained on 1,000 paintings by Steffen Terk — a machine that mirrors and multiplies an artist’s visual language.">
+<meta name="theme-color" content="#0b0c0a">
+<meta property="og:title" content="Spiegelmaschine — Alexander Hagg">
+<meta property="og:description" content="An interactive model between painter and machine, trained on 1,000 paintings by Steffen Terk — a machine that mirrors and multiplies an artist’s visual language.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%230b0c0a'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23c9f26b'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+@media (max-width:940px){
+  .main-nav{height:calc(100vh - var(--head-h));height:calc(100dvh - var(--head-h));bottom:auto}
+}
+
+body.essay-page .page-hero h1{font-size:clamp(2.5rem,5vw,4.5rem);max-width:22ch;line-height:.98}
+body.essay-page--long .page-hero h1{font-size:clamp(1.85rem,3.6vw,3rem);max-width:28ch;line-height:1.06;letter-spacing:-.02em}
+body.essay-page .page-hero .lede{max-width:66ch}
+.essay-wrap{max-width:var(--read);margin:0 auto}
+.essay-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:30px}
+.essay-toolbar .mono{color:var(--muted)}
+.essay-tags{margin-top:16px}
+.essay-page .prose p{text-wrap:pretty}
+.essay-page .prose[lang="de"]{hyphens:auto;-webkit-hyphens:auto}
+.essay-gallery{columns:2;column-gap:12px;margin:1.8em 0}
+.essay-page .prose .essay-gallery img{width:100%;height:auto;margin:0 0 12px;break-inside:avoid;border-radius:10px}
+.play-callout{position:relative;overflow:hidden;margin:clamp(34px,5vw,52px) 0 0;padding:clamp(22px,3.4vw,34px);border:1px solid rgba(201,242,107,.28);border-radius:16px;background:linear-gradient(150deg,rgba(201,242,107,.085),rgba(201,242,107,.02) 58%,transparent)}
+.play-callout__label{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.play-callout h2{font-family:var(--serif);font-weight:400;font-size:clamp(1.7rem,2.6vw,2.2rem);line-height:1.05;letter-spacing:-.02em;margin-bottom:10px}
+.play-callout p{color:var(--ink-2);font-size:.94rem;line-height:1.7;max-width:58ch}
+.play-callout .btn-row{margin-top:20px}
+.essay-sources-title{margin-top:2.4em!important;padding-top:18px;border-top:1px solid var(--line);font-family:var(--mono)!important;font-size:9px!important;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)!important}
+.essay-sources-title strong{font-weight:400;color:var(--muted)}
+.essay-page .prose .essay-sources{margin:0 0 1.4em}
+.essay-page .prose .essay-sources p{font-family:var(--sans);font-size:.76rem;line-height:1.65;color:var(--muted);margin:0 0 .5em;padding-left:2.2em;text-indent:-2.2em;text-wrap:pretty}
+.related-block{margin-top:clamp(40px,5vw,56px)}
+@media (max-width:640px){
+  .essay-gallery{columns:1}
+  body.essay-page .page-hero h1{font-size:clamp(2.2rem,10vw,3.2rem);max-width:18ch}
+  body.essay-page--long .page-hero h1{font-size:clamp(1.7rem,7.4vw,2.2rem);max-width:24ch}
+}
+</style>
+</head>
+<body data-section="writing" class="essay-page" id="top">
+<div class="read-progress" aria-hidden="true"><span></span></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand" href="../index.html" aria-label="Alexander Hagg — home">
+      <span class="brand-mark">AH<span>.</span></span>
+      <span class="brand-name">Alexander Hagg</span>
+    </a>
+    <nav class="main-nav" id="mainNav" aria-label="Primary">
+      <a href="../projects/index.html" data-nav="projects">Projects</a>
+      <a href="../research/index.html" data-nav="research">Research</a>
+      <a href="../index.html#playground" class="nav-play">Play</a>
+      <a href="../writing/index.html" data-nav="writing" aria-current="page">Writing</a>
+      <a href="../teaching/index.html" data-nav="teaching">Teaching</a>
+      <a href="../talks/index.html" data-nav="talks">Talks</a>
+      <a href="../cv/index.html" data-nav="cv">CV</a>
+    </nav>
+    <div class="head-actions">
+      <a class="head-mail" href="mailto:alex@haggdesign.de">Email</a>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="mainNav">Menu</button>
+    </div>
+  </div>
+</header>
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Writing</a><span>/</span><span aria-current="page">Spiegelmaschine</span></nav>
+    <p class="section-label">Essay · Generative art</p>
+    <h1>Spiegelmaschine</h1>
+    <p class="lede">An interactive model between painter and machine, trained on 1,000 paintings by Steffen Terk — a machine that mirrors and multiplies an artist’s visual language.</p>
+    <div class="reading-meta"><span><i></i>June 8, 2022</span><span><i></i>EN</span><span><i></i>2 min read</span></div>
+    <div class="tag-row essay-tags"><span class="tag tag--accent">EN</span><span class="tag">generative art</span><span class="tag">artificial intelligence</span><span class="tag">interaction</span></div>
+  </div>
+</section>
+<section class="page-body">
+  <div class="wrap">
+
+      <div class="essay-wrap">
+        <div class="essay-toolbar">
+          <a class="back-link" href="index.html">← All writing</a>
+          <span class="mono">Essay</span>
+        </div>
+        <article class="prose prose--serif" lang="en">
+<p><img alt="A generated abstract painting from the Spiegelmaschine, trained on works by Steffen Terk" class="content-image" decoding="async" loading="lazy" sizes="(max-width: 640px) 100vw, 600px" src="../assets/images/sm01.png" srcset="../assets/images/sm01-480w.png 480w, ../assets/images/sm01-960w.png 960w, ../assets/images/sm01.png 1216w"/></p>
+<p>The Spiegelmaschine project aims to provide an interactive model between painter and machine. The Spiegelmaschine is trained on 1000 paintings by <a href="https://steffenterk.com/" rel="noopener" target="_blank">Steffen Terk</a>. </p>
+<p>An interface provides the ability to generate large numbers of random paintings that look like Steffen went into overdrive. </p>
+<p>The Spiegelmaschine even has its own <a href="https://twitter.com/spiegelmaschine" rel="noopener" target="_blank">Twitter account</a>, so be sure to follow the machine, if you are interested.</p>
+<div class="essay-gallery"><img alt="Generated painting from the Spiegelmaschine series" class="content-image" decoding="async" loading="lazy" sizes="(max-width: 640px) 100vw, 300px" src="../assets/images/sm05.png" srcset="../assets/images/sm05-480w.png 480w, ../assets/images/sm05.png 680w"/><img alt="Generated painting from the Spiegelmaschine series" class="content-image" decoding="async" loading="lazy" sizes="(max-width: 640px) 100vw, 300px" src="../assets/images/sm06.jpeg" srcset="../assets/images/sm06-480w.jpeg 480w, ../assets/images/sm06.jpeg 680w"/><img alt="Generated painting from the Spiegelmaschine series" class="content-image" decoding="async" loading="lazy" sizes="(max-width: 640px) 100vw, 300px" src="../assets/images/sm07.jpeg" srcset="../assets/images/sm07-480w.jpeg 480w, ../assets/images/sm07.jpeg 680w"/><img alt="Generated painting from the Spiegelmaschine series" class="content-image" decoding="async" loading="lazy" sizes="(max-width: 640px) 100vw, 300px" src="../assets/images/sm08.jpeg" srcset="../assets/images/sm08-480w.jpeg 480w, ../assets/images/sm08.jpeg 512w"/><img alt="Generated painting from the Spiegelmaschine series" class="content-image" decoding="async" loading="lazy" sizes="(max-width: 640px) 100vw, 300px" src="../assets/images/sm09.jpeg" srcset="../assets/images/sm09-480w.jpeg 480w, ../assets/images/sm09.jpeg 512w"/><img alt="Generated painting from the Spiegelmaschine series" class="content-image" decoding="async" loading="lazy" sizes="(max-width: 640px) 100vw, 300px" src="../assets/images/sm10.jpeg" srcset="../assets/images/sm10-480w.jpeg 480w, ../assets/images/sm10.jpeg 680w"/><img alt="Generated painting from the Spiegelmaschine series" class="content-image" decoding="async" loading="lazy" sizes="(max-width: 640px) 100vw, 300px" src="../assets/images/sm11.png" srcset="../assets/images/sm11-480w.png 480w, ../assets/images/sm11.png 502w"/></div>
+
+        </article>
+        
+      <aside class="play-callout">
+        <p class="play-callout__label">Interactive · Mirror Duet</p>
+        <h2>Play the new Mirror Duet</h2>
+        <p>Mirror Duet carries the Spiegelmaschine idea into the browser: you draw, and the
+        machine answers in mirror symmetry. It is a small co-creative mandala toy after
+        Spiegelmaschine, playable in the playground on the home page.</p>
+        <div class="btn-row">
+          <a class="btn btn--solid" href="../index.html#playground">Play the new Mirror Duet</a>
+          <a class="btn btn--ghost" href="../projects/spiegelmaschine.html">About the project</a>
+        </div>
+      </aside>
+        <aside class="related-block">
+          <h2>Related</h2>
+          <div class="related-links"><a href="../index.html#playground">Mirror Duet prototype</a><a href="../projects/spiegelmaschine.html">Spiegelmaschine project</a><a href="index.html">All writing</a></div>
+        </aside>
+      </div>
+    
+  </div>
+</section>
+</main>
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="../index.html" aria-label="Alexander Hagg — home">
+        <span class="brand-mark">AH<span>.</span></span>
+      </a>
+      <p>Researcher in AI &amp; optimization. Co-creative systems for complex, uncertain decisions — from urban climate to molecular design.</p>
+      <p class="foot-loc">Bonn, Germany</p>
+    </div>
+    <div>
+      <p class="foot-title">Pages</p>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="../projects/index.html">Projects</a>
+        <a href="../research/index.html">Research</a>
+        <a href="../index.html#playground">Playground</a>
+        <a href="../writing/index.html">Writing</a>
+        <a href="../teaching/index.html">Teaching</a>
+        <a href="../talks/index.html">Talks</a>
+        <a href="../cv/index.html">CV</a>
+      </nav>
+    </div>
+    <div>
+      <p class="foot-title">Elsewhere</p>
+      <nav class="foot-links" aria-label="Elsewhere">
+        <a href="mailto:alex@haggdesign.de">alex@haggdesign.de</a>
+        <a href="https://github.com/alexander-hagg" target="_blank" rel="noopener">GitHub ↗</a>
+        <a href="https://www.linkedin.com/in/alexander-hagg-66185b4" target="_blank" rel="noopener">LinkedIn ↗</a>
+        <a href="https://scholar.google.com/citations?user=hzKO-s8AAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar ↗</a>
+      </nav>
+    </div>
+  </div>
+  <div class="wrap foot-base">
+    <span>© 2026 Alexander Hagg <span class="sep">·</span> Bonn, Germany</span>
+    <span>Built with vanilla HTML / CSS / JS</span>
+    <a href="#top">Back to top ↑</a>
+  </div>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

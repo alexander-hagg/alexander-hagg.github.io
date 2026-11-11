@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Binding Site — CytoTransport</title>
+<style>
+  :root{
+    --bg:#0b0c0a;
+    --ink:#f3f1e8;
+    --muted:#8f9386;
+    --lime:#c9f26b;
+    --violet:#b79cff;
+    --cyan:#7fe7e0;
+    --amber:#f4c66a;
+    --coral:#ff8a72;
+    --line:rgba(243,241,232,.13);
+    --serif:"EB Garamond","Iowan Old Style",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"Inconsolata",ui-monospace,"SFMono-Regular","SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  button,input{font:inherit}
+  [hidden]{display:none!important}
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+  .shell{
+    height:100dvh;
+    min-height:520px;
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr) auto;
+    background:
+      radial-gradient(80% 65% at 52% 45%,rgba(23,29,20,.45),transparent 70%),
+      var(--bg);
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(230px,320px) auto;
+    gap:30px;
+    align-items:end;
+    padding:20px 28px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow,.micro,.site-code,.mast-meta,.foot,.status,.meter-foot{
+    font-family:var(--mono);
+    text-transform:uppercase;
+    letter-spacing:.15em;
+  }
+  .eyebrow{
+    display:flex;align-items:center;gap:9px;
+    font-size:9.5px;color:var(--muted);
+  }
+  .eyebrow .slash{color:rgba(243,241,232,.3)}
+  .pulse-dot{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--lime);
+    box-shadow:0 0 8px rgba(201,242,107,.85);
+    animation:blink 3.6s ease-in-out infinite;
+  }
+  @keyframes blink{0%,100%{opacity:.45}50%{opacity:1}}
+  h1{
+    margin:6px 0 0;
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:clamp(40px,4.8vw,64px);
+    line-height:.82;
+    letter-spacing:-.038em;
+  }
+  h1 em{font-style:italic;color:var(--lime)}
+  .deck{
+    margin:0 0 2px;
+    max-width:36ch;
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--muted);
+  }
+  .deck b{color:rgba(243,241,232,.78);font-weight:500}
+  .mast-meta{
+    display:grid;gap:6px;justify-items:end;
+    font-size:9px;color:var(--muted);
+    padding-bottom:2px;
+  }
+  .mast-meta span:first-child{color:rgba(243,241,232,.72)}
+  .mast-meta .seed{color:rgba(243,241,232,.33)}
+
+  /* ---------- main ---------- */
+  .layout{
+    min-height:0;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 300px;
+    gap:20px;
+    padding:18px 28px 18px;
+  }
+  .stage{
+    position:relative;
+    min-height:0;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background:#080907;
+    isolation:isolate;
+  }
+  .stage::after{
+    content:"";
+    position:absolute;inset:0;
+    pointer-events:none;
+    box-shadow:inset 0 0 80px rgba(0,0,0,.55),inset 0 0 1px rgba(243,241,232,.15);
+    z-index:2;
+  }
+  .stage canvas{
+    position:absolute;inset:0;
+    display:block;width:100%;height:100%;
+    touch-action:none;
+    cursor:grab;
+    outline:none;
+  }
+  .stage canvas.dragging{cursor:grabbing}
+  .stage canvas:focus-visible{outline:1px solid var(--lime);outline-offset:-4px}
+  .stage.is-bound canvas{cursor:default}
+  .stage-hud{
+    position:absolute;z-index:3;
+    top:18px;left:20px;right:20px;
+    display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+    pointer-events:none;
+  }
+  .site-code{
+    display:flex;align-items:center;gap:8px;
+    font-size:9px;color:var(--lime);
+  }
+  .site-code i{display:inline-block;width:14px;height:1px;background:var(--lime);opacity:.7}
+  .site-name{
+    margin-top:5px;
+    font-family:var(--serif);
+    font-size:clamp(19px,2vw,25px);
+    line-height:1.05;
+    letter-spacing:-.01em;
+    color:rgba(243,241,232,.92);
+  }
+  .stage-hud .instruction{
+    margin:7px 0 0;
+    max-width:31ch;
+    font-size:10.5px;
+    line-height:1.45;
+    color:var(--muted);
+  }
+  .site-dots{display:flex;gap:6px;padding-top:3px}
+  .site-dots span{
+    width:19px;height:2px;background:rgba(243,241,232,.16);
+    transition:background .3s;
+  }
+  .site-dots span.active{background:var(--lime);box-shadow:0 0 8px rgba(201,242,107,.35)}
+  .site-dots span.done{background:rgba(201,242,107,.5)}
+  .stage-foot{
+    position:absolute;z-index:3;
+    left:20px;right:20px;bottom:16px;
+    display:flex;justify-content:space-between;align-items:end;gap:18px;
+    pointer-events:none;
+    font-family:var(--mono);
+    font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:rgba(143,147,134,.82);
+  }
+  .stage-foot b{
+    display:block;font-family:var(--serif);font-weight:400;
+    font-size:19px;letter-spacing:.01em;color:rgba(243,241,232,.83);
+    margin-top:2px;
+  }
+  .stage-foot .best-val{color:var(--muted)}
+  .stage-foot .best-val.live{color:var(--lime)}
+  .keyline{display:flex;gap:16px;flex-wrap:wrap}
+  .keyline span{white-space:nowrap}
+  .keyline em{font-style:normal;color:rgba(243,241,232,.64)}
+
+  /* ---------- instrument ---------- */
+  .instrument{
+    position:relative;
+    display:flex;flex-direction:column;
+    min-height:0;
+    padding:16px 17px 14px;
+    border:1px solid var(--line);
+    background:
+      linear-gradient(180deg,rgba(243,241,232,.035),rgba(243,241,232,.008) 55%,rgba(243,241,232,.028));
+    overflow:auto;
+    scrollbar-width:none;
+  }
+  .instrument::-webkit-scrollbar{display:none}
+  .inst-top{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);
+    padding-bottom:13px;border-bottom:1px solid var(--line);
+  }
+  .live{display:flex;align-items:center;gap:6px;color:rgba(201,242,107,.85)}
+  .live i{width:4px;height:4px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px rgba(201,242,107,.8)}
+  .readout{padding-top:15px}
+  .readout-label{
+    display:flex;justify-content:space-between;
+    font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--muted);
+  }
+  .big-score{
+    display:flex;align-items:baseline;gap:7px;
+    margin:2px 0 9px;
+    font-family:var(--serif);
+    line-height:.82;
+  }
+  .big-score #affinity{
+    font-size:clamp(58px,7vw,82px);
+    letter-spacing:-.015em;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+    transition:color .28s ease;
+  }
+  .big-score[data-band="mid"] #affinity{color:var(--ink)}
+  .big-score[data-band="high"] #affinity{color:var(--lime)}
+  .big-score .of{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted)}
+  .meter{position:relative;height:3px;background:rgba(243,241,232,.1);margin-bottom:6px}
+  .meter-fill{
+    height:100%;width:0;
+    background:linear-gradient(90deg,var(--violet),var(--cyan) 48%,var(--lime));
+    box-shadow:0 0 10px rgba(201,242,107,.28);
+  }
+  .meter .threshold{
+    position:absolute;top:-3px;left:88%;width:1px;height:9px;
+    background:rgba(201,242,107,.55);
+  }
+  .meter-foot{
+    display:flex;justify-content:space-between;
+    font-size:7.5px;letter-spacing:.11em;color:rgba(143,147,134,.62);
+  }
+  .stats{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;
+    margin:15px 0 0;padding:12px 0;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  }
+  .stats div{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .stats dt{
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  }
+  .stats dd{
+    margin:0;font-family:var(--serif);font-size:23px;line-height:1;color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .stats dd.alert{color:var(--coral)}
+  .contacts{padding:13px 0 3px}
+  .micro-row{
+    display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  }
+  .micro-row output{font-size:10px;color:rgba(243,241,232,.86);font-variant-numeric:tabular-nums}
+  .type-list{
+    list-style:none;display:flex;flex-wrap:wrap;gap:6px 8px;
+    margin:9px 0 0;padding:0;
+  }
+  .type-list li{
+    display:flex;align-items:center;gap:5px;
+    font-family:var(--mono);font-size:8px;letter-spacing:.09em;text-transform:uppercase;
+    color:rgba(243,241,232,.58);
+  }
+  .type-list i{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--tc);
+    box-shadow:0 0 6px var(--tc);
+  }
+  .rot-control{margin-top:12px}
+  .rot-control input[type="range"]{
+    -webkit-appearance:none;appearance:none;
+    display:block;width:100%;height:24px;margin:5px 0 0;
+    background:transparent;cursor:ew-resize;
+    touch-action:pan-y;
+  }
+  .rot-control input[type="range"]::-webkit-slider-runnable-track{
+    height:1px;background:rgba(243,241,232,.2);
+  }
+  .rot-control input[type="range"]::-moz-range-track{
+    height:1px;background:rgba(243,241,232,.2);
+  }
+  .rot-control input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:12px;height:12px;margin-top:-5.5px;border-radius:50%;
+    background:var(--lime);border:0;
+    box-shadow:0 0 0 4px rgba(201,242,107,.09),0 0 9px rgba(201,242,107,.4);
+  }
+  .rot-control input[type="range"]::-moz-range-thumb{
+    width:12px;height:12px;border-radius:50%;background:var(--lime);border:0;
+    box-shadow:0 0 0 4px rgba(201,242,107,.09);
+  }
+  .rot-control input[type="range"]:focus-visible{outline:1px solid var(--lime);outline-offset:4px}
+  .rot-control input[type="range"]:disabled{cursor:default;opacity:.35}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
+  .btn{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    min-height:38px;padding:0 11px;
+    background:transparent;color:rgba(243,241,232,.82);
+    border:1px solid rgba(243,241,232,.2);
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;
+    cursor:pointer;
+    transition:border-color .2s,color .2s,background .2s;
+  }
+  .btn:hover{border-color:rgba(201,242,107,.55);color:var(--ink);background:rgba(201,242,107,.045)}
+  .btn:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+  .btn:disabled{opacity:.35;cursor:default;border-color:var(--line);background:transparent}
+  .btn kbd{font:inherit;color:rgba(143,147,134,.8);font-size:7.5px}
+  .hint-count{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:17px;height:17px;border-radius:50%;
+    background:rgba(201,242,107,.12);color:var(--lime);font-size:8px;
+  }
+  .fits{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .fit-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+  .fit-list li{
+    display:grid;grid-template-columns:6px 22px minmax(0,1fr) 25px;
+    align-items:center;gap:7px;
+    font-family:var(--mono);font-size:8px;letter-spacing:.06em;
+    color:rgba(243,241,232,.52);
+  }
+  .fit-list .swatch{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--tc);box-shadow:0 0 5px var(--tc);
+  }
+  .fit-track{height:2px;background:rgba(243,241,232,.09);overflow:hidden}
+  .fit-track i{display:block;height:100%;width:0;background:var(--tc);transition:width .18s linear}
+  .fit-pct{text-align:right;font-variant-numeric:tabular-nums;color:rgba(243,241,232,.62)}
+  .status{
+    margin:0;margin-top:auto;padding-top:11px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:8.5px;line-height:1.55;letter-spacing:.05em;
+    text-transform:none;color:var(--muted);
+    min-height:39px;
+  }
+
+  /* ---------- footer ---------- */
+  .foot{
+    display:flex;justify-content:space-between;align-items:center;gap:20px;
+    padding:9px 28px 11px;
+    border-top:1px solid var(--line);
+    font-size:8.5px;letter-spacing:.13em;
+    color:rgba(143,147,134,.68);
+  }
+  .foot .keys{display:flex;gap:18px;flex-wrap:wrap}
+  .foot b{font-weight:400;color:rgba(243,241,232,.7)}
+  .foot .mark{white-space:nowrap;color:rgba(143,147,134,.42)}
+
+  /* ---------- win card ---------- */
+  .win-card{
+    position:absolute;z-index:5;
+    left:50%;bottom:22px;transform:translateX(-50%);
+    width:min(330px,calc(100% - 30px));
+    padding:17px 18px 16px;
+    border:1px solid rgba(201,242,107,.38);
+    background:rgba(9,10,8,.9);
+    backdrop-filter:blur(10px);
+    box-shadow:0 18px 50px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.4);
+    text-align:center;
+    animation:winIn .35s ease-out both;
+  }
+  @keyframes winIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+  .win-kicker{
+    font-family:var(--mono);font-size:8px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--lime);
+  }
+  .win-title{
+    margin:3px 0 2px;
+    font-family:var(--serif);font-size:38px;line-height:.95;letter-spacing:-.03em;
+  }
+  .win-title span{color:var(--lime)}
+  .win-copy{
+    margin:5px 0 12px;
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;color:var(--muted);
+  }
+  .win-copy b{color:rgba(243,241,232,.9);font-weight:400}
+  .win-btn{
+    width:100%;min-height:38px;
+    background:var(--lime);color:#10130b;border:1px solid var(--lime);
+    font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    cursor:pointer;
+  }
+  .win-btn:hover{background:#d7fa8b}
+  .win-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  @media (max-width:980px){
+    .masthead{grid-template-columns:minmax(0,1fr) auto}
+    .deck{display:none}
+    .mast-meta{font-size:8px}
+  }
+  @media (max-width:860px){
+    body{overflow-y:auto}
+    .shell{height:100dvh;min-height:560px}
+    .masthead{
+      grid-template-columns:minmax(0,1fr) auto;
+      padding:12px 15px 11px;gap:10px;
+    }
+    .mast-meta{display:none}
+    h1{font-size:36px}
+    .eyebrow{font-size:8px}
+    .layout{
+      grid-template-columns:1fr;
+      grid-template-rows:minmax(0,1fr) auto;
+      gap:10px;padding:10px 12px 10px;
+    }
+    .stage{min-height:250px}
+    .stage-hud{top:12px;left:13px;right:13px}
+    .site-name{font-size:18px}
+    .instruction{font-size:9px;max-width:23ch}
+    .stage-foot{left:13px;right:13px;bottom:11px;font-size:8px;transition:opacity .3s}
+    .stage-foot .keyline{display:none}
+    .stage.is-bound .stage-foot{opacity:0}
+    .instrument{
+      padding:11px 14px 10px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      gap:0;
+      overflow:visible;
+    }
+    .inst-top{padding-bottom:8px;font-size:7.5px}
+    .readout{padding-top:9px}
+    .big-score{margin:0 0 6px}
+    .big-score #affinity{font-size:48px}
+    .readout-label{font-size:8px}
+    .meter-foot{font-size:7px}
+    .stats{margin-top:9px;padding:8px 0;gap:10px}
+    .stats dd{font-size:20px}
+    .stats dt{font-size:7.5px}
+    .contacts,.fits,.inst-top .live{display:none}
+    .rot-control{margin-top:8px}
+    .rot-control input[type="range"]{height:20px;margin-top:1px}
+    .actions{margin-top:8px}
+    .btn{min-height:34px;font-size:8px;padding:0 9px}
+    .status{margin-top:8px;padding-top:7px;font-size:7.5px;height:30px;min-height:0;line-height:1.45;overflow:hidden}
+    .foot{display:none}
+    .win-card{bottom:14px;width:min(320px,calc(100% - 24px));padding:13px 15px 12px}
+    .win-title{font-size:31px}
+  }
+  @media (max-height:650px) and (min-width:861px){
+    .masthead{padding-top:12px;padding-bottom:10px}
+    h1{font-size:42px}
+    .deck{display:none}
+    .layout{padding-top:12px;padding-bottom:12px}
+    .instrument{padding-top:12px}
+    .stats{margin-top:10px;padding:9px 0}
+    .contacts{padding-top:9px}
+    .rot-control{margin-top:8px}
+    .actions{margin-top:9px}
+    .status{margin-top:9px;padding-top:8px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="masthead">
+    <div>
+      <div class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span> CytoTransport <span class="slash">/</span> Protocol 07</div>
+      <h1>Binding <em>Site</em></h1>
+    </div>
+    <p class="deck">A docking study in three movements. Slide the ligand into the protein's pocket, then turn it until every atom meets its match. <b>Nothing binds by force; everything binds by fit.</b></p>
+    <div class="mast-meta">
+      <span>Ligand CT-07</span>
+      <span>In silico / 3 sites</span>
+      <span class="seed" id="runLabel">RUN 01</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="stage" id="stage" aria-label="Molecular docking stage">
+      <canvas id="field" tabindex="0" role="application"
+        aria-label="Docking field. Drag anywhere to move the ligand. Use A and D to rotate, arrow keys to nudge, R to reset the pose, and H for a hint."
+        aria-describedby="stageHelp"></canvas>
+      <p class="sr-only" id="stageHelp">A translucent protein pocket contains typed hotspot rings. The ligand has matching carbon, oxygen and nitrogen atoms. Align each atom with a same-typed hotspot. Your affinity rises with good matches and falls with wall clashes. Reach 88 with zero clashes to bind the site.</p>
+      <div class="stage-hud">
+        <div>
+          <div class="site-code"><i aria-hidden="true"></i><span id="siteIndex">Site 01 / 03</span></div>
+          <div class="site-name" id="siteName">Esterase vestibule</div>
+          <p class="instruction" id="stageInstruction">Drag the ligand into the pocket, then rotate to seat every atom.</p>
+        </div>
+        <div class="site-dots" id="siteDots" aria-hidden="true">
+          <span class="active"></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="stage-foot">
+        <div class="keyline">
+          <span><em>Drag</em> translate</span>
+          <span><em>Scroll</em> rotate</span>
+          <span><em>Arrows</em> nudge</span>
+        </div>
+        <div>Best affinity <b class="best-val" id="stageBest">—</b></div>
+      </div>
+      <div class="win-card" id="winCard" role="region" hidden aria-labelledby="winTitle" aria-describedby="winCopy">
+        <div class="win-kicker" id="winKicker">Site 01 / Bound</div>
+        <div class="win-title" id="winTitle">Bound<span>!</span></div>
+        <p class="win-copy" id="winCopy">Affinity <b>98</b> · 0 clashes</p>
+        <button class="win-btn" id="nextBtn" type="button">Next site &nbsp;→</button>
+      </div>
+    </section>
+
+    <aside class="instrument" aria-label="Docking instrument panel">
+      <div class="inst-top">
+        <span>Docking readout</span>
+        <span class="live"><i aria-hidden="true"></i> Live</span>
+      </div>
+
+      <div class="readout">
+        <div class="readout-label"><span>Affinity</span><span>0—100</span></div>
+        <div class="big-score" id="scoreBand" data-band="low">
+          <span id="affinity" aria-hidden="true">00</span><span class="of">/ 100</span>
+        </div>
+        <div class="meter" id="meter" role="progressbar" aria-label="Affinity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="meter-fill" id="meterFill"></div>
+          <span class="threshold" aria-hidden="true"></span>
+        </div>
+        <div class="meter-foot"><span>Dissociated</span><span>Bound at 88</span></div>
+      </div>
+
+      <dl class="stats">
+        <div><dt>Clashes</dt><dd id="clashes">0</dd></div>
+        <div><dt>Best</dt><dd id="panelBest">—</dd></div>
+      </dl>
+
+      <div class="contacts">
+        <div class="micro-row"><span>Pocket contacts</span><span id="contactCount">4 hotspots</span></div>
+        <ul class="type-list" id="typeList"></ul>
+      </div>
+
+      <div class="rot-control">
+        <div class="micro-row">
+          <label for="rot">Rotation</label>
+          <output id="rotOut" for="rot">000°</output>
+        </div>
+        <input id="rot" type="range" min="0" max="359" step="1" value="0"
+          aria-label="Ligand rotation in degrees" aria-valuetext="0 degrees">
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="resetBtn" type="button"><span>Reset pose</span><kbd>R</kbd></button>
+        <button class="btn" id="hintBtn" type="button"><span>Hint</span><span class="hint-count" id="hintCount">2</span></button>
+      </div>
+
+      <div class="fits" id="fits">
+        <div class="micro-row"><span>Atom fit</span><span id="fitMean">—</span></div>
+        <ul class="fit-list" id="fitList"></ul>
+      </div>
+
+      <p class="status" id="status" role="status" aria-live="polite">Site 1 of 3. Drag the ligand into the pocket and align each atom with a same-typed hotspot.</p>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <div class="keys">
+      <span><b>Drag</b> translate</span>
+      <span><b>A / D</b> rotate</span>
+      <span><b>← ↑ ↓ →</b> nudge</span>
+      <span><b>R</b> reset</span>
+      <span><b>H</b> hint</span>
+      <span><b>Scroll</b> rotate</span>
+    </div>
+    <div class="mark">CytoTransport / interactive studies</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var TAU = Math.PI * 2;
+  var WIN_AT = 88;
+  var HINTS_PER_SITE = 2;
+  var DESIGN = { w: 680, h: 560, cx: 340, cy: 280 };
+  var reduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  var TYPES = {
+    C: { name: "Carbon", rgb: "201,242,107", hex: "#c9f26b" },
+    O: { name: "Oxygen", rgb: "127,231,224", hex: "#7fe7e0" },
+    N: { name: "Nitrogen", rgb: "244,198,106", hex: "#f4c66a" }
+  };
+
+  var LAYOUTS = [
+    {
+      atoms: [
+        { x: -58, y: -16, type: "C" },
+        { x: -18, y: 24, type: "N" },
+        { x: 24, y: -4, type: "O" },
+        { x: 60, y: 22, type: "C" }
+      ],
+      bonds: [[0,1],[1,2],[2,3]]
+    },
+    {
+      atoms: [
+        { x: -48, y: -28, type: "C" },
+        { x: 8, y: -48, type: "O" },
+        { x: 52, y: -6, type: "N" },
+        { x: 26, y: 44, type: "C" },
+        { x: -40, y: 32, type: "O" }
+      ],
+      bonds: [[0,1],[1,2],[2,3],[3,4],[4,0]]
+    },
+    {
+      atoms: [
+        { x: -62, y: 2, type: "N" },
+        { x: -18, y: -36, type: "C" },
+        { x: 24, y: -20, type: "O" },
+        { x: 58, y: 12, type: "N" },
+        { x: 4, y: 40, type: "C" }
+      ],
+      bonds: [[0,1],[1,2],[2,3],[2,4],[4,0]]
+    }
+  ];
+
+  var SITE_CONFIGS = [
+    { seed: 481207, layout: 0, name: "Esterase vestibule", base: 212, tol: 52, wall: 0.855, offset: 184, startAngle: 160, turn: 62, jitter: 3.2 },
+    { seed: 937511, layout: 1, name: "Kinase hinge", base: 201, tol: 44, wall: 0.875, offset: 196, startAngle: -34, turn: -104, jitter: 3.0 },
+    { seed: 620333, layout: 2, name: "Nuclear pore", base: 191, tol: 37, wall: 0.895, offset: 204, startAngle: 207, turn: 142, jitter: 2.6 }
+  ];
+
+  function mulberry32(seed){
+    var a = seed >>> 0;
+    return function(){
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function rand(rng, min, max){ return min + rng() * (max - min); }
+  function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+  function normDeg(rad){
+    var d = (rad * 180 / Math.PI) % 360;
+    return (d + 360) % 360;
+  }
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function rgba(type, alpha){ return "rgba(" + TYPES[type].rgb + "," + alpha + ")"; }
+
+  function generateSite(index){
+    var cfg = SITE_CONFIGS[index];
+    var rng = mulberry32(cfg.seed);
+    var layout = LAYOUTS[cfg.layout];
+
+    var atoms = layout.atoms.map(function(a){
+      return { x: a.x, y: a.y, type: a.type };
+    });
+    var cx = atoms.reduce(function(s,a){ return s + a.x; }, 0) / atoms.length;
+    var cy = atoms.reduce(function(s,a){ return s + a.y; }, 0) / atoms.length;
+    atoms.forEach(function(a){
+      a.x = a.x - cx + rand(rng, -3.4, 3.4);
+      a.y = a.y - cy + rand(rng, -3.4, 3.4);
+    });
+
+    var target = {
+      x: DESIGN.cx + rand(rng, -28, 28),
+      y: DESIGN.cy + rand(rng, -20, 20),
+      rot: rng() * TAU
+    };
+
+    var cos = Math.cos(target.rot), sin = Math.sin(target.rot);
+    var hotspots = atoms.map(function(a){
+      return {
+        x: target.x + a.x * cos - a.y * sin + rand(rng, -cfg.jitter, cfg.jitter),
+        y: target.y + a.x * sin + a.y * cos + rand(rng, -cfg.jitter, cfg.jitter),
+        type: a.type
+      };
+    });
+
+    var start = {
+      x: target.x + Math.cos(cfg.startAngle * Math.PI / 180) * cfg.offset,
+      y: target.y + Math.sin(cfg.startAngle * Math.PI / 180) * cfg.offset,
+      rot: target.rot + cfg.turn * Math.PI / 180
+    };
+    start.x = clamp(start.x, 112, DESIGN.w - 112);
+    start.y = clamp(start.y, 92, DESIGN.h - 92);
+
+    var r1 = rng() * TAU, r2 = rng() * TAU, r3 = rng() * TAU;
+    var pocket = {
+      base: cfg.base,
+      wall: cfg.wall,
+      radius: function(theta){
+        return cfg.base * (1
+          + 0.052 * Math.sin(3 * theta + r1)
+          + 0.032 * Math.sin(5 * theta + r2)
+          + 0.019 * Math.sin(7 * theta + r3));
+      }
+    };
+
+    var counts = {};
+    atoms.forEach(function(a){ counts[a.type] = (counts[a.type] || 0) + 1; });
+
+    return {
+      index: index,
+      seed: cfg.seed,
+      cfg: cfg,
+      name: cfg.name,
+      atoms: atoms,
+      bonds: layout.bonds,
+      hotspots: hotspots,
+      target: target,
+      start: start,
+      pocket: pocket,
+      counts: counts,
+      bound: false,
+      boundAffinity: null
+    };
+  }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    siteIndex: 0,
+    best: 0,
+    scores: [],
+    hintsLeft: HINTS_PER_SITE,
+    run: 1,
+    finished: false
+  };
+  var site = generateSite(0);
+  var pose = { x: site.start.x, y: site.start.y, rot: site.start.rot };
+  var score = { affinity: 0, raw: 0, clashes: 0, atoms: [], weights: [], hotspotGlow: [], nearest: [], map: [] };
+  var hintFx = null;
+  var winBurst = null;
+  var fitRows = [];
+  var shownAffinity = 0;
+  var lastShownInt = -1;
+  var lastMeter = -1;
+  var lastAnnounce = 0;
+  var lastAnnounceAff = -1;
+  var drag = null;
+
+  var stage = document.getElementById("stage");
+  var canvas = document.getElementById("field");
+  var ctx = canvas.getContext("2d");
+  var staticCanvas = document.createElement("canvas");
+  var staticCtx = staticCanvas.getContext("2d");
+  var view = { w: 0, h: 0, dpr: 1, scale: 1, ox: 0, oy: 0 };
+
+  var el = {
+    siteIndex: document.getElementById("siteIndex"),
+    siteName: document.getElementById("siteName"),
+    stageInstruction: document.getElementById("stageInstruction"),
+    siteDots: document.getElementById("siteDots").children,
+    stageBest: document.getElementById("stageBest"),
+    affinity: document.getElementById("affinity"),
+    scoreBand: document.getElementById("scoreBand"),
+    meter: document.getElementById("meter"),
+    meterFill: document.getElementById("meterFill"),
+    clashes: document.getElementById("clashes"),
+    panelBest: document.getElementById("panelBest"),
+    contactCount: document.getElementById("contactCount"),
+    typeList: document.getElementById("typeList"),
+    rot: document.getElementById("rot"),
+    rotOut: document.getElementById("rotOut"),
+    resetBtn: document.getElementById("resetBtn"),
+    hintBtn: document.getElementById("hintBtn"),
+    hintCount: document.getElementById("hintCount"),
+    fitMean: document.getElementById("fitMean"),
+    fitList: document.getElementById("fitList"),
+    status: document.getElementById("status"),
+    winCard: document.getElementById("winCard"),
+    winKicker: document.getElementById("winKicker"),
+    winTitle: document.getElementById("winTitle"),
+    winCopy: document.getElementById("winCopy"),
+    nextBtn: document.getElementById("nextBtn"),
+    runLabel: document.getElementById("runLabel")
+  };
+
+  /* ---------------- geometry & scoring ---------------- */
+  function worldAtoms(p){
+    var c = Math.cos(p.rot), s = Math.sin(p.rot);
+    return site.atoms.map(function(a){
+      return {
+        x: p.x + a.x * c - a.y * s,
+        y: p.y + a.x * s + a.y * c,
+        type: a.type
+      };
+    });
+  }
+
+  function atomWeight(a, h){
+    var dx = a.x - h.x, dy = a.y - h.y;
+    var d2 = dx * dx + dy * dy;
+    var t = site.cfg.tol;
+    return Math.max(0, 1 - d2 / (t * t));
+  }
+
+  function assignAtoms(atoms){
+    var n = atoms.length, m = site.hotspots.length, S = 1 << m;
+    var dp = new Float64Array(S);
+    var i;
+    for (i = 0; i < S; i++) dp[i] = -1e9;
+    dp[0] = 0;
+    var layers = [];
+    for (var ai = 0; ai < n; ai++){
+      var next = new Float64Array(S);
+      var prev = new Array(S);
+      for (i = 0; i < S; i++){ next[i] = -1e9; prev[i] = null; }
+      for (var mask = 0; mask < S; mask++){
+        if (dp[mask] < -1e8) continue;
+        for (var j = 0; j < m; j++){
+          if (mask & (1 << j)) continue;
+          if (atoms[ai].type !== site.hotspots[j].type) continue;
+          var w = atomWeight(atoms[ai], site.hotspots[j]);
+          var nm = mask | (1 << j);
+          var val = dp[mask] + w;
+          if (val > next[nm]){
+            next[nm] = val;
+            prev[nm] = { from: mask, hotspot: j };
+          }
+        }
+      }
+      layers.push(prev);
+      dp = next;
+    }
+    var full = S - 1;
+    var map = new Array(n);
+    var sum = Math.max(0, dp[full]);
+    var mask2 = full;
+    for (var k = n - 1; k >= 0; k--){
+      var choice = layers[k][mask2];
+      if (!choice) break;
+      map[k] = choice.hotspot;
+      mask2 = choice.from;
+    }
+    return { sum: sum, map: map };
+  }
+
+  function evaluate(p){
+    var atoms = worldAtoms(p);
+    var assigned = assignAtoms(atoms);
+    var weights = new Array(atoms.length);
+    var hotspotGlow = new Array(site.hotspots.length).fill(0);
+    for (var i = 0; i < atoms.length; i++){
+      var hi = assigned.map[i];
+      var w = (hi === undefined) ? 0 : atomWeight(atoms[i], site.hotspots[hi]);
+      weights[i] = w;
+      if (hi !== undefined) hotspotGlow[hi] = Math.max(hotspotGlow[hi], w);
+    }
+
+    var nearest = atoms.map(function(a){
+      var best = { hotspot: -1, dist: Infinity, prox: 0 };
+      site.hotspots.forEach(function(h, j){
+        if (h.type !== a.type) return;
+        var dx = a.x - h.x, dy = a.y - h.y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d < best.dist){
+          best = { hotspot: j, dist: d, prox: clamp(1 - d / 118, 0, 1) };
+        }
+      });
+      return best;
+    });
+
+    var clashes = 0;
+    var clashFlags = [];
+    atoms.forEach(function(a){
+      var dx = a.x - DESIGN.cx, dy = a.y - DESIGN.cy;
+      var r = Math.sqrt(dx * dx + dy * dy);
+      var limit = site.pocket.radius(Math.atan2(dy, dx)) * site.pocket.wall;
+      var bad = r > limit;
+      clashFlags.push(bad);
+      if (bad) clashes++;
+    });
+
+    var raw = 100 * assigned.sum / atoms.length;
+    var affinity = Math.round(clamp(raw - clashes * 11, 0, 100));
+    return {
+      affinity: affinity,
+      raw: raw,
+      clashes: clashes,
+      clashFlags: clashFlags,
+      atoms: atoms,
+      weights: weights,
+      hotspotGlow: hotspotGlow,
+      nearest: nearest,
+      map: assigned.map
+    };
+  }
+
+  /* ---------------- layout / canvas ---------------- */
+  function sX(x){ return view.ox + x * view.scale; }
+  function sY(y){ return view.oy + y * view.scale; }
+  function toDesign(clientX, clientY){
+    var r = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - r.left - view.ox) / view.scale,
+      y: (clientY - r.top - view.oy) / view.scale
+    };
+  }
+
+  function resize(){
+    var r = stage.getBoundingClientRect();
+    var w = Math.max(1, Math.round(r.width));
+    var h = Math.max(1, Math.round(r.height));
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    view.w = w; view.h = h; view.dpr = dpr;
+    view.scale = Math.min(w / DESIGN.w, h / DESIGN.h) * 0.94;
+    view.ox = (w - DESIGN.w * view.scale) / 2;
+    view.oy = (h - DESIGN.h * view.scale) / 2;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    staticCanvas.width = canvas.width;
+    staticCanvas.height = canvas.height;
+    rebuildStatic();
+  }
+
+  function pocketPoints(radiusFactor){
+    var pts = [];
+    var N = 120;
+    var factor = radiusFactor || 1;
+    for (var i = 0; i < N; i++){
+      var th = i / N * TAU;
+      var rad = site.pocket.radius(th) * factor;
+      pts.push({
+        x: sX(DESIGN.cx + Math.cos(th) * rad),
+        y: sY(DESIGN.cy + Math.sin(th) * rad)
+      });
+    }
+    return pts;
+  }
+
+  function pocketPath(c, radiusFactor){
+    var pts = pocketPoints(radiusFactor);
+    var n = pts.length;
+    c.beginPath();
+    c.moveTo((pts[n-1].x + pts[0].x) / 2, (pts[n-1].y + pts[0].y) / 2);
+    for (var i = 0; i < n; i++){
+      var p = pts[i];
+      var q = pts[(i + 1) % n];
+      c.quadraticCurveTo(p.x, p.y, (p.x + q.x) / 2, (p.y + q.y) / 2);
+    }
+    c.closePath();
+    return pts;
+  }
+
+  function screenPocketPath(c){
+    return pocketPath(c, 1);
+  }
+
+  function contourField(c){
+    var x0 = DESIGN.cx - 250, x1 = DESIGN.cx + 250;
+    var y0 = DESIGN.cy - 225, y1 = DESIGN.cy + 225;
+    var step = 8;
+    var cols = Math.floor((x1 - x0) / step) + 1;
+    var rows = Math.floor((y1 - y0) / step) + 1;
+    var vals = new Float64Array(cols * rows);
+    var max = 0, i, j, k;
+    var sigma2 = 2 * 42 * 42;
+    for (j = 0; j < rows; j++){
+      for (i = 0; i < cols; i++){
+        var x = x0 + i * step, y = y0 + j * step;
+        var v = 0;
+        for (k = 0; k < site.hotspots.length; k++){
+          var dx = x - site.hotspots[k].x, dy = y - site.hotspots[k].y;
+          v += Math.exp(-(dx*dx + dy*dy) / sigma2);
+        }
+        vals[j * cols + i] = v;
+        if (v > max) max = v;
+      }
+    }
+    if (max <= 0) return;
+    var levels = [0.17, 0.32, 0.5, 0.7, 0.88];
+    var colors = [
+      "rgba(183,156,255,.15)",
+      "rgba(127,231,224,.145)",
+      "rgba(183,156,255,.15)",
+      "rgba(201,242,107,.13)",
+      "rgba(243,241,232,.095)"
+    ];
+    c.save();
+    screenPocketPath(c);
+    c.clip();
+    c.lineWidth = 0.8;
+    levels.forEach(function(level, li){
+      var L = level * max;
+      c.beginPath();
+      for (j = 0; j < rows - 1; j++){
+        for (i = 0; i < cols - 1; i++){
+          var v00 = vals[j*cols+i], v10 = vals[j*cols+i+1];
+          var v11 = vals[(j+1)*cols+i+1], v01 = vals[(j+1)*cols+i];
+          var corners = [
+            { x: x0+i*step, y: y0+j*step, v: v00 },
+            { x: x0+(i+1)*step, y: y0+j*step, v: v10 },
+            { x: x0+(i+1)*step, y: y0+(j+1)*step, v: v11 },
+            { x: x0+i*step, y: y0+(j+1)*step, v: v01 }
+          ];
+          var pts = [];
+          for (var e = 0; e < 4; e++){
+            var a = corners[e], b = corners[(e+1)%4];
+            if ((a.v >= L) !== (b.v >= L)){
+              var t = (L - a.v) / (b.v - a.v);
+              pts.push({ x: lerp(a.x,b.x,t), y: lerp(a.y,b.y,t) });
+            }
+          }
+          if (pts.length === 2){
+            c.moveTo(sX(pts[0].x), sY(pts[0].y));
+            c.lineTo(sX(pts[1].x), sY(pts[1].y));
+          } else if (pts.length === 4){
+            c.moveTo(sX(pts[0].x), sY(pts[0].y));
+            c.lineTo(sX(pts[1].x), sY(pts[1].y));
+            c.moveTo(sX(pts[2].x), sY(pts[2].y));
+            c.lineTo(sX(pts[3].x), sY(pts[3].y));
+          }
+        }
+      }
+      c.strokeStyle = colors[li];
+      c.stroke();
+    });
+    c.restore();
+  }
+
+  function wobbleRing(c, radius, t1, t2, t3, dashed){
+    c.beginPath();
+    var N = 140;
+    for (var i = 0; i <= N; i++){
+      var th = i / N * TAU;
+      var rr = radius * (1 + 0.018 * Math.sin(3*th+t1) + 0.011 * Math.sin(6*th+t2));
+      var x = sX(DESIGN.cx + Math.cos(th) * rr);
+      var y = sY(DESIGN.cy + Math.sin(th) * rr);
+      if (i === 0) c.moveTo(x,y); else c.lineTo(x,y);
+    }
+    c.setLineDash(dashed ? [1,7] : []);
+    c.stroke();
+  }
+
+  function rebuildStatic(){
+    if (!view.w || !view.h) return;
+    var c = staticCtx;
+    c.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    c.clearRect(0, 0, view.w, view.h);
+
+    var bg = c.createRadialGradient(view.w*0.5, view.h*0.46, 8, view.w*0.5, view.h*0.5, Math.max(view.w,view.h)*0.78);
+    bg.addColorStop(0, "#11160f");
+    bg.addColorStop(0.55, "#0a0c08");
+    bg.addColorStop(1, "#060705");
+    c.fillStyle = bg;
+    c.fillRect(0, 0, view.w, view.h);
+
+    // fine matrix
+    c.fillStyle = "rgba(243,241,232,.045)";
+    var gap = 27;
+    for (var y = 14; y < view.h; y += gap){
+      for (var x = 14; x < view.w; x += gap){
+        c.fillRect(x, y, 1, 1);
+      }
+    }
+
+    // membrane annotations
+    c.save();
+    c.strokeStyle = "rgba(183,156,255,.09)";
+    c.lineWidth = 0.7;
+    wobbleRing(c, site.pocket.base * 1.28, 0.4, 2.1, 4.2, true);
+    wobbleRing(c, site.pocket.base * 1.52, 2.2, 0.7, 1.4, false);
+    wobbleRing(c, site.pocket.base * 1.86, 1.1, 3.2, 5.2, true);
+    c.strokeStyle = "rgba(127,231,224,.06)";
+    for (var a = 0; a < 14; a++){
+      var th = a / 14 * TAU + 0.17;
+      var r0 = site.pocket.base * 1.06, r1 = site.pocket.base * 1.22;
+      c.beginPath();
+      c.moveTo(sX(DESIGN.cx + Math.cos(th)*r0), sY(DESIGN.cy + Math.sin(th)*r0));
+      c.lineTo(sX(DESIGN.cx + Math.cos(th)*r1), sY(DESIGN.cy + Math.sin(th)*r1));
+      c.stroke();
+    }
+    c.restore();
+
+    // pocket fill
+    c.save();
+    screenPocketPath(c);
+    var pg = c.createRadialGradient(sX(DESIGN.cx), sY(DESIGN.cy), 4, sX(DESIGN.cx), sY(DESIGN.cy), site.pocket.base*view.scale);
+    pg.addColorStop(0, "rgba(183,156,255,.10)");
+    pg.addColorStop(0.52, "rgba(127,231,224,.045)");
+    pg.addColorStop(0.92, "rgba(183,156,255,.035)");
+    pg.addColorStop(1, "rgba(183,156,255,0)");
+    c.fillStyle = pg;
+    c.fill();
+    c.restore();
+
+    // contour field inside pocket
+    contourField(c);
+
+    // wall bloom
+    c.save();
+    screenPocketPath(c);
+    c.shadowColor = "rgba(183,156,255,.7)";
+    c.shadowBlur = 24;
+    c.strokeStyle = "rgba(183,156,255,.28)";
+    c.lineWidth = 1.2;
+    c.stroke();
+    c.restore();
+
+    c.save();
+    var wallPts = screenPocketPath(c);
+    c.strokeStyle = "rgba(183,156,255,.48)";
+    c.lineWidth = 1.1;
+    c.stroke();
+    c.strokeStyle = "rgba(243,241,232,.1)";
+    c.lineWidth = 4;
+    c.stroke();
+    c.restore();
+
+    // steric limit
+    c.save();
+    pocketPath(c, site.pocket.wall);
+    c.setLineDash([2,8]);
+    c.strokeStyle = "rgba(255,138,114,.14)";
+    c.lineWidth = 0.8;
+    c.stroke();
+    c.restore();
+
+    // wall ticks
+    c.save();
+    c.strokeStyle = "rgba(243,241,232,.18)";
+    c.lineWidth = 0.8;
+    for (var ti = 0; ti < wallPts.length; ti += 5){
+      var p = wallPts[ti];
+      var ang = Math.atan2(p.y - sY(DESIGN.cy), p.x - sX(DESIGN.cx));
+      var len = 4 + (ti % 3);
+      c.beginPath();
+      c.moveTo(p.x, p.y);
+      c.lineTo(p.x - Math.cos(ang)*len, p.y - Math.sin(ang)*len);
+      c.stroke();
+    }
+    c.restore();
+
+  }
+
+  /* ---------------- drawing ---------------- */
+  function drawParticles(now){
+    var t = reduceQuery.matches ? 0 : now / 1000;
+    for (var i = 0; i < 54; i++){
+      var seed = mulberry32(8800 + i * 97 + site.index * 13);
+      var ang = seed() * TAU;
+      var rf = 0.16 + seed() * 0.72;
+      var sp = 0.03 + seed() * 0.07;
+      var sz = 0.6 + seed() * 1.3;
+      var phase = seed() * TAU;
+      var th = ang + t * sp;
+      var wob = Math.sin(t * 0.4 + phase) * 7;
+      var rr = site.pocket.radius(th) * rf + wob;
+      var x = sX(DESIGN.cx + Math.cos(th) * rr);
+      var y = sY(DESIGN.cy + Math.sin(th) * rr);
+      var alpha = 0.18 + 0.26 * (0.5 + 0.5 * Math.sin(t * 0.7 + phase));
+      ctx.fillStyle = i % 3 === 0 ? "rgba(183,156,255," + alpha + ")" : "rgba(201,242,107," + (alpha*0.75) + ")";
+      ctx.beginPath();
+      ctx.arc(x, y, sz, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  function drawHotspots(now){
+    var hotR = Math.max(12, 18.5 * view.scale);
+    for (var i = 0; i < site.hotspots.length; i++){
+      var h = site.hotspots[i];
+      var x = sX(h.x), y = sY(h.y);
+      var glow = score.hotspotGlow ? score.hotspotGlow[i] : 0;
+      var pulse = reduceQuery.matches ? 0.5 : 0.5 + 0.5 * Math.sin(now / 620 + i * 1.7);
+
+      ctx.save();
+      ctx.translate(x, y);
+
+      var halo = ctx.createRadialGradient(0, 0, 2, 0, 0, hotR * 2.7);
+      halo.addColorStop(0, rgba(h.type, 0.05 + glow * 0.17));
+      halo.addColorStop(1, rgba(h.type, 0));
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(0, 0, hotR * 2.7, 0, TAU);
+      ctx.fill();
+
+      ctx.fillStyle = rgba(h.type, 0.035 + glow * 0.13);
+      ctx.beginPath();
+      ctx.arc(0, 0, hotR * 0.92, 0, TAU);
+      ctx.fill();
+
+      ctx.strokeStyle = rgba(h.type, 0.48 + glow * 0.42);
+      ctx.lineWidth = 1.15 + glow * 0.7;
+      ctx.setLineDash([2, 4]);
+      ctx.lineDashOffset = reduceQuery.matches ? 0 : -now * 0.008;
+      ctx.beginPath();
+      ctx.arc(0, 0, hotR, 0, TAU);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.strokeStyle = rgba(h.type, 0.28 + glow * 0.35);
+      ctx.lineWidth = 0.9;
+      for (var k = 0; k < 8; k++){
+        var a = k / 8 * TAU + 0.24;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * (hotR + 3), Math.sin(a) * (hotR + 3));
+        ctx.lineTo(Math.cos(a) * (hotR + 4 + pulse), Math.sin(a) * (hotR + 4 + pulse));
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = rgba(h.type, 0.14 + glow * 0.25);
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.arc(0, 0, hotR * 0.62, 0, TAU);
+      ctx.stroke();
+
+      ctx.fillStyle = rgba(h.type, 0.78 + glow * 0.2);
+      ctx.font = "600 " + Math.max(6.5, 8.5 * view.scale) + 'px "Inconsolata", ui-monospace, monospace';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(h.type, 0, 0.4);
+      ctx.restore();
+    }
+  }
+
+  function drawHint(now){
+    if (!hintFx) return;
+    if (now > hintFx.until){ hintFx = null; return; }
+    var h = site.hotspots[hintFx.hotspot];
+    var a = score.atoms[hintFx.atomIndex];
+    var x = sX(h.x), y = sY(h.y);
+    var age = now - hintFx.start;
+    var phase = reduceQuery.matches ? 0.55 : (age % 1200) / 1200;
+    var hotR = Math.max(12, 18.5 * view.scale);
+
+    ctx.save();
+    ctx.strokeStyle = rgba(h.type, 0.55 * (1 - phase * 0.55));
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3,5]);
+    ctx.beginPath();
+    ctx.arc(x, y, hotR + 8 + phase * 26, 0, TAU);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle = rgba(h.type, 0.26);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sX(a.x), sY(a.y));
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    ctx.fillStyle = rgba(h.type, 0.9);
+    ctx.font = '8px "Inconsolata", ui-monospace, monospace';
+    ctx.textAlign = "center";
+    ctx.fillText("TARGET " + h.type, x, y - hotR - 15);
+    ctx.restore();
+  }
+
+  function drawLigand(now){
+    var atoms = score.atoms;
+    if (!atoms || !atoms.length) return;
+    var scale = view.scale;
+    var atomR = Math.max(7.5, 12.5 * scale);
+
+    // bond tension to nearest same-typed hotspot
+    ctx.save();
+    for (var i = 0; i < atoms.length; i++){
+      var n = score.nearest[i];
+      if (!n || n.hotspot < 0 || n.prox <= 0.01) continue;
+      var h = site.hotspots[n.hotspot];
+      var ax = sX(atoms[i].x), ay = sY(atoms[i].y);
+      var hx = sX(h.x), hy = sY(h.y);
+      ctx.strokeStyle = rgba(h.type, 0.07 + n.prox * 0.3);
+      ctx.lineWidth = 1;
+      ctx.setLineDash(n.prox > 0.55 ? [] : [2,6]);
+      ctx.lineDashOffset = reduceQuery.matches ? 0 : -now * 0.018;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // bonds
+    ctx.save();
+    site.bonds.forEach(function(b){
+      var a = atoms[b[0]], c = atoms[b[1]];
+      var x1 = sX(a.x), y1 = sY(a.y), x2 = sX(c.x), y2 = sY(c.y);
+      var g = ctx.createLinearGradient(x1, y1, x2, y2);
+      g.addColorStop(0, rgba(a.type, 0.56));
+      g.addColorStop(1, rgba(c.type, 0.56));
+      ctx.strokeStyle = "rgba(7,8,6,.9)";
+      ctx.lineWidth = Math.max(4, 6.5 * scale);
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      ctx.strokeStyle = g;
+      ctx.lineWidth = Math.max(1.6, 2.4 * scale);
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      ctx.strokeStyle = "rgba(243,241,232,.28)";
+      ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    });
+    ctx.restore();
+
+    // atoms
+    for (var j = 0; j < atoms.length; j++){
+      var atom = atoms[j];
+      var type = TYPES[atom.type];
+      var x = sX(atom.x), y = sY(atom.y);
+      var w = score.weights[j] || 0;
+      var r = atomR * (1 + w * 0.12);
+      var glowR = r * (3.2 + w * 1.45);
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      var gl = ctx.createRadialGradient(x, y, r * 0.4, x, y, glowR);
+      gl.addColorStop(0, rgba(atom.type, 0.16 + w * 0.2));
+      gl.addColorStop(0.42, rgba(atom.type, 0.07 + w * 0.1));
+      gl.addColorStop(1, rgba(atom.type, 0));
+      ctx.fillStyle = gl;
+      ctx.beginPath(); ctx.arc(x, y, glowR, 0, TAU); ctx.fill();
+      ctx.restore();
+
+      var core = ctx.createRadialGradient(x - r*0.32, y - r*0.38, r*0.08, x, y, r);
+      core.addColorStop(0, "rgba(255,255,246,.98)");
+      core.addColorStop(0.3, rgba(atom.type, 0.97));
+      core.addColorStop(0.82, rgba(atom.type, 0.85));
+      core.addColorStop(1, rgba(atom.type, 0.55));
+      ctx.fillStyle = core;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+
+      ctx.strokeStyle = rgba(atom.type, 0.9);
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke();
+
+      ctx.fillStyle = "rgba(10,12,7,.86)";
+      ctx.font = "600 " + Math.max(6, Math.round(r * 0.92)) + 'px "Inconsolata", ui-monospace, monospace';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(atom.type, x, y + 0.4);
+
+      if (score.clashFlags && score.clashFlags[j]){
+        ctx.strokeStyle = "rgba(255,138,114,.9)";
+        ctx.lineWidth = 1.1;
+        ctx.setLineDash([2,3]);
+        ctx.beginPath(); ctx.arc(x, y, r + 4.5, 0, TAU); ctx.stroke();
+        ctx.setLineDash([]);
+        for (var s = 0; s < 4; s++){
+          var sa = s / 4 * TAU + Math.PI/4;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(sa)*(r+6), y + Math.sin(sa)*(r+6));
+          ctx.lineTo(x + Math.cos(sa)*(r+9), y + Math.sin(sa)*(r+9));
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawWinBurst(now){
+    if (!winBurst || reduceQuery.matches) return;
+    var age = (now - winBurst.start) / 1500;
+    if (age >= 1){ winBurst = null; return; }
+    var cx = sX(winBurst.x), cy = sY(winBurst.y);
+    ctx.save();
+    for (var i = 0; i < 26; i++){
+      var seed = mulberry32(500 + i * 31);
+      var a = seed() * TAU;
+      var dist = (20 + seed() * 90) * age;
+      var px = cx + Math.cos(a) * dist;
+      var py = cy + Math.sin(a) * dist;
+      var alpha = (1 - age) * (0.35 + seed() * 0.45);
+      ctx.fillStyle = i % 3 === 0 ? "rgba(183,156,255," + alpha + ")" : "rgba(201,242,107," + alpha + ")";
+      ctx.beginPath();
+      ctx.arc(px, py, 0.8 + (1-age)*1.4, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function draw(now){
+    if (!view.w) return;
+    ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    ctx.clearRect(0, 0, view.w, view.h);
+    ctx.drawImage(staticCanvas, 0, 0, view.w, view.h);
+
+    drawParticles(now);
+    drawHotspots(now);
+    drawHint(now);
+    drawLigand(now);
+    drawWinBurst(now);
+
+    // live affinity easing
+    var target = score.affinity;
+    if (reduceQuery.matches) shownAffinity = target;
+    else shownAffinity += (target - shownAffinity) * 0.18;
+    if (Math.abs(target - shownAffinity) < 0.15) shownAffinity = target;
+
+    var shown = Math.round(shownAffinity);
+    if (shown !== lastShownInt){
+      lastShownInt = shown;
+      el.affinity.textContent = String(shown).padStart(2, "0");
+      el.scoreBand.setAttribute("data-band", shown >= 70 ? "high" : shown >= 38 ? "mid" : "low");
+    }
+    var mw = Math.round(shownAffinity * 10) / 10;
+    if (mw !== lastMeter){
+      lastMeter = mw;
+      el.meterFill.style.width = mw + "%";
+    }
+  }
+
+  function loop(now){
+    if (!document.hidden) draw(now);
+    requestAnimationFrame(loop);
+  }
+
+  /* ---------------- UI ---------------- */
+  function paintTypes(){
+    while (el.typeList.firstChild) el.typeList.removeChild(el.typeList.firstChild);
+    Object.keys(site.counts).forEach(function(type){
+      var li = document.createElement("li");
+      var dot = document.createElement("i");
+      dot.style.setProperty("--tc", TYPES[type].hex);
+      dot.setAttribute("aria-hidden", "true");
+      var label = document.createElement("span");
+      label.textContent = TYPES[type].name + " ×" + site.counts[type];
+      li.appendChild(dot);
+      li.appendChild(label);
+      el.typeList.appendChild(li);
+    });
+    el.contactCount.textContent = site.hotspots.length + " hotspots";
+  }
+
+  function buildFits(){
+    while (el.fitList.firstChild) el.fitList.removeChild(el.fitList.firstChild);
+    fitRows = [];
+    var seen = {};
+    site.atoms.forEach(function(a){
+      seen[a.type] = (seen[a.type] || 0) + 1;
+      var li = document.createElement("li");
+      var sw = document.createElement("span");
+      sw.className = "swatch";
+      sw.style.setProperty("--tc", TYPES[a.type].hex);
+      sw.setAttribute("aria-hidden", "true");
+      var label = document.createElement("span");
+      label.textContent = a.type + seen[a.type];
+      var track = document.createElement("span");
+      track.className = "fit-track";
+      track.setAttribute("aria-hidden", "true");
+      var fill = document.createElement("i");
+      fill.style.setProperty("--tc", TYPES[a.type].hex);
+      track.appendChild(fill);
+      var pct = document.createElement("span");
+      pct.className = "fit-pct";
+      pct.textContent = "0";
+      li.appendChild(sw);
+      li.appendChild(label);
+      li.appendChild(track);
+      li.appendChild(pct);
+      el.fitList.appendChild(li);
+      fitRows.push({ fill: fill, pct: pct, li: li, name: TYPES[a.type].name + " " + seen[a.type] });
+    });
+  }
+
+  function updateFits(){
+    var sum = 0;
+    for (var i = 0; i < fitRows.length; i++){
+      var w = score.weights && score.weights[i] ? score.weights[i] : 0;
+      sum += w;
+      var pct = Math.round(w * 100);
+      fitRows[i].fill.style.width = pct + "%";
+      fitRows[i].pct.textContent = String(pct);
+      fitRows[i].li.setAttribute("aria-label", fitRows[i].name + ", " + pct + " percent fit");
+    }
+    el.fitMean.textContent = fitRows.length ? Math.round(sum / fitRows.length * 100) + "%" : "—";
+  }
+
+  function paintChrome(){
+    el.siteIndex.textContent = "Site 0" + (state.siteIndex + 1) + " / 03";
+    el.siteName.textContent = site.name;
+    el.runLabel.textContent = "RUN " + String(state.run).padStart(2, "0");
+    for (var i = 0; i < el.siteDots.length; i++){
+      el.siteDots[i].className = i < state.siteIndex ? "done" : i === state.siteIndex ? "active" : "";
+    }
+    el.panelBest.textContent = state.best > 0 ? String(state.best) : "—";
+    el.stageBest.textContent = state.best > 0 ? String(state.best) : "—";
+    el.stageBest.classList.toggle("live", state.best > 0);
+    el.clashes.textContent = String(score.clashes);
+    el.clashes.classList.toggle("alert", score.clashes > 0);
+    el.hintCount.textContent = String(state.hintsLeft);
+    el.hintBtn.disabled = site.bound || state.hintsLeft <= 0;
+    el.hintBtn.setAttribute("aria-label", "Hint. " + state.hintsLeft + " remaining.");
+    el.resetBtn.disabled = site.bound;
+    el.rot.disabled = site.bound;
+    el.stageInstruction.textContent = site.bound
+      ? (state.finished ? "All three sites bound. Protocol complete." : "Site bound. Move on to the next pocket.")
+      : "Drag the ligand into the pocket, then rotate to seat every atom.";
+    stage.classList.toggle("is-bound", site.bound);
+    var deg = Math.round(normDeg(pose.rot)) % 360;
+    el.rot.value = String(deg);
+    el.rotOut.textContent = String(deg).padStart(3, "0") + "°";
+    el.rot.setAttribute("aria-valuetext", deg + " degrees");
+    el.meter.setAttribute("aria-valuenow", String(score.affinity));
+    updateFits();
+  }
+
+  function announce(text, force){
+    var now = performance.now();
+    var delta = Math.abs(score.affinity - lastAnnounceAff);
+    if (!force && now - lastAnnounce < 420 && delta < 8) return;
+    if (!force && delta < 1) return;
+    lastAnnounce = now;
+    lastAnnounceAff = score.affinity;
+    el.status.textContent = text;
+  }
+
+  function scoreMessage(){
+    var a = score.affinity;
+    var c = score.clashes;
+    var tail;
+    if (c > 0) tail = "Pull the ligand inward, away from the wall.";
+    else if (a >= 78) tail = "Nearly seated. Fine-tune the rotation.";
+    else if (a >= 45) tail = "The fit is forming. Keep turning.";
+    else tail = "Align same-typed atoms with the hotspots.";
+    return "Affinity " + a + " of 100, " + c + (c === 1 ? " clash. " : " clashes. ") + tail;
+  }
+
+  function syncScore(forceAnnounce){
+    score = evaluate(pose);
+    if (!site.bound && score.affinity > state.best) state.best = score.affinity;
+    if (!site.bound && score.affinity >= WIN_AT && score.clashes === 0) bindSite();
+    paintChrome();
+    if (!site.bound) announce(scoreMessage(), !!forceAnnounce);
+  }
+
+  function resetPose(){
+    if (site.bound) return;
+    pose.x = site.start.x;
+    pose.y = site.start.y;
+    pose.rot = site.start.rot;
+    hintFx = null;
+    syncScore(true);
+    announce("Pose reset. " + scoreMessage(), true);
+  }
+
+  function rotateBy(deg){
+    if (site.bound) return;
+    pose.rot += deg * Math.PI / 180;
+    syncScore(false);
+  }
+
+  function nudge(dx, dy){
+    if (site.bound) return;
+    pose.x = clamp(pose.x + dx, -20, DESIGN.w + 20);
+    pose.y = clamp(pose.y + dy, -20, DESIGN.h + 20);
+    syncScore(false);
+  }
+
+  function useHint(){
+    if (site.bound || state.hintsLeft <= 0) return;
+    state.hintsLeft--;
+    var worst = null;
+    score.nearest.forEach(function(n, i){
+      if (!worst || n.dist > worst.dist) worst = { atomIndex: i, hotspot: n.hotspot, dist: n.dist };
+    });
+    if (!worst || worst.hotspot < 0){
+      announce("All nearby hotspots are already engaged.", true);
+      paintChrome();
+      return;
+    }
+    hintFx = {
+      atomIndex: worst.atomIndex,
+      hotspot: worst.hotspot,
+      start: performance.now(),
+      until: performance.now() + 4200
+    };
+    var h = site.hotspots[worst.hotspot];
+    var article = h.type === "O" ? "an" : "a";
+    var remain = state.hintsLeft === 1 ? "1 hint left." : state.hintsLeft + " hints left.";
+    announce("Hint: " + article + " " + TYPES[h.type].name.toLowerCase() + " hotspot is pulsing. " + remain, true);
+    paintChrome();
+  }
+
+  function showWin(final){
+    el.winCard.hidden = false;
+    if (final){
+      var mean = Math.round(state.scores.reduce(function(s,v){return s+v;},0) / state.scores.length);
+      el.winKicker.textContent = "Protocol complete";
+      el.winTitle.innerHTML = "All sites bound<span>.</span>";
+      el.winCopy.innerHTML = "Mean affinity <b>" + mean + "</b> · 3 of 3 sites";
+      el.nextBtn.textContent = "Run protocol again";
+      el.nextBtn.setAttribute("aria-label", "Run the protocol again from the first site");
+    } else {
+      el.winKicker.textContent = "Site 0" + (state.siteIndex + 1) + " / Bound";
+      el.winTitle.innerHTML = "Bound<span>!</span>";
+      el.winCopy.innerHTML = "Affinity <b>" + site.boundAffinity + "</b> · 0 clashes";
+      el.nextBtn.textContent = "Next site \u00A0→";
+      el.nextBtn.setAttribute("aria-label", "Go to site " + (state.siteIndex + 2) + " of 3");
+    }
+    setTimeout(function(){
+      if (el.winCard.hidden) return;
+      el.nextBtn.focus({ preventScroll: true });
+    }, 40);
+  }
+
+  function bindSite(){
+    site.bound = true;
+    drag = null;
+    hintFx = null;
+    canvas.classList.remove("dragging");
+    site.boundAffinity = score.affinity;
+    state.best = Math.max(state.best, score.affinity);
+    state.scores[state.siteIndex] = score.affinity;
+    shownAffinity = score.affinity;
+    lastShownInt = -1;
+    lastMeter = -1;
+    winBurst = { start: performance.now(), x: pose.x, y: pose.y };
+    var final = state.siteIndex === 2;
+    if (final) state.finished = true;
+    announce("Bound at affinity " + score.affinity + ". " + (final ? "Protocol complete, all three sites bound." : "Site " + (state.siteIndex + 1) + " of 3 complete."), true);
+    paintChrome();
+    showWin(final);
+  }
+
+  function nextSite(){
+    if (!site.bound) return;
+    hintFx = null;
+    winBurst = null;
+    el.winCard.hidden = true;
+    if (state.siteIndex < 2){
+      loadSite(state.siteIndex + 1);
+    } else {
+      restartCampaign();
+    }
+  }
+
+  function loadSite(index){
+    state.siteIndex = index;
+    state.finished = false;
+    site = generateSite(index);
+    pose = { x: site.start.x, y: site.start.y, rot: site.start.rot };
+    state.hintsLeft = HINTS_PER_SITE;
+    hintFx = null;
+    winBurst = null;
+    el.winCard.hidden = true;
+    score = evaluate(pose);
+    shownAffinity = score.affinity;
+    lastShownInt = -1;
+    lastMeter = -1;
+    el.status.textContent = "Site " + (index + 1) + " of 3. " + site.name + ". Drag the ligand into the pocket.";
+    rebuildStatic();
+    paintChrome();
+    paintTypes();
+    buildFits();
+    updateFits();
+    el.affinity.textContent = "00";
+    el.meterFill.style.width = "0%";
+    el.scoreBand.setAttribute("data-band", "low");
+    el.meter.setAttribute("aria-valuenow", "0");
+    announce("Site " + (index + 1) + " of 3: " + site.name + ". Drag the ligand and align each atom with a same-typed hotspot.", true);
+  }
+
+  function restartCampaign(){
+    state.run++;
+    state.best = 0;
+    state.scores = [];
+    state.finished = false;
+    loadSite(0);
+  }
+
+  /* ---------------- input ---------------- */
+  function onPointerDown(e){
+    if (site.bound) return;
+    if (e.button !== undefined && e.button !== 0) return;
+    var p = toDesign(e.clientX, e.clientY);
+    drag = { id: e.pointerId, dx: pose.x - p.x, dy: pose.y - p.y };
+    if (canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch(err){}
+    }
+    canvas.classList.add("dragging");
+    e.preventDefault();
+  }
+  function onPointerMove(e){
+    if (!drag || e.pointerId !== drag.id || site.bound) return;
+    var p = toDesign(e.clientX, e.clientY);
+    pose.x = clamp(p.x + drag.dx, -20, DESIGN.w + 20);
+    pose.y = clamp(p.y + drag.dy, -20, DESIGN.h + 20);
+    syncScore(false);
+  }
+  function endDrag(e){
+    if (!drag || (e.pointerId !== undefined && e.pointerId !== drag.id)) return;
+    drag = null;
+    canvas.classList.remove("dragging");
+    if (canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)){
+      try { canvas.releasePointerCapture(e.pointerId); } catch(err){}
+    }
+    if (!site.bound) announce(scoreMessage(), true);
+  }
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+  window.addEventListener("pointerup", endDrag);
+
+  canvas.addEventListener("wheel", function(e){
+    if (site.bound) return;
+    e.preventDefault();
+    var dir = e.deltaY > 0 ? 1 : -1;
+    rotateBy(dir * (e.shiftKey ? 1 : 4));
+  }, { passive: false });
+
+  el.rot.addEventListener("input", function(){
+    if (site.bound) return;
+    pose.rot = (parseFloat(el.rot.value) || 0) * Math.PI / 180;
+    syncScore(false);
+  });
+
+  el.resetBtn.addEventListener("click", resetPose);
+  el.hintBtn.addEventListener("click", useHint);
+  el.nextBtn.addEventListener("click", nextSite);
+
+  document.addEventListener("keydown", function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var t = e.target;
+    if (t && t.matches && t.matches("input, textarea, select")) return;
+    var k = e.key.toLowerCase();
+    var handled = true;
+    if (k === "a") rotateBy(e.shiftKey ? -1 : -4);
+    else if (k === "d") rotateBy(e.shiftKey ? 1 : 4);
+    else if (k === "arrowleft") nudge(e.shiftKey ? -1 : -5, 0);
+    else if (k === "arrowright") nudge(e.shiftKey ? 1 : 5, 0);
+    else if (k === "arrowup") nudge(0, e.shiftKey ? -1 : -5);
+    else if (k === "arrowdown") nudge(0, e.shiftKey ? 1 : 5);
+    else if (k === "r") resetPose();
+    else if (k === "h") useHint();
+    else if (k === "n" && site.bound) nextSite();
+    else handled = false;
+    if (handled) e.preventDefault();
+  });
+
+  if (window.ResizeObserver){
+    new ResizeObserver(function(){ resize(); }).observe(stage);
+  } else {
+    window.addEventListener("resize", resize);
+  }
+
+  /* ---------------- boot ---------------- */
+  resize();
+  score = evaluate(pose);
+  paintChrome();
+  paintTypes();
+  buildFits();
+  updateFits();
+  requestAnimationFrame(loop);
+
+  if (new URLSearchParams(window.location.search).has("test")){
+    window.__bindingSite = {
+      getState: function(){
+        var sr = stage.getBoundingClientRect();
+        return {
+          siteIndex: state.siteIndex,
+          siteName: site.name,
+          affinity: score.affinity,
+          raw: score.raw,
+          clashes: score.clashes,
+          bound: site.bound,
+          finished: state.finished,
+          hintsLeft: state.hintsLeft,
+          best: state.best,
+          pose: { x: pose.x, y: pose.y, rot: normDeg(pose.rot) },
+          start: { x: site.start.x, y: site.start.y, rot: normDeg(site.start.rot) },
+          target: { x: site.target.x, y: site.target.y, rot: normDeg(site.target.rot) },
+          stageRect: { left: sr.left, top: sr.top, width: sr.width, height: sr.height },
+          view: { scale: view.scale, ox: view.ox, oy: view.oy },
+          ligandScreen: { x: sr.left + view.ox + pose.x * view.scale, y: sr.top + view.oy + pose.y * view.scale },
+          targetScreen: { x: sr.left + view.ox + site.target.x * view.scale, y: sr.top + view.oy + site.target.y * view.scale }
+        };
+      }
+    };
+  }
+})();
+</script>
+</body>
+</html>
