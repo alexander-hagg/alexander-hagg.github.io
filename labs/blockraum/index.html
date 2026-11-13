@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blockraum — Straßenblöcke als 3D-Wolke</title>
+<style>
+  :root { --bg:#0b0e13; --fg:#e8eaed; --dim:#8d97a4; --line:#1e2530; --accent:#c9a227; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+              font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+              overflow:hidden; }
+  #app { position:fixed; inset:0; }
+  canvas { display:block; }
+  header { position:fixed; top:0; left:0; padding:16px 20px 12px; max-width:min(620px,62ch);
+           pointer-events:none; z-index:2;
+           background:radial-gradient(120% 140% at 0% 0%, #0b0e13ee 0%, #0b0e1388 55%, #0b0e1300 100%); }
+  h1 { font-size:16px; margin:0 0 5px; font-weight:600; letter-spacing:.01em; }
+  .sub { color:var(--dim); font-size:11.5px; line-height:1.55; margin:0; }
+  .sub b { color:#c3cad4; font-weight:500; }
+  .hud { position:fixed; top:14px; right:16px; max-width:46vw; text-align:right; font-size:11px; color:var(--dim);
+         line-height:1.6; font-variant-numeric:tabular-nums; pointer-events:none; }
+  .hud b { color:var(--fg); font-weight:600; }
+  .hud .bar { display:inline-block; width:64px; height:3px; background:#1e2530; border-radius:2px;
+              vertical-align:middle; margin-left:6px; overflow:hidden; }
+  .hud .bar i { display:block; height:100%; background:var(--accent); width:0; transition:width .25s; }
+  .legend { position:fixed; left:20px; bottom:14px; display:flex; gap:15px; flex-wrap:wrap;
+            align-items:center; font-size:11px; color:var(--dim); }
+  .legend i { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px;
+              vertical-align:-1px; }
+  .legend .sep { width:1px; height:12px; background:var(--line); }
+  .hint { position:fixed; right:16px; bottom:14px; font-size:11px; color:var(--dim); text-align:right;
+          line-height:1.6; pointer-events:none; }
+  #tip { position:fixed; pointer-events:none; background:#161c25ee; border:1px solid var(--line);
+         border-radius:6px; padding:8px 10px; font-size:11.5px; line-height:1.5; opacity:0;
+         transition:opacity .12s; max-width:250px; z-index:5;
+         box-shadow:0 6px 22px #0008; }
+  #tip b { font-size:12.5px; }
+  #tip .row { color:var(--dim); }
+  #tip .sw { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; }
+  #load { position:fixed; inset:0; display:grid; place-items:center; background:var(--bg);
+          color:var(--dim); font-size:12px; letter-spacing:.04em; transition:opacity .4s; z-index:9; }
+  #load.gone { opacity:0; pointer-events:none; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<header>
+  <h1>Blockraum — jeder Straßenblock als Körper im Raum</h1>
+  <p class="sub"><b>42 441 Blöcke</b> des Rheinlands, angeordnet nach 22 Morphologie-Merkmalen
+  (UMAP 0.6, 3 Dimensionen). Jeder Punkt ist ein Block; die 64 leuchtenden Körper sind die
+  Medoide von 64 k-means-Clustern, dauerhaft sichtbar. Komm näher heran, dann baut sich die
+  Umgebung als echte Gebäudegeometrie auf. Abstände im Raum sind Ähnlichkeiten, keine Entfernungen
+  in der Stadt.</p>
+</header>
+
+<div class="hud">
+  <div><b id="fps">–</b> fps</div>
+  <div id="bodies">Körper –</div>
+  <div id="level">Ebene: Wolke</div>
+</div>
+
+<div class="legend">
+  <span><i style="background:#6b8f71"></i>unter 10 % überbaut</span>
+  <span><i style="background:#c9a227"></i>10–25 %</span>
+  <span><i style="background:#b5651d"></i>25–45 %</span>
+  <span><i style="background:#a33b3b"></i>über 45 %</span>
+  <span class="sep"></span>
+  <span>Farbe = Grundflächenanteil</span>
+</div>
+<div class="hint">ziehen = drehen · Rad = zoomen · Rechtsziehen = verschieben<br>Doppelklick oder R = zurück</div>
+<div id="tip"></div>
+<div id="load">lade Geometrie …</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "https://esm.sh/three@0.169.0",
+    "three/addons/": "https://esm.sh/three@0.169.0/examples/jsm/"
+} }
+</script>
+
+<script>
+// Fehler sichtbar machen statt still zu scheitern
+window.addEventListener('error', (e) => {
+  const el = document.getElementById('load');
+  if (el) { el.classList.remove('gone'); el.textContent = 'Fehler: ' + e.message + ' (' + e.filename + ':' + e.lineno + ')'; }
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const el = document.getElementById('load');
+  const msg = (e.reason && (e.reason.stack || e.reason.message)) || String(e.reason);
+  if (el) { el.classList.remove('gone'); el.textContent = 'Fehler: ' + msg; }
+});
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const PALETTE = [[107,143,113],[201,162,39],[181,101,29],[163,59,59]];
+const BUDGET_MAX = 1500;          // harte Obergrenze gleichzeitig gerenderter Blockkörper
+let FAR_CUT = 28;                 // darüber nur Wolke + Repräsentanten (wird aus dem Startabstand gesetzt)
+const STATS = window.__stats = { fps: 0, bodies: 0, budget: BUDGET_MAX, level: 'wolke',
+                                 buildings: 0, drawn: 0, reps: 0, ready: false };
+
+const $ = (id) => document.getElementById(id);
+
+// ---------------------------------------------------------------- Daten laden
+const [meta, xyzBuf, rgbBuf, gi, geomBuf] = await Promise.all([
+  fetch('meta.json').then(r => r.json()),
+  fetch('xyz.bin').then(r => r.arrayBuffer()),
+  fetch('rgb.bin').then(r => r.arrayBuffer()),
+  fetch('geom_index.json').then(r => r.json()),
+  fetch('geom.bin').then(r => r.arrayBuffer()),
+]);
+const n = meta.n;
+const P = new Float32Array(xyzBuf);          // 3n
+const C8 = new Uint8Array(rgbBuf);           // 3n
+// spaltenweiser Index -> Zeilen [i, b, rep, off, len, ox, oz]
+const COL = gi.blocks;
+const RECS = new Array(COL[0].length);
+for (let k = 0; k < RECS.length; k++)
+  RECS[k] = [COL[0][k], COL[1][k], COL[2][k], COL[3][k], COL[4][k], COL[5][k], COL[6][k]];
+const DV = new DataView(geomBuf);
+
+let lo = [Infinity,Infinity,Infinity], hi = [-Infinity,-Infinity,-Infinity];
+for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) {
+  const v = P[3*i+k];
+  if (v < lo[k]) lo[k] = v;
+  if (v > hi[k]) hi[k] = v;
+}
+// Median statt Bounding-Box-Mitte: der dichte Kern liegt nicht in der Mitte der Extremwerte
+const ctr = [0,1,2].map(k => {
+  const a = new Float64Array(n);
+  for (let i = 0; i < n; i++) a[i] = P[3*i+k];
+  a.sort();
+  return a[n >> 1];
+});
+const span = Math.max(hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]);
+const S = 20 / span;                          // Weltkoordinaten: Würfel Kantenlänge 20
+const world = (i, out = new THREE.Vector3()) =>
+  out.set((P[3*i]-ctr[0])*S, (P[3*i+1]-ctr[1])*S, (P[3*i+2]-ctr[2])*S);
+
+// ------------------------------------------------------------------ Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
+renderer.setSize(innerWidth, innerHeight);
+$('app').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0e13);
+scene.fog = new THREE.FogExp2(0x0b0e13, 0.0075);
+
+// Bodenraster: gibt der Wolke eine Bezugsfläche, ohne sie zu überdecken
+const grid = new THREE.PolarGridHelper(26, 12, 8, 64, 0x18202b, 0x141a23);
+grid.material.transparent = true; grid.material.opacity = 0.55;
+grid.position.y = -12;
+scene.add(grid);
+
+const camera = new THREE.PerspectiveCamera(48, innerWidth/innerHeight, 0.05, 400);
+// Abstand so, dass 97 % der Wolke im Bild liegen (nicht der Ausreißer-Rand)
+const radii = [];
+for (let i = 0; i < n; i += 3)
+  radii.push(Math.hypot((P[3*i]-ctr[0])*S, (P[3*i+1]-ctr[1])*S, (P[3*i+2]-ctr[2])*S) || 0);
+radii.sort((a, b) => a - b);
+const R97 = radii[Math.floor(radii.length * 0.92)] || 10;
+const VIEW_DIST = R97 / Math.sin((48 / 2) * Math.PI / 180) * 0.86;
+const dir0 = new THREE.Vector3(0.58, 0.44, 0.69).normalize().multiplyScalar(VIEW_DIST);
+camera.position.copy(dir0);
+FAR_CUT = VIEW_DIST * 0.72;       // erst wenn man näher kommt, entstehen Körper
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.075;
+controls.rotateSpeed = 0.75;
+controls.zoomSpeed = 0.9;
+controls.zoomToCursor = true;   // Rad zoomt dorthin, wo der Zeiger steht
+controls.panSpeed = 0.8;
+controls.minDistance = 0.6;
+controls.maxDistance = 70;
+controls.target.set(0, 0, 0);
+
+// ------------------------------------------------------------------ Punktwolke
+const pgeo = new THREE.BufferGeometry();
+const ppos = new Float32Array(n*3), pcol = new Float32Array(n*3);
+for (let i = 0; i < n; i++) {
+  ppos[3*i]   = (P[3*i]  -ctr[0])*S;
+  ppos[3*i+1] = (P[3*i+1]-ctr[1])*S;
+  ppos[3*i+2] = (P[3*i+2]-ctr[2])*S;
+  for (let k = 0; k < 3; k++) pcol[3*i+k] = C8[3*i+k]/255;
+}
+pgeo.setAttribute('position', new THREE.BufferAttribute(ppos, 3));
+pgeo.setAttribute('color', new THREE.BufferAttribute(pcol, 3));
+// weiche runde Punkte statt Quadrate
+function dotTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(16, 16, 0, 16, 16, 15);
+  grd.addColorStop(0, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.6, 'rgba(255,255,255,0.95)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd; g.beginPath(); g.arc(16, 16, 15, 0, 7); g.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const pmaterial = new THREE.PointsMaterial({
+  size: 0.16, vertexColors: true, sizeAttenuation: true, map: dotTexture(),
+  transparent: true, opacity: 0.88, depthWrite: false,
+});
+const points = new THREE.Points(pgeo, pmaterial);
+points.name = 'wolke';
+scene.add(points);
+
+
+
+// -------------------------------------------------- Geometrie eines Blocks bauen
+// Binärformat: n_out(u16) ostep_cm(u16) [i8 x,i8 z]*n_out  n_bld(u16)
+//   je Gebäude: nv(u8) h/0,5(u8) step/0,25(u8) v0(i8,i8 in ostep) [(i8 dx,i8 dz)]*(nv-1)
+function decode(rec) {
+  const off = rec[3], ox = rec[5], oz = rec[6];
+  let p = off;
+  const nOut = DV.getUint16(p, true); p += 2;
+  const ostep = DV.getUint16(p, true) / 100; p += 2;
+  const out = new Float32Array(nOut * 2);
+  for (let i = 0; i < nOut; i++) { out[2*i] = DV.getInt8(p)*ostep; out[2*i+1] = DV.getInt8(p+1)*ostep; p += 2; }
+  const nB = DV.getUint16(p, true); p += 2;
+  const bld = new Array(nB);
+  for (let b = 0; b < nB; b++) {
+    const nv = DV.getUint8(p++);
+    const h = DV.getUint8(p++) * 0.5;
+    const step = DV.getUint8(p++) * 0.25;
+    const x0 = DV.getInt8(p) * ostep, z0 = DV.getInt8(p+1) * ostep; p += 2;
+    const ring = new Float32Array(nv * 2);
+    ring[0] = x0; ring[1] = z0;
+    for (let i = 1; i < nv; i++) {
+      ring[2*i]   = x0 + DV.getInt8(p) * step;
+      ring[2*i+1] = z0 + DV.getInt8(p+1) * step;
+      p += 2;
+    }
+    bld[b] = { ring, h };
+  }
+  return { out, bld: bld, ox, oz };
+}
+
+const LIGHT = new THREE.Vector3(-0.55, 0.62, 0.56).normalize();
+const H_SCALE = 2.0;      // Überhöhung nur für die Darstellung; die Datei enthält echte Höhen
+
+function buildBody(rec, sizeTarget, boost = 1) {
+  const { out, bld } = decode(rec);
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (let i = 0; i < out.length; i += 2) {
+    if (out[i] < x0) x0 = out[i]; if (out[i] > x1) x1 = out[i];
+    if (out[i+1] < z0) z0 = out[i+1]; if (out[i+1] > z1) z1 = out[i+1];
+  }
+  const cx = (x0+x1)/2, cz = (z0+z1)/2;
+  const ext = Math.max(x1-x0, z1-z0, 1);
+  const s = sizeTarget / ext;
+  const hv = s * H_SCALE;                        // Höhen leicht überhöht, sonst liest man nur Dächer
+
+  const cov = meta.c[rec[0]];
+  const base = PALETTE[cov < 0.10 ? 0 : cov < 0.25 ? 1 : cov < 0.45 ? 2 : 3];
+  const rgbTop = [Math.min(255, (base[0]*1.25 + 22) * boost), Math.min(255, (base[1]*1.25 + 22) * boost),
+                  Math.min(255, (base[2]*1.25 + 22) * boost)];
+  const rgbBase = [base[0]*0.28*boost, base[1]*0.28*boost, base[2]*0.28*boost];
+
+  // Fläche (Blockumriss) als flache Platte, trianguliert
+  const contour = [];
+  for (let i = 0; i < out.length; i += 2) contour.push(new THREE.Vector2((out[i]-cx)*s, (out[i+1]-cz)*s));
+  const faces = THREE.ShapeUtils.triangulateShape(contour, []);
+
+  let nbTop = 0, nbWall = 0;
+  for (const b of bld) { nbTop += Math.max(0, b.ring.length/2 - 2); nbWall += b.ring.length/2; }
+  const nVerts = faces.length*3 + nbTop*3 + nbWall*6;
+  const pos = new Float32Array(nVerts*3);
+  const col = new Uint8Array(nVerts*3);
+  let q = 0;
+  const put = (x, y, z, c) => {
+    pos[q*3] = x; pos[q*3+1] = y; pos[q*3+2] = z;
+    col[q*3] = c[0]; col[q*3+1] = c[1]; col[q*3+2] = c[2]; q++;
+  };
+  // Platte
+  for (const f of faces) for (const k of f) {
+    const v = contour[k];
+    put(v.x, -0.004*sizeTarget, v.y, rgbBase);
+  }
+  // Gebäude
+  for (const b of bld) {
+    const R = b.ring, m = R.length/2;
+    const top = Math.max(0.012*sizeTarget, b.h*hv);
+    const pt = (i) => [(R[2*i]-cx)*s, (R[2*i+1]-cz)*s];
+    const p0 = pt(0);
+    for (let i = 1; i < m-1; i++) {          // Dach als Fächer
+      const a = pt(i), c2 = pt(i+1);
+      put(p0[0], top, p0[1], rgbTop);
+      put(a[0], top, a[1], rgbTop);
+      put(c2[0], top, c2[1], rgbTop);
+    }
+    for (let i = 0; i < m; i++) {            // Wände
+      const a = pt(i), c2 = pt((i+1)%m);
+      const ex = c2[0]-a[0], ez = c2[1]-a[1];
+      const L = Math.hypot(ex, ez) || 1;
+      const nx = ez/L, nz = -ex/L;
+      const d = Math.max(0, nx*LIGHT.x + nz*LIGHT.z);
+      const sh = 0.52 + 0.62*d;
+      const cw = [Math.min(255, base[0]*sh*boost), Math.min(255, base[1]*sh*boost), Math.min(255, base[2]*sh*boost)];
+      put(a[0], 0, a[1], cw);
+      put(c2[0], 0, c2[1], cw);
+      put(c2[0], top, c2[1], cw);
+      put(a[0], 0, a[1], cw);
+      put(c2[0], top, c2[1], cw);
+      put(a[0], top, a[1], cw);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+  geo.computeBoundingSphere();
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true }));
+  mesh.userData = { idx: rec[0], block: rec[1], nb: bld.length, maxh: bld.reduce((a,b)=>Math.max(a,b.h),0) };
+  return mesh;
+}
+
+// ----------------------------------------------------- Repräsentanten (dauerhaft)
+const repGroup = new THREE.Group();
+repGroup.name = 'reps';
+scene.add(repGroup);
+const repMeshes = [];
+const repLabels = [];
+const repRecs = RECS.filter(r => r[2] === 1);
+for (const rec of repRecs) {
+  const m = buildBody(rec, 0.95, 1.25);
+  m.position.copy(world(rec[0]));
+  m.userData.rep = true;
+  repGroup.add(m);
+  repMeshes.push(m);
+  // Beschriftung: Blocknummer
+  const cv = document.createElement('canvas');
+  cv.width = 128; cv.height = 44;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#0b0e13cc'; g.fillRect(0, 0, 128, 44);
+  g.strokeStyle = '#ffffff33'; g.strokeRect(0.5, 0.5, 127, 43);
+  g.fillStyle = '#f0f3f7'; g.font = '600 26px ui-sans-serif,system-ui,sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('#' + rec[1], 64, 23);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  sp.scale.set(0.38, 0.135, 1);
+  sp.position.set(m.position.x, m.position.y + 0.5, m.position.z);
+  sp.raycast = () => {};
+  sp.userData.rep = true;
+  repLabels.push(sp);
+  repGroup.add(sp);
+}
+STATS.reps = repMeshes.length;
+
+// ------------------------------------------------------------------------ LOD
+const cache = new Map();            // Blockindex -> Mesh
+const active = new Map();           // Blockindex -> Mesh (sichtbar)
+const lodGroup = new THREE.Group();
+lodGroup.name = 'lod';
+scene.add(lodGroup);
+let budget = BUDGET_MAX;
+
+// Kandidaten einmal sortierbar halten
+const recMap = new Map();
+for (const r of RECS) recMap.set(r[0], r);
+const tmpV = new THREE.Vector3();
+const frustum = new THREE.Frustum();
+const mvp = new THREE.Matrix4();
+
+const lodRadius = (D) => 0.55 * D;      // Weltmeter um den Blickpunkt, in denen Körper stehen
+
+function updateLOD() {
+  const D = camera.position.distanceTo(controls.target);
+  STATS.cameraDist = D;
+  camera.updateMatrixWorld();
+  mvp.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  frustum.setFromProjectionMatrix(mvp);
+
+  const want = new Set();
+  // Staffelung: je näher die Kamera, desto mehr Körper - in Stufen, gedeckelt durch das Budget
+  const rel = D / VIEW_DIST;
+  let quota = 0;
+  if (rel < 0.62) quota = 150;
+  if (rel < 0.48) quota = 400;
+  if (rel < 0.36) quota = 800;
+  if (rel < 0.26) quota = BUDGET_MAX;
+  quota = Math.min(quota, budget);
+  STATS.quota = quota;
+  if (D < FAR_CUT && quota > 0) {
+    const R = lodRadius(D);
+    const cand = [];
+    for (const rec of RECS) {
+      const d = world(rec[0], tmpV).distanceTo(controls.target);
+      if (d > R) continue;
+      cand.push([world(rec[0], tmpV).distanceTo(camera.position), rec]);
+    }
+    cand.sort((a, b) => a[0] - b[0]);          // nächste zuerst
+    for (const [, rec] of cand) {
+      if (want.size >= quota) break;
+      if (!frustum.containsPoint(world(rec[0], tmpV))) continue;
+      want.add(rec[0]);
+    }
+  }
+
+  // nicht mehr gebrauchte ausblenden
+  for (const [k, m] of active) {
+    if (!want.has(k)) { m.visible = false; active.delete(k); }
+  }
+  for (const k of want) {
+    let m = active.get(k);
+    if (m) continue;
+    m = cache.get(k);
+    if (!m) {
+      const rec = recMap.get(k);
+      m = buildBody(rec, 0.34);
+      m.position.copy(world(k));
+      cache.set(k, m);
+      if (cache.size > 2600) {                     // einfache LRU: älteste raus
+        const oldest = cache.keys().next().value;
+        if (!active.has(oldest)) { cache.get(oldest).geometry.dispose(); cache.delete(oldest); }
+      }
+      lodGroup.add(m);
+    }
+    m.visible = true;
+    active.set(k, m);
+  }
+
+  STATS.bodies = active.size;
+  STATS.level = active.size === 0 ? 'wolke' : (D > 14 ? 'umgebung' : 'blöcke');
+  let blds = 0;
+  for (const m of active.values()) blds += m.userData.nb;
+  STATS.buildings = blds;
+  $('bodies').textContent = `${active.size} Blockkörper · ${blds.toLocaleString('de-DE')} Gebäude`;
+  $('level').textContent = `Budget ${budget} · Radius ${D < FAR_CUT ? lodRadius(D).toFixed(1) : '–'}`;
+}
+
+// ------------------------------------------------------------------------ Hover
+const ray = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const tip = $('tip');
+let lastPointer = { x: -1, y: -1 };
+
+function hover(px, py) {
+  const D = camera.position.distanceTo(controls.target);
+  ndc.x = (px / innerWidth) * 2 - 1;
+  ndc.y = -(py / innerHeight) * 2 + 1;
+  ray.setFromCamera(ndc, camera);
+  ray.params.Points.threshold = Math.max(0.025, D * 0.006);
+  const objs = [points, ...repMeshes, ...active.values()];
+  const hits = ray.intersectObjects(objs, false);
+  if (!hits.length) { tip.style.opacity = 0; return; }
+  const h = hits[0];
+  const idx = h.object.isPoints ? h.index : h.object.userData.idx;
+  if (idx === undefined || idx === null) { tip.style.opacity = 0; return; }
+  showTip(idx, px, py);
+}
+
+function showTip(idx, px, py) {
+  const a = meta.a[idx], g = meta.g[idx], c = meta.c[idx], hh = meta.h[idx];
+  const b = meta.b[idx];
+  const isRep = repMeshes.some(m => m.userData.idx === idx);
+  const sw = PALETTE[c < 0.10 ? 0 : c < 0.25 ? 1 : c < 0.45 ? 2 : 3];
+  tip.innerHTML =
+    `<b>Block ${b}</b>${isRep ? ' · <span style="color:#c9a227">Medoid</span>' : ''}<br>` +
+    `<span class="row"><span class="sw" style="background:rgb(${sw})"></span>` +
+    `${a.toLocaleString('de-DE')} m² · ${g} Gebäude</span><br>` +
+    `<span class="row">überbaut ${(c*100).toFixed(0)} % · ` +
+    `${hh === null ? 'keine Höhenangabe' : 'Höhe ⌀ ' + hh.toFixed(1) + ' m'}</span>`;
+  tip.style.left = Math.min(px + 16, innerWidth - 265) + 'px';
+  tip.style.top = Math.min(py + 14, innerHeight - 110) + 'px';
+  tip.style.opacity = 1;
+}
+
+let hoverQueued = false;
+renderer.domElement.addEventListener('pointermove', (ev) => {
+  lastPointer = { x: ev.clientX, y: ev.clientY };
+  if (hoverQueued) return;
+  hoverQueued = true;
+  requestAnimationFrame(() => { hoverQueued = false; hover(lastPointer.x, lastPointer.y); });
+});
+renderer.domElement.addEventListener('pointerleave', () => { tip.style.opacity = 0; });
+
+// ---------------------------------------------------------------- FPS & Bremse
+let frames = 0, tPrev = performance.now(), fpsSmooth = 60;
+const home = { pos: camera.position.clone(), target: new THREE.Vector3(0,0,0) };
+addEventListener('keydown', (e) => {
+  if (e.key === 'r' || e.key === 'R') {
+    camera.position.copy(home.pos); controls.target.copy(home.target); controls.update();
+  }
+});
+renderer.domElement.addEventListener('dblclick', () => {
+  camera.position.copy(home.pos); controls.target.copy(home.target); controls.update();
+});
+
+let lodTimer = 0;
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = now - tPrev; tPrev = now;
+  frames++;
+  if (dt > 0) fpsSmooth = fpsSmooth * 0.92 + (1000/dt) * 0.08;
+  controls.update();
+  // Punktgröße an den Kameraabstand koppeln, sonst werden nahe Punkte zu Placken
+  const Dc = camera.position.distanceTo(controls.target);
+  pmaterial.size = Math.min(0.17, Math.max(0.018, Dc * 0.0085));
+  // Wolke zurücknehmen, sobald die Körper übernehmen
+  const rel = Dc / VIEW_DIST;
+  pmaterial.opacity = Math.min(0.88, Math.max(0.18, 0.18 + (rel - 0.28) * 1.05));
+
+  // Blocknummern nur dort zeigen, wo sie lesbar sind (nicht direkt vor der Linse)
+  for (const sp of repLabels) {
+    const d = sp.position.distanceTo(camera.position);
+    sp.visible = d > 2.6 && d < VIEW_DIST * 1.6;
+  }
+
+  lodTimer += dt;
+  if (lodTimer > 150) { lodTimer = 0; updateLOD(); }
+  if (frames % 20 === 0) {
+    const fps = fpsSmooth;
+    STATS.fps = Math.round(fps);
+    $('fps').textContent = Math.round(fps);
+    // automatische Drosselung: unter 30 fps weniger Körper, über 50 wieder mehr
+    if (fps < 30 && budget > 150) budget = Math.max(150, Math.floor(budget * 0.8));
+    else if (fps > 50 && budget < BUDGET_MAX) budget = Math.min(BUDGET_MAX, budget + 25);
+    STATS.budget = budget;
+  }
+  renderer.render(scene, camera);
+  STATS.drawn++;
+}
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// Kamera erst setzen, wenn das Layout steht (Containerhöhe ist beim Parsen 0)
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  updateLOD();
+  $('load').classList.add('gone');
+  STATS.ready = true;
+}));
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
