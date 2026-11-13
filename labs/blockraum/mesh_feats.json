@@ -1,0 +1,78 @@
+{
+ "n": 226556,
+ "k": 8,
+ "features": [
+  {
+   "key": "orient_std",
+   "label": "Ausrichtungsstreuung",
+   "unit": "Grad",
+   "desc": "flächengewichtete Streuung der Gebäudeausrichtung (längere Seite des Hüllrechtecks, 90°-Periode)",
+   "min": 0.0,
+   "max": 3.5777,
+   "log": true
+  },
+  {
+   "key": "orient_dom",
+   "label": "Dominante Ausrichtung",
+   "unit": "Anteil",
+   "desc": "Grundflächenanteil der Gebäude, deren Ausrichtung ±10° um die häufigste 5°-Klasse liegt",
+   "min": 0.2254,
+   "max": 1.0,
+   "log": false
+  },
+  {
+   "key": "top1_share",
+   "label": "Größtes Gebäude",
+   "unit": "Anteil",
+   "desc": "Anteil der bebauten Grundfläche im größten Gebäude (bezogen auf die acht größten)",
+   "min": 0.1258,
+   "max": 1.0,
+   "log": false
+  },
+  {
+   "key": "top3_share",
+   "label": "Drei größte Gebäude",
+   "unit": "Anteil",
+   "desc": "Anteil der bebauten Grundfläche in den drei größten Gebäuden (bezogen auf die acht größten)",
+   "min": 0.3766,
+   "max": 1.0,
+   "log": false
+  },
+  {
+   "key": "elong",
+   "label": "Elongation",
+   "unit": "–",
+   "desc": "flächengewichtete mittlere Streckung der Gebäude (lange/kurze Hüllrechteckseite, geklemmt 1–10)",
+   "min": 0.6933,
+   "max": 2.2458,
+   "log": true
+  },
+  {
+   "key": "gap",
+   "label": "Gebäudeabstand",
+   "unit": "–",
+   "desc": "mittlerer Schwerpunktabstand der Gebäude, geteilt durch Wurzel der Blockfläche",
+   "min": 0.0,
+   "max": 1.839,
+   "log": false
+  },
+  {
+   "key": "h_p90",
+   "label": "Höhe p90",
+   "unit": "m",
+   "desc": "90. Perzentil der Gebäudehöhen im Block",
+   "min": 0.6931,
+   "max": 3.4595,
+   "log": true
+  },
+  {
+   "key": "h_range",
+   "label": "Höhenspanne",
+   "unit": "m",
+   "desc": "Differenz aus höchstem und niedrigstem Gebäude",
+   "min": 0.0,
+   "max": 3.5835,
+   "log": true
+  }
+ ]
+}

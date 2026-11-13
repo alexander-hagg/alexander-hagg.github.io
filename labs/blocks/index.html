@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blockatlas Rheinland — jeder Straßenblock nach Form und Dichte</title>
+<meta name="description" content="UMAP-Projektion von 42.441 Straßenblöcken des Rheinlands über 22 morphologische Merkmale. Jeder Punkt ist ein Block; Farbe = Bebauungsdichte. Daten: Overture Maps, OpenStreetMap.">
+<meta name="theme-color" content="#0e1116">
+<meta property="og:title" content="Blockatlas Rheinland — Straßenblöcke nach Form und Dichte">
+<meta property="og:description" content="42.441 Straßenblöcke, 22 Merkmale, eine Projektion. Ziehen, zoomen, Block antippen.">
+<meta property="og:image" content="preview.jpg">
+<style>
+  :root {
+    --bg:#0e1116; --panel:#141922; --fg:#e8eaed; --dim:#98a0ab; --line:#232a34;
+    --accent:#e8c57a;
+  }
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    display:flex; flex-direction:column; min-height:100dvh;
+    -webkit-text-size-adjust:100%;
+  }
+  header { padding:14px 18px 10px; flex:none; }
+  .eyebrow {
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:8px;
+  }
+  .eyebrow a { color:var(--dim); text-decoration:none; border-bottom:1px solid transparent; }
+  .eyebrow a:hover, .eyebrow a:focus-visible { color:var(--fg); border-bottom-color:var(--line); }
+  .eyebrow .sep { color:#3a424e; }
+  h1 { font-size:17.5px; margin:0 0 6px; font-weight:600; letter-spacing:-.01em; line-height:1.25; }
+  .sub { color:var(--dim); font-size:12px; max-width:80ch; line-height:1.55; margin:0; }
+
+  main { flex:1 0 auto; display:block; padding:6px 0 0; }
+  figure { margin:0; }
+
+  /* Höhe setzt das Skript (Viewport minus Kopf, Bildunterschrift, Fuß):
+     sobald das nicht mehr reicht, wächst die Seite und scrollt, statt dass sich
+     Fuß und Bildunterschrift überlagern. */
+  #plot {
+    position:relative; flex:none; height:420px; min-height:260px;
+    cursor:grab; touch-action:none; overflow:hidden;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    background:var(--bg);
+  }
+  #plot.drag { cursor:grabbing; }
+  canvas { display:block; width:100%; height:100%; }
+
+  /* Legende als Overlay: bleibt auf jeder Bildschirmhöhe sichtbar */
+  .legend {
+    position:absolute; left:12px; bottom:12px; z-index:3;
+    display:flex; flex-wrap:wrap; gap:4px 14px; align-items:center;
+    max-width:calc(100% - 24px);
+    padding:8px 11px; border:1px solid var(--line); border-radius:8px;
+    background:rgba(14,17,22,.82); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    font-size:11px; color:var(--dim); line-height:1.45;
+  }
+  .legend span { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+  .legend i { width:9px; height:9px; border-radius:2px; flex:none; }
+  .legend b { color:var(--fg); font-weight:500; }
+
+  .hint {
+    position:absolute; right:12px; bottom:12px; z-index:3;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:10px;
+    letter-spacing:.04em; color:#7d8794;
+  }
+
+  /* Zoom-Bedienung: für Maus, Tastatur und Touch */
+  .hud { position:absolute; right:12px; top:12px; z-index:3; display:flex; gap:6px; }
+  .hud button {
+    width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid var(--line); border-radius:7px; background:rgba(20,25,34,.86);
+    color:var(--fg); font-size:15px; line-height:1; cursor:pointer;
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  }
+  .hud button:hover { border-color:var(--accent); color:var(--accent); }
+  .hud button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .hud svg { width:14px; height:14px; }
+
+  #tip {
+    position:absolute; z-index:4; pointer-events:none;
+    background:#1b212a; border:1px solid var(--line); border-radius:6px;
+    padding:7px 9px; font-size:11.5px; line-height:1.45; color:var(--fg);
+    opacity:0; transition:opacity .1s; max-width:240px;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  #tip b { font-weight:600; }
+  #tip em { color:var(--dim); font-style:normal; font-size:10.5px; }
+
+  figcaption {
+    flex:none; padding:10px 18px 6px; font-size:11.5px; line-height:1.55;
+    color:var(--dim); max-width:88ch;
+  }
+  figcaption b { color:var(--fg); font-weight:500; }
+
+  footer {
+    flex:none; padding:10px 18px 16px; border-top:1px solid var(--line);
+    font-size:11px; line-height:1.65; color:#7d8794; max-width:110ch;
+  }
+  footer p { margin:0 0 4px; }
+  footer a { color:var(--dim); text-decoration:none; border-bottom:1px solid var(--line); }
+  footer a:hover, footer a:focus-visible { color:var(--fg); border-bottom-color:var(--accent); }
+  footer .stat { color:var(--fg); font-variant-numeric:tabular-nums; }
+  .sr-only {
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+  }
+
+  @media (max-width:760px) {
+    header { padding:11px 14px 8px; }
+    h1 { font-size:15px; }
+    .sub { font-size:11.5px; }
+    .legend { left:8px; right:8px; bottom:8px; display:grid; grid-template-columns:1fr 1fr; max-width:none; font-size:10.5px; gap:2px 8px; padding:7px 9px; }
+    .hint { display:none; }
+    .hud { right:8px; top:8px; }
+    figcaption, footer { padding-left:14px; padding-right:14px; }
+    figcaption { font-size:11px; }
+    footer { font-size:10.5px; }
+    #plot { min-height:58vh; }
+  }
+  @media (max-height:520px) {
+    .sub { display:none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">
+    <span>AH / Lab · Blockatlas</span>
+    <span class="sep">·</span>
+    <a href="../../index.html#playground">← zurück zur Website</a>
+  </div>
+  <h1>Jeder Straßenblock des Rheinlands, nach Form und Dichte geordnet</h1>
+  <p class="sub">
+    UMAP 0.6 (recursive init, Adam) über 22 Blockmerkmale: Fläche, Gebäudezahl, Grundflächenanteil,
+    Geschossflächenzahl, Höhenverteilung, Kompaktheit, Erschließungsdichte und die Umrissform
+    (Seitenverhältnis, Ausrichtung, Solidität, Konvexität, fünf Fourier-Harmonische).
+    Jeder Punkt ist ein Block. Die Lage im Bild sagt nichts über die Lage in der Stadt —
+    ähnliche Blöcke liegen beieinander.
+  </p>
+</header>
+
+<main>
+  <figure>
+    <div id="plot" tabindex="0" role="application" aria-label="Streudiagramm aller Straßenblöcke. Ziehen verschiebt, Mausrad oder Plus und Minus zoomen, Doppelklick setzt zurück.">
+      <canvas id="cv"></canvas>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:#6b8f71"></i>offen, unter 10 % überbaut</span>
+        <span><i style="background:#c9a227"></i>10–25 %</span>
+        <span><i style="background:#b5651d"></i>25–45 %</span>
+        <span><i style="background:#a33b3b"></i>über 45 %, dicht</span>
+      </div>
+      <div class="hud">
+        <button type="button" id="zin" aria-label="Hineinzoomen" title="Hineinzoomen">+</button>
+        <button type="button" id="zout" aria-label="Herauszoomen" title="Herauszoomen">−</button>
+        <button type="button" id="zreset" aria-label="Ansicht zurücksetzen" title="Zurücksetzen">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M2.5 8a5.5 5.5 0 1 0 1.7-4M2.5 2v3.5H6"/>
+          </svg>
+        </button>
+      </div>
+      <div class="hint">ziehen = verschieben · Rad = zoomen · Doppelklick = zurücksetzen</div>
+      <div id="tip"></div>
+      <p class="sr-only" id="fallback">
+        Die Karte zeigt 42.441 Straßenblöcke als Punkte. Ohne Zeichnung hilft
+        <a href="preview.jpg">die statische Vorschau</a>.
+      </p>
+    </div>
+    <figcaption>
+      <b>Abb. 1 — Blockatlas Rheinland.</b> Zwei Dimensionen einer UMAP-Projektion von 42.441 Straßenblöcken
+      (Stand Oktober 2026). Nachbarschaft bedeutet Ähnlichkeit in den 22 Merkmalen, nicht räumliche Nähe;
+      Achsen sind deshalb ohne Einheit und ohne Beschriftung. Farbe = Anteil der Grundfläche, der überbaut ist.
+    </figcaption>
+  </figure>
+</main>
+
+<footer>
+  <p>
+    <span class="stat" id="stat">lade …</span> · Grundlage: Straßenblöcke aus Gebäude- und Straßengeometrie
+    (Fläche 400 m² – 40 ha), Merkmale in EPSG:3035 gerechnet, Projektion mit UMAP 0.6.
+  </p>
+  <p>
+    <b>Daten:</b> Overture Maps Foundation, Release 2026-10-21.0 — Themes <i>buildings</i> und <i>transportation</i>,
+    offene Daten (CDLA-Permissive-2.0; die aus OpenStreetMap abgeleiteten Teile stehen unter ODbL 1.0).
+  </p>
+  <p>
+    <b>Quellen und Lizenzen:</b> © OpenStreetMap-Mitwirkende, Open Database License (ODbL 1.0),
+    <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">openstreetmap.org/copyright</a>.
+    Geobasisdaten der Vermessungsverwaltungen, soweit im Release enthalten: © Geobasis NRW,
+    Datenlizenz Deutschland – Namensnennung 2.0 (DL-DE-BY-2.0).
+    Kartendarstellung und Projektion: eigene Auswertung, keine amtliche Grenz- oder Planungsgrundlage.
+  </p>
+</footer>
+
+<script>
+(async () => {
+  "use strict";
+
+  const $ = (s) => document.querySelector(s);
+  const plot = $("#plot");
+  const cv = $("#cv");
+  const tip = $("#tip");
+  const stat = $("#stat");
+  const ctx = cv.getContext("2d", { alpha: false });
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const fmt = (v) => Number(v).toLocaleString("de-DE");
+
+  let n = 0;
+  let X = null, Y = null, colorOf = null, order = null, palette = [], attrs = null, meta = null;
+  let W = 0, H = 0;
+  const home = { cx: 0, cy: 0, s: 1 };
+  let cam = { ...home };
+  let gridDirty = true;
+
+  /* ---------- Daten laden (alle vier Dateien parallel) ---------- */
+  async function loadJSON(url) {
+    const r = await fetch(url, { cache: "force-cache" });
+    if (!r.ok) throw new Error(url + " → HTTP " + r.status);
+    return r.json();
+  }
+  async function loadBin(url) {
+    const r = await fetch(url, { cache: "force-cache" });
+    if (!r.ok) throw new Error(url + " → HTTP " + r.status);
+    return r.arrayBuffer();
+  }
+
+  try {
+    const [m, xyBuf, rgbBuf, at] = await Promise.all([
+      loadJSON("meta.json"),
+      loadBin("xy.bin"),
+      loadBin("rgb.bin"),
+      loadJSON("points.json"),
+    ]);
+    meta = m;
+    attrs = at;
+    n = meta.n | 0;
+
+    const xy = new Float32Array(xyBuf);
+    const rgb = new Uint8Array(rgbBuf);
+    if (xy.length < 2 * n) throw new Error("xy.bin: " + (xy.length / 2) + " Punkte, meta.n = " + n);
+    if (rgb.length < 3 * n) throw new Error("rgb.bin: " + (rgb.length / 3) + " Farben, meta.n = " + n);
+    if (!Array.isArray(attrs) || attrs.length < n) throw new Error("points.json: " + (attrs ? attrs.length : 0) + " Einträge, meta.n = " + n);
+
+    X = new Float32Array(n);
+    Y = new Float32Array(n);
+    for (let i = 0; i < n; i++) { X[i] = xy[2 * i]; Y[i] = xy[2 * i + 1]; }
+
+    /* Startausschnitt robust bestimmen: das kürzeste Intervall, das 96 % der
+       Punkte enthält. Einzelne UMAP-Inseln und lange Ausreißerstränge würden sonst
+       die Bounding-Box aufblähen und die Hauptwolke winzig machen. Sie bleiben
+       erreichbar, liegen aber außerhalb der Startansicht. */
+    const coreRange = (arr, cover) => {
+      const s = Float32Array.from(arr).sort();
+      const n2 = s.length, k = Math.floor(cover * n2);
+      const stride = Math.max(1, Math.floor((n2 - k) / 40));
+      let best = { span: Infinity, lo: s[0], hi: s[n2 - 1] };
+      for (let i = 0; i + k < n2; i += stride) {
+        const span = s[i + k] - s[i];
+        if (span < best.span) { best = { span, lo: s[i], hi: s[i + k] }; }
+      }
+      if (!(best.span > 0)) { best = { span: 1, lo: s[0], hi: s[n2 - 1] || 1 }; }
+      return best;
+    };
+    const rx = coreRange(X, 0.96), ry = coreRange(Y, 0.96);
+    home.cx = (rx.lo + rx.hi) / 2;
+    home.cy = (ry.lo + ry.hi) / 2;
+    home.spanX = Math.max(1e-6, rx.span * 1.06);
+    home.spanY = Math.max(1e-6, ry.span * 1.06);
+    cam = { ...home };
+
+    /* Farbe je Punkt, nach Farbe sortiert: der Zeichenloop setzt fillStyle
+       nur beim Farbwechsel statt 42.000-mal pro Frame. */
+    colorOf = new Uint16Array(n);
+    const byKey = new Map();
+    for (let i = 0; i < n; i++) {
+      const k = i * 3;
+      const key = (rgb[k] << 16) | (rgb[k + 1] << 8) | rgb[k + 2];
+      let b = byKey.get(key);
+      if (b === undefined) {
+        b = palette.length;
+        byKey.set(key, b);
+        palette.push("rgba(" + rgb[k] + "," + rgb[k + 1] + "," + rgb[k + 2] + ",0.82)");
+      }
+      colorOf[i] = b;
+    }
+    const counts = new Uint32Array(palette.length);
+    for (let i = 0; i < n; i++) counts[colorOf[i]]++;
+    const start = new Uint32Array(palette.length);
+    for (let b = 1; b < palette.length; b++) start[b] = start[b - 1] + counts[b - 1];
+    const cursor = start.slice();
+    order = new Uint32Array(n);
+    for (let i = 0; i < n; i++) order[cursor[colorOf[i]]++] = i;
+  } catch (err) {
+    stat.textContent = "Daten nicht geladen — " + err.message;
+    stat.style.color = "#e08c8c";
+    plot.insertAdjacentHTML("beforeend",
+      '<p style="position:absolute;left:14px;top:58px;right:14px;z-index:6;color:#e08c8c;font-size:12px;' +
+      'line-height:1.5;background:rgba(14,17,22,.9);padding:10px 12px;border:1px solid #3a2427;' +
+      'border-radius:8px;margin:0">Der Viewer konnte die Datendateien nicht laden: ' +
+      String(err.message).replace(/[<>&]/g, "") +
+      ". Bitte über einen HTTP-Server öffnen (file:// blockiert fetch), z. B. " +
+      "<code>python3 -m http.server</code> im Ordner der Seite.</p>");
+    console.error(err);
+    return;
+  }
+
+  /* ---------- Kamera ---------- */
+  /* Höhe der Zeichenfläche: Viewport minus Kopf, Bildunterschrift und Fuß, damit
+     Legende und Quellen ohne Scrollen sichtbar sind. Reicht der Platz nicht,
+     bleibt die Mindesthöhe und die Seite scrollt. */
+  function sizePlot() {
+    const chrome = document.querySelector("header").offsetHeight
+      + document.querySelector("figcaption").offsetHeight
+      + document.querySelector("footer").offsetHeight;
+    const minH = window.innerWidth <= 760 ? Math.round(window.innerHeight * 0.58) : 300;
+    const h = Math.max(minH, Math.round(window.innerHeight - chrome - 10));
+    if (Math.abs(plot.offsetHeight - h) > 2) plot.style.height = h + "px";
+  }
+
+  function fitView(reset) {
+    sizePlot();
+    const pw = W, ph = H;
+    W = plot.clientWidth;
+    H = plot.clientHeight;
+    if (!W || !H) return false;                 // Layout steht noch nicht
+    cv.width = Math.round(W * DPR);
+    cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    home.s = Math.min(W / home.spanX, H / home.spanY);
+    if (!reset && pw && ph) {
+      // Beim Größenwechsel Zoomstufe mitziehen, statt die Ansicht zu verlieren
+      cam.s *= Math.min(W / pw, H / ph);
+    } else {
+      cam = { ...home };
+    }
+    return true;
+  }
+
+  /* ---------- Zeichnen ---------- */
+  function draw() {
+    if (!W || !H) return;
+    ctx.fillStyle = "#0e1116";
+    ctx.fillRect(0, 0, W, H);
+
+    const r = Math.max(1.3, Math.min(3.4, cam.s * 0.02 + 1.3));
+    const half = r / 2;
+
+    let cur = -1;
+    for (let k = 0; k < n; k++) {
+      const i = order[k];
+      const px = (X[i] - cam.cx) * cam.s + W / 2;
+      if (px < -4 || px > W + 4) continue;
+      const py = H / 2 - (Y[i] - cam.cy) * cam.s;
+      if (py < -4 || py > H + 4) continue;
+      const b = colorOf[i];
+      if (b !== cur) { cur = b; ctx.fillStyle = palette[b]; }
+      ctx.fillRect(px - half, py - half, r, r);
+    }
+  }
+
+  let frame = 0;
+  function requestDraw() {
+    if (frame) return;
+    frame = requestAnimationFrame(() => { frame = 0; draw(); });
+  }
+
+  /* ---------- Treffer für den Tooltip ---------- */
+  const CELL = 12;
+  let grid = new Map();
+  function buildGrid() {
+    grid = new Map();
+    for (let i = 0; i < n; i++) {
+      const px = (X[i] - cam.cx) * cam.s + W / 2;
+      const py = H / 2 - (Y[i] - cam.cy) * cam.s;
+      if (px < -CELL || py < -CELL || px > W + CELL || py > H + CELL) continue;
+      const key = ((px / CELL) | 0) + ":" + ((py / CELL) | 0);
+      let arr = grid.get(key);
+      if (!arr) grid.set(key, (arr = []));
+      arr.push(i);
+    }
+    gridDirty = false;
+  }
+  function nearest(mx, my) {
+    if (gridDirty) buildGrid();
+    const gx = (mx / CELL) | 0, gy = (my / CELL) | 0;
+    let best = -1, bd = Infinity;
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const arr = grid.get((gx + dx) + ":" + (gy + dy));
+        if (!arr) continue;
+        for (let j = 0; j < arr.length; j++) {
+          const i = arr[j];
+          const px = (X[i] - cam.cx) * cam.s + W / 2;
+          const py = H / 2 - (Y[i] - cam.cy) * cam.s;
+          const d = (px - mx) * (px - mx) + (py - my) * (py - my);
+          if (d < bd) { bd = d; best = i; }
+        }
+      }
+    }
+    return bd < 15 * 15 ? best : -1;
+  }
+
+  function hideTip() { tip.style.opacity = 0; }
+  function showTip(i, mx, my) {
+    const a = attrs[i] || {};
+    const cov = Number(a.cov);
+    const covTxt = cov > 1 ? "&gt; 100 % (Überlappung am Blockrand)" : (cov * 100).toFixed(0) + " %";
+    const hTxt = a.h == null ? '<em>keine Höhenangabe</em>' : "⌀ Höhe " + String(a.h).replace(".", ",") + " m";
+    tip.innerHTML =
+      "<b>Block " + fmt(i) + "</b><br>" +
+      fmt(a.n) + " Gebäude · " + fmt(a.a) + " m²<br>" +
+      "überbaut " + covTxt + " · " + hTxt;
+    tip.style.opacity = 1;
+    const tw = tip.offsetWidth || 200, th = tip.offsetHeight || 60;
+    tip.style.left = Math.max(4, Math.min(mx + 14, W - tw - 4)) + "px";
+    tip.style.top = Math.max(4, Math.min(my + 12, H - th - 4)) + "px";
+  }
+
+  /* ---------- Zoom ---------- */
+  const MIN_S = () => home.s * 0.5;
+  const MAX_S = () => home.s * 400;
+  function zoomAt(mx, my, factor) {
+    const s = Math.max(MIN_S(), Math.min(MAX_S(), cam.s * factor));
+    if (s === cam.s) return;
+    const wx = (mx - W / 2) / cam.s + cam.cx;
+    const wy = -(my - H / 2) / cam.s + cam.cy;
+    cam.s = s;
+    cam.cx = wx - (mx - W / 2) / cam.s;
+    cam.cy = wy + (my - H / 2) / cam.s;
+    gridDirty = true;
+    requestDraw();
+  }
+  function resetView() {
+    cam = { ...home };
+    gridDirty = true;
+    hideTip();
+    requestDraw();
+  }
+  const center = () => [W / 2, H / 2];
+
+  /* ---------- Eingaben: Zeiger (Maus, Stift, Finger) ---------- */
+  const pointers = new Map();
+  let pan = null, pinch = null, downAt = null;
+
+  plot.addEventListener("pointerdown", (e) => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { plot.setPointerCapture(e.pointerId); } catch (_) {}
+    hideTip();
+    if (pointers.size === 1) {
+      const r = plot.getBoundingClientRect();
+      downAt = { t: Date.now(), x: e.clientX, y: e.clientY, moved: 0 };
+      pan = { x: e.clientX, y: e.clientY, cx: cam.cx, cy: cam.cy };
+      plot.classList.add("drag");
+      // Tip auf Touch: sofort den nächsten Block zeigen
+      if (e.pointerType === "touch") {
+        const i = nearest(e.clientX - r.left, e.clientY - r.top);
+        if (i >= 0) showTip(i, e.clientX - r.left, e.clientY - r.top);
+      }
+    } else if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      const r = plot.getBoundingClientRect();
+      pinch = {
+        d: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+        s: cam.s,
+        wx: (mx - r.left - W / 2) / cam.s + cam.cx,
+        wy: -((my - r.top) - H / 2) / cam.s + cam.cy,
+      };
+      pan = null;
+      hideTip();
+    }
+  });
+
+  plot.addEventListener("pointermove", (e) => {
+    const r = plot.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pinch && pointers.size >= 2) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      const midX = (a.x + b.x) / 2 - r.left, midY = (a.y + b.y) / 2 - r.top;
+      const s = Math.max(MIN_S(), Math.min(MAX_S(), pinch.s * (d / pinch.d)));
+      cam.s = s;
+      cam.cx = pinch.wx - (midX - W / 2) / s;
+      cam.cy = pinch.wy + (midY - H / 2) / s;
+      gridDirty = true;
+      requestDraw();
+      return;
+    }
+    if (pan) {
+      const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+      if (downAt) downAt.moved = Math.max(downAt.moved, Math.abs(dx) + Math.abs(dy));
+      cam.cx = pan.cx - dx / cam.s;
+      cam.cy = pan.cy + dy / cam.s;
+      gridDirty = true;
+      requestDraw();
+      return;
+    }
+    if (e.pointerType === "touch") return;   // kein Hover auf Touch
+    const i = nearest(mx, my);
+    if (i < 0) hideTip(); else showTip(i, mx, my);
+  });
+
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+    try { plot.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (pointers.size === 0) {
+      pan = null; pinch = null;
+      plot.classList.remove("drag");
+    } else if (pointers.size === 1) {
+      pinch = null;
+      const p = [...pointers.values()][0];
+      pan = { x: p.x, y: p.y, cx: cam.cx, cy: cam.cy };
+    }
+  }
+  plot.addEventListener("pointerup", endPointer);
+  plot.addEventListener("pointercancel", endPointer);
+
+  plot.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse" && !pan) hideTip(); });
+
+  plot.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const r = plot.getBoundingClientRect();
+    zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.0016));
+    hideTip();
+  }, { passive: false });
+
+  plot.addEventListener("dblclick", (e) => { e.preventDefault(); resetView(); });
+
+  $("#zin").addEventListener("click", () => { const [x, y] = center(); zoomAt(x, y, 1.6); });
+  $("#zout").addEventListener("click", () => { const [x, y] = center(); zoomAt(x, y, 1 / 1.6); });
+  $("#zreset").addEventListener("click", resetView);
+
+  plot.addEventListener("keydown", (e) => {
+    const [x, y] = center();
+    if (e.key === "+" || e.key === "=") { zoomAt(x, y, 1.5); e.preventDefault(); }
+    else if (e.key === "-" || e.key === "_") { zoomAt(x, y, 1 / 1.5); e.preventDefault(); }
+    else if (e.key === "0") { resetView(); e.preventDefault(); }
+  });
+
+  let resizeTimer = 0;
+  addEventListener("resize", () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => { fitView(); gridDirty = true; draw(); }, 120);
+  });
+
+  /* Schrift und Bilder ändern die Höhe von Kopf, Bildunterschrift und Fuß —
+     danach die Fläche noch einmal vermessen, sonst bleibt ein Rest zum Scrollen. */
+  const refit = () => { if (fitView()) { gridDirty = true; draw(); } };
+  addEventListener("load", refit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit).catch(() => {});
+
+  /* Erst zeichnen, wenn das Layout steht: beim ersten Aufruf ist die Höhe des
+     Containers noch 0, dann fällt der Maßstab auf ein Minimum zusammen. */
+  function boot(tries) {
+    if (!fitView()) {
+      // Höhe noch 0 (verstecktes iframe, spätes Layout): kurz erneut versuchen.
+      if (tries > 0) setTimeout(() => boot(tries - 1), 120);
+      return;
+    }
+    gridDirty = true;
+    draw();
+    stat.textContent = fmt(n) + " Blöcke · " + meta.cols.length + " Merkmale · " + palette.length + " Dichteklassen";
+  }
+  requestAnimationFrame(() => requestAnimationFrame(() => boot(20)));
+  /* Falls rAF gedrosselt ist (Hintergrund-Tab, manche Einbetter), trotzdem zeichnen. */
+  setTimeout(() => boot(20), 80);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refit(); });
+
+})();
+</script>
+</body>
+</html>
